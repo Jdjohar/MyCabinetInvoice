@@ -1,0 +1,47 @@
+import React from 'react'
+import {Link, useNavigate} from 'react-router-dom'
+// import './Userstyle.css'
+import './Userstyle.css'
+
+export default function Usernavbar() {
+  return (
+    <div>
+      <div className="sidebar-offcanvas pl-0" id="sidebar" role="navigation" style={{ backgroundColor: '#fff' }}>
+        <header className="header d-xl-block menu" id="menu">
+          <div className="d-flex flex-column ">
+            <div className="text-center pt-5 pb-3">
+            <h1 className='text-center mb-5 fw-bold'>IN<span className='clrblue'>VOICE</span></h1>
+            </div>
+
+            <nav className="sb-sidenav accordion sb-sidenav-dark text-black" id="sidenavAccordion">
+              <div className="sb-sidenav-menu">
+                <div className="nav">
+                  <ul>
+                    <li>
+                      <Link to="/Userpanel/Userdashboard" className='nav-link scrollto icones text-black' >
+                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Dashboard</span>
+                      </Link>
+                    </li>
+                    <li>
+                      <Link to="/userpanel/Team" className='nav-link scrollto icones text-black' >
+                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
+                      </Link>
+                    </li>
+                    
+                      <li>
+                        <a className=" pointer nav-link scrollto icones text-black">
+                          <i class="fa-solid fa-right-from-bracket me-2"></i>
+                          <span>Logout</span>
+                        </a>
+                      </li>
+                  </ul>
+                </div>
+              </div>
+            </nav>
+          </div>
+        </header>
+      </div>
+
+    </div>
+  )
+}
