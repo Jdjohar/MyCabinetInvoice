@@ -4,6 +4,19 @@ import {Link, useNavigate} from 'react-router-dom'
 import './Userstyle.css'
 
 export default function Usernavbar() {
+  
+  let navigate = useNavigate();
+
+  const handleLogout = () => {
+    localStorage.removeItem('authToken');
+    localStorage.removeItem('userid');
+    localStorage.removeItem('username');
+    localStorage.removeItem('userEmail');
+    localStorage.removeItem('isTeamMember');
+    localStorage.removeItem('startTime');
+    navigate('/');
+  };
+
   return (
     <div>
       <div className="sidebar-offcanvas pl-0" id="sidebar" role="navigation" style={{ backgroundColor: '#fff' }}>
@@ -29,7 +42,7 @@ export default function Usernavbar() {
                     </li>
                     
                       <li>
-                        <a className=" pointer nav-link scrollto icones text-black">
+                        <a onClick={handleLogout} className=" pointer nav-link scrollto icones text-black">
                           <i class="fa-solid fa-right-from-bracket me-2"></i>
                           <span>Logout</span>
                         </a>

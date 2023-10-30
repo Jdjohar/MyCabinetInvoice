@@ -14,8 +14,16 @@ export default function Team() {
     }
 
     useEffect(() => {
+        if(!localStorage.getItem("authToken"))
+        {
+          navigate("/");
+        }
         fetchdata();
-    }, []);
+    }, [])
+
+    // useEffect(() => {
+    //     fetchdata();
+    // }, []);
 
     const fetchdata = async () => {
         try {

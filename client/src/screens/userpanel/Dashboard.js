@@ -1,7 +1,15 @@
 import React,{useState,useEffect} from 'react'
 import { format } from 'date-fns';
+import {useNavigate} from 'react-router-dom'
 
 export default function Dashboard() {
+    useEffect(() => {
+        if(!localStorage.getItem("authToken"))
+        {
+          navigate("/");
+        }
+    }, [])
+    let navigate = useNavigate();
     const [isClockedIn, setIsClockedIn] = useState(false);
     const [startTime, setStartTime] = useState(null);
     const [totalTime, setTotalTime] = useState(0);
