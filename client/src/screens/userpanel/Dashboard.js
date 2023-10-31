@@ -1,13 +1,17 @@
 import React,{useState,useEffect} from 'react'
 import { format } from 'date-fns';
 import {useNavigate} from 'react-router-dom'
+import { ColorRing } from  'react-loader-spinner'
 
 export default function Dashboard() {
+  const [ loading, setloading ] = useState(true);
     useEffect(() => {
         if(!localStorage.getItem("authToken"))
         {
           navigate("/");
         }
+        // setloading(true)
+        
     }, [])
     let navigate = useNavigate();
     const [isClockedIn, setIsClockedIn] = useState(false);
@@ -81,6 +85,7 @@ export default function Dashboard() {
               }
             } catch (error) {
               console.error(error);
+              setloading(false);
             }
           };
 
@@ -108,22 +113,24 @@ export default function Dashboard() {
             else {
               setTotalTime('0 hrs 0 mins 0 secs');
             }
+            fetchUserEntries();
           }, [isClockedIn, startTime]);
-
-          useEffect(() => {
             const fetchUserEntries = async () => {
               try {
                 const userid = localStorage.getItem('userid');
                 const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${userid}`);
                 const data = await response.json();
                 setUserEntries(data.userEntries);
+
+                setTimeout(()=>{
+                  setloading(false)
+                  
+                },2000)
               } catch (error) {
                 console.error(error);
               }
             };
         
-            fetchUserEntries();
-          }, []);
 
 // Regular expression to match hours, minutes, and seconds
 const timePattern = /(\d+) hours (\d+) minutes (\d+) seconds/;
@@ -134,14 +141,18 @@ let totalMinutes = 0;
 let totalSeconds = 0;
 
 // Iterate through userEntries to extract and accumulate time
+if(userEntries.length > 0){
 userEntries.forEach((entry) => {
-  const match = entry.totalTime.match(timePattern);
-  if (match) {
-    totalHours += parseInt(match[1]);
-    totalMinutes += parseInt(match[2]);
-    totalSeconds += parseInt(match[3]);
+  if(entry.totalTime != undefined && entry.totalTime != null && entry.totalTime != ""){
+  const matchs = entry.totalTime.match(timePattern);
+  if (matchs) {
+    totalHours += parseInt(matchs[1]);
+    totalMinutes += parseInt(matchs[2]);
+    totalSeconds += parseInt(matchs[3]);
   }
+}
 });
+}
 
 // Handle any overflow from seconds to minutes or minutes to hours
 totalMinutes += Math.floor(totalSeconds / 60);
@@ -152,7 +163,22 @@ totalMinutes %= 60;
 
   return (
     <div>
+      {
+        loading?
+        <div className='row'>
+          <ColorRing
+        // width={200}
+        loading={loading}
+        // size={500}
+        display="flex"
+        justify-content= "center"
+        align-items="center"
+        aria-label="Loading Spinner"
+        data-testid="loader"        
+      />
+        </div>:
       <div className='mx-4'>
+        
         <div className=''>
           <div className='txt px-4 py-4'>
             <h2 className='fs-35 fw-bold'>Dashboard</h2>
@@ -232,7 +258,6 @@ totalMinutes %= 60;
               </div>
               <div className="col-4">
                 <p>{entry.totalTime}</p>
-                {/* <p>{entry.totalTime.hours} hrs {entry.totalTime.minutes} mins</p> */}
               </div>
             </div>
           ))}
@@ -241,6 +266,7 @@ totalMinutes %= 60;
           </div>
         </div>
       </div>
+}
     </div>
   )
 }

@@ -1,11 +1,13 @@
-import React, { useState } from 'react';
+import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Usernavbar from './userpanel/Usernavbar';
+import { ColorRing } from  'react-loader-spinner'
 
 export default function Addteam() {
   const navigate = useNavigate();
   const [message, setMessage] = useState(false);
   const [alertShow, setAlertShow] = useState('');
+  const [ loading, setloading ] = useState(true);
   const [credentials, setCredentials] = useState({
     name: '',
     email: '',
@@ -13,8 +15,21 @@ export default function Addteam() {
     password: '',
   });
 
-  const handleSubmit = async (e) => {
-    e.preventDefault();
+  useEffect(() => {
+    if(!localStorage.getItem("authToken"))
+    {
+      navigate("/");
+    }
+    handleSubmit();
+      setloading(true)
+     setTimeout(()=>{
+    setloading(false)
+  
+  },1000)
+  }, [])
+
+  const handleSubmit = async () => {
+    // e.preventDefault();
     let userid = localStorage.getItem('userid');
     const response = await fetch('https://invoice-n96k.onrender.com/api/addteammember', {
       method: 'POST',
@@ -44,7 +59,11 @@ export default function Addteam() {
       setMessage(true);
       setAlertShow(json.message);
       navigate('/userpanel/Team');
-    }
+    
+    } else {
+      console.log('Error fetching data:');
+      setloading(false);
+  }
   };
 
   const onchange = (event) => {
@@ -54,6 +73,20 @@ export default function Addteam() {
   return (
     <div className="bg">
       <div className="container-fluid">
+      {
+        loading?
+        <div className='row'>
+          <ColorRing
+        // width={200}
+        loading={loading}
+        // size={500}
+        display="flex"
+        justify-content= "center"
+        align-items="center"
+        aria-label="Loading Spinner"
+        data-testid="loader"        
+      />
+        </div>:
         <div className="row">
           <div className="col-lg-2 col-md-3 b-shadow bg-white d-lg-block d-md-block d-none">
             <div>
@@ -168,6 +201,7 @@ export default function Addteam() {
             </form>
           </div>
         </div>
+}
       </div>
     </div>
   );
