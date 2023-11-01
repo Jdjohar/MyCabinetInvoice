@@ -4,6 +4,8 @@ import SignUp from './screens/SignUp';
 import Userdashboard from './screens/userpanel/Userdashboard';
 import Team from './screens/userpanel/Team';
 import Addteam from './screens/Addteam';
+import Timeview from './screens/userpanel/Timeview';
+import Timeschemahistory from './screens/Timeschemahistory';
 // import { InvoiceProvider } from './components/InvoiceContext';
 import {
   BrowserRouter as Router,
@@ -23,6 +25,8 @@ function App() {
             <Route exact path='/userpanel/Userdashboard' element={<Userdashboard/>} />
             <Route exact path='/userpanel/Team' element={<Team/>} />
             <Route exact path='/Addteam' element={<Addteam/>} />
+            <Route exact path='/userpanel/Timeview' element={<Timeview/>} />
+            <Route exact path='/Timeschemahistory' element={<Timeschemahistory/>} />
           </Routes>
         </div>
       </Router>

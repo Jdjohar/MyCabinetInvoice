@@ -1,4 +1,4 @@
-import React from 'react'
+import React, { useEffect,useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 // import './Userstyle.css'
 import './Userstyle.css'
@@ -6,6 +6,7 @@ import './Userstyle.css'
 export default function Usernavbar() {
   
   let navigate = useNavigate();
+  const [ teammember, setTeammember ] = useState("true");
 
   const handleLogout = () => {
     localStorage.removeItem('authToken');
@@ -16,6 +17,13 @@ export default function Usernavbar() {
     localStorage.removeItem('startTime');
     navigate('/');
   };
+  useEffect(()=>{
+    const tam = localStorage.getItem('isTeamMember');
+    if(tam != undefined && tam != null && tam != "")
+    {
+      setTeammember(tam.toString());
+    }
+  })
 
   return (
     <div>
@@ -35,11 +43,12 @@ export default function Usernavbar() {
                         <i class="fa-solid fa-house me-2 dashclr"></i> <span>Dashboard</span>
                       </Link>
                     </li>
+                    {teammember == "false" ?
                     <li>
                       <Link to="/userpanel/Team" className='nav-link scrollto icones text-black' >
                         <i class="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
                       </Link>
-                    </li>
+                    </li> : ""}
                     
                       <li>
                         <a onClick={handleLogout} className=" pointer nav-link scrollto icones text-black">

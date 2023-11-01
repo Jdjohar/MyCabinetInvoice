@@ -405,6 +405,38 @@ router.get('/userEntries/:userid', async (req, res) => {
       res.status(500).json({ message: 'Server error' });
     }
   });
+
+  router.get('/allEntries', async (req, res) => {
+  try {
+    const allEntries = await Timeschema.find().sort({ startTime: 1 });
+
+    if (allEntries && allEntries.length > 0) {
+      res.json({ allEntries });
+    } else {
+      res.status(404).json({ message: 'No entries found' });
+    }
+  } catch (error) {
+    console.error(error);
+    res.status(500).json({ message: 'Server error' });
+  }
+});
+
+//   router.get('/allEntriesuserwise/:userid', async (req, res) => {
+//   try {
+//     const { userid } = req.params;
+//     const allEntries = await Timeschema.find({userid}).sort({ startTime: 1 });
+
+//     if (allEntries && allEntries.length > 0) {
+//       res.json({ allEntries });
+//     } else {
+//       res.status(404).json({ message: 'No entries found' });
+//     }
+//   } catch (error) {
+//     console.error(error);
+//     res.status(500).json({ message: 'Server error' });
+//   }
+// });
+
   
   
 

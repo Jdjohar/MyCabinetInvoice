@@ -32,10 +32,15 @@ export default function Team() {
     //     fetchdata();
     // }, []);
 
+    const handleTimeViewClick = (team) => {
+        let teamid = team._id;
+        navigate('/userpanel/Timeview', { state: { teamid } });
+    };
+
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/teammemberdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/teammemberdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -100,7 +105,7 @@ export default function Team() {
                                         <th scope="col"> Name </th>
                                         <th scope="col">Email </th>
                                         <th scope="col">Phone Number  </th>
-                                        {/* <th scope="col">Menu </th> */}
+                                        <th scope="col">View </th>
                                         {/* <th scope="col">Edit/Delete </th> */}
                                         <th scope="col">Created At </th>
                                     </tr>
@@ -112,11 +117,11 @@ export default function Team() {
                                                 <td>{team.name}</td>
                                                 <td>{team.email}</td>
                                                 <td>{team.number}</td> 
-                                                {/* <td className='text-center'>
-                                                    <a role="button" className='text-black text-center' onClick={ () => handleMenuViewClick(restaurant)}>
+                                                <td className='text-center'>
+                                                    <a role="button" className='text-black text-center' onClick={ () => handleTimeViewClick(team)}>
                                                         <i class="fa-solid fa-eye"></i>
                                                     </a>
-                                                </td> */}
+                                                </td>
                                                 {/* <td>
                                                     <div className="d-flex">
                                                         <a role='button' className="btn btn-success btn-sm me-2 text-white" onClick={ () => handleEditClick(restaurant)}>
