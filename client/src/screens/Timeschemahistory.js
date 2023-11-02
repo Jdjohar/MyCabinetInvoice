@@ -9,7 +9,9 @@ export default function Timeschemahistory() {
   const location = useLocation();
   const navigate = useNavigate();
   const [userEntries, setUserEntries] = useState([]);
-  const [uniqueMonths, setUniqueMonths] = useState([]); // Store unique months
+  const [uniqueMonths, setUniqueMonths] = useState([]); 
+  const [currentPageByMonth, setCurrentPageByMonth] = useState({});
+  const [entriesPerPage] = useState(10);
   if(location == null || location.state == null || location.state.teamid == null)
   {
       navigate('/userpanel/Team')
@@ -26,13 +28,19 @@ export default function Timeschemahistory() {
   const fetchAllEntries = async () => {
     try {
       // Fetch all entries for the merchant's team (teamid)
-      const response = await fetch(`http://localhost:3001/api/userEntries/${teamid}`);
+      const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${teamid}`);
       const data = await response.json();
 
       setUserEntries(data.userEntries);
       // Extract unique months from the entries
       const months = [...new Set(data.userEntries.map((entry) => new Date(entry.startTime).getMonth()))];
       setUniqueMonths(months);
+
+      const initialPageByMonth = {};
+      months.forEach((monthIndex) => {
+        initialPageByMonth[monthIndex] = 0;
+      });
+      setCurrentPageByMonth(initialPageByMonth);
 
       setTimeout(() => {
         setloading(false);
@@ -42,8 +50,21 @@ export default function Timeschemahistory() {
     }
   };
 
+  const paginate = (items, page, pageSize) => {
+    const startIndex = page * pageSize;
+    return items.slice(startIndex, startIndex + pageSize);
+  };
+
+  const changePageForMonth = (monthIndex, nextPage) => {
+    setCurrentPageByMonth({
+      ...currentPageByMonth,
+      [monthIndex]: nextPage,
+    });
+  };
+
   return (
-    <div>
+    <div className='bg'>
+      <div className='container-fluid'>
       {loading ? (
         <div className="row">
           <ColorRing
@@ -75,9 +96,10 @@ export default function Timeschemahistory() {
                     (entry) => new Date(entry.startTime).getMonth() === monthIndex
                   );
                   const monthName = new Date(monthEntries[0].startTime).toLocaleDateString('default', { month: 'long' });
+                  const paginatedEntries = paginate(monthEntries, currentPageByMonth[monthIndex], entriesPerPage);
 
                   return (
-                    <React.Fragment key={monthName}>
+<React.Fragment key={monthName}>
                       {index > 0 && <hr />}
                       <div className="row">
                         <div className="col-12">
@@ -97,36 +119,49 @@ export default function Timeschemahistory() {
                         <div className="col-2">
                           <p>End Date</p>
                         </div>
-                        {/* <div className="col-1">
-                          <p>Month</p>
-                        </div> */}
                         <div className="col-3">
                           <p>Total Time</p>
                         </div>
                       </div>
 
-                      {monthEntries.map((entry) => (
+                      {paginatedEntries.map((entry) => (
                         <div className="row" key={entry._id}>
                           <div className="col-2">
                             <p>{new Date(entry.startTime).toLocaleTimeString()}</p>
                           </div>
                           <div className="col-2">
-                            <p>{new Date(entry.endTime).toLocaleTimeString()}</p>
+                            <p>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</p>
                           </div>
                           <div className="col-2">
                             <p>{new Date(entry.startTime).toLocaleDateString()}</p>
                           </div>
                           <div className="col-2">
-                            <p>{new Date(entry.endTime).toLocaleDateString()}</p>
+                            <p>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</p>
                           </div>
-                          {/* <div className="col-1">
-                            <p>{monthName}</p>
-                          </div> */}
                           <div className="col-3">
                             <p>{entry.totalTime}</p>
                           </div>
                         </div>
                       ))}
+
+                      {monthEntries.length > entriesPerPage && (
+                        <div className="row">
+                          <div className="col-12 ">
+                            <button
+                              onClick={() => changePageForMonth(monthIndex, currentPageByMonth[monthIndex] - 1)}
+                              disabled={currentPageByMonth[monthIndex] === 0}
+                            >
+                              Previous Page
+                            </button>
+                            <button
+                              onClick={() => changePageForMonth(monthIndex, currentPageByMonth[monthIndex] + 1)}
+                              disabled={(currentPageByMonth[monthIndex] + 1) * entriesPerPage >= monthEntries.length}
+                            >
+                              Next Page
+                            </button>
+                          </div>
+                        </div>
+                      )}
                     </React.Fragment>
                   );
                 })}
@@ -135,6 +170,7 @@ export default function Timeschemahistory() {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

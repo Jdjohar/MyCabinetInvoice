@@ -31,7 +31,7 @@ useEffect(() => {
       const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
       const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
 
-      const response = await fetch(`http://localhost:3001/api/userEntries/${teamid}`);
+      const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${teamid}`);
       const data = await response.json();
 
       // Filter userEntries to include only entries for the current month
@@ -66,7 +66,8 @@ const GoToHistory = () => {
   
 
   return (
-    <div>
+    <div className='bg'>
+      <div className='container-fluid'>
       {loading ? (
         <div className="row">
           <ColorRing
@@ -88,7 +89,6 @@ const GoToHistory = () => {
 
           <div className="col-lg-10 col-md-9 col-12 mx-auto">
             <div className="row my-4 mx-5">
-              <div className="row py-2">
                 <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                   <p className="h5 fw-bold">Current Month</p>
                 </div>
@@ -97,7 +97,6 @@ const GoToHistory = () => {
                     History
                   </button>
                 </div>
-              </div>
               <hr />
 
               <div className="box1 rounded adminborder pt-3 text-center">
@@ -125,13 +124,13 @@ const GoToHistory = () => {
                       <p>{new Date(entry.startTime).toLocaleTimeString()}</p>
                     </div>
                     <div className="col-2">
-                      <p>{new Date(entry.endTime).toLocaleTimeString()}</p>
+                      <p>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</p>
                     </div>
                     <div className="col-2">
                       <p>{new Date(entry.startTime).toLocaleDateString()}</p>
                     </div>
                     <div className="col-2">
-                      <p>{new Date(entry.endTime).toLocaleDateString()}</p>
+                      <p>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</p>
                     </div>
                     <div className="col-4">
                       <p>{entry.totalTime}</p>
@@ -154,6 +153,7 @@ const GoToHistory = () => {
           </div>
         </div>
       )}
+      </div>
     </div>
   );
 }

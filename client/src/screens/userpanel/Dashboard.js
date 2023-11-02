@@ -5,6 +5,8 @@ import { ColorRing } from  'react-loader-spinner'
 
 export default function Dashboard() {
   const [ loading, setloading ] = useState(true);
+  const [currentPage, setCurrentPage] = useState(0);
+  const entriesPerPage = 10; // Number of entries to display per page
     useEffect(() => {
         if(!localStorage.getItem("authToken"))
         {
@@ -29,7 +31,7 @@ export default function Dashboard() {
           let userEmail = localStorage.getItem('userEmail');
           let isTeamMember = localStorage.getItem('isTeamMember');
 
-            const response = await fetch('http://localhost:3001/api/clockin', {
+            const response = await fetch('https://invoice-n96k.onrender.com/api/clockin', {
               method: 'POST', // Use POST method for clock-in
               headers: {
                 'Content-Type': 'application/json',
@@ -57,7 +59,7 @@ export default function Dashboard() {
               let username = localStorage.getItem('username');
               let userEmail = localStorage.getItem('userEmail');
               let isTeamMember = localStorage.getItem('isTeamMember');
-              const response = await fetch('http://localhost:3001/api/clockout', {
+              const response = await fetch('https://invoice-n96k.onrender.com/api/clockout', {
                 method: 'POST', // Use POST method for clock-out
                 headers: {
                   'Content-Type': 'application/json',
@@ -124,7 +126,7 @@ export default function Dashboard() {
           const fetchUserEntries = async (start, end) => {
             try {
               const userid = localStorage.getItem('userid');
-              const response = await fetch(`http://localhost:3001/api/userEntries/${userid}`);
+              const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${userid}`);
               const data = await response.json();
         
               // Filter userEntries to include only entries for the current month
@@ -171,6 +173,29 @@ totalMinutes += Math.floor(totalSeconds / 60);
 totalSeconds %= 60;
 totalHours += Math.floor(totalMinutes / 60);
 totalMinutes %= 60;
+
+
+// Function to get the current page entries
+const getCurrentPageEntries = () => {
+  const startIndex = currentPage * entriesPerPage;
+  const endIndex = startIndex + entriesPerPage;
+  return userEntries.slice(startIndex, endIndex);
+};
+
+// Function to handle the previous page
+const handlePrevPage = () => {
+  if (currentPage > 0) {
+    setCurrentPage(currentPage - 1);
+  }
+};
+
+// Function to handle the next page
+const handleNextPage = () => {
+  if ((currentPage + 1) * entriesPerPage < userEntries.length) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
 
 
   return (
@@ -235,45 +260,61 @@ totalMinutes %= 60;
               <p>This Month</p>
             </div>
 
-              <div className="box1 rounded adminborder pt-3 text-center">
-                <div className="row">
+            <div className="box1 rounded adminborder pt-3 text-center">
+              <div className="row">
+                <div className="col-2">
+                  <p>Start Time</p>
+                </div>
+                <div className="col-2">
+                  <p>End Time</p>
+                </div>
+                <div className="col-2">
+                  <p>Start Date</p>
+                </div>
+                <div className="col-2">
+                  <p>End Date</p>
+                </div>
+                <div className="col-4">
+                  <p>Total Time</p>
+                </div>
+              </div>
+
+              {getCurrentPageEntries().map((entry) => (
+                <div className="row" key={entry._id}>
                   <div className="col-2">
-                    <p>Start Time</p>
+                    <p>{new Date(entry.startTime).toLocaleTimeString()}</p>
                   </div>
                   <div className="col-2">
-                    <p>End Time</p>
+                    <p> {entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</p>
                   </div>
                   <div className="col-2">
-                    <p>Start Date</p>
+                    <p>{new Date(entry.startTime).toLocaleDateString()}</p>
                   </div>
                   <div className="col-2">
-                    <p>End Date</p>
+                    <p>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</p>
                   </div>
                   <div className="col-4">
-                    <p>Total Time</p>
+                    <p>{entry.totalTime}</p>
                   </div>
                 </div>
+              ))}
+            </div>
 
-                {userEntries.map((entry) => (
-                  <div className="row" key={entry._id}>
-                    <div className="col-2">
-                      <p>{new Date(entry.startTime).toLocaleTimeString()}</p>
-                    </div>
-                    <div className="col-2">
-                      <p>{new Date(entry.endTime).toLocaleTimeString()}</p>
-                    </div>
-                    <div className="col-2">
-                      <p>{new Date(entry.startTime).toLocaleDateString()}</p>
-                    </div>
-                    <div className="col-2">
-                      <p>{new Date(entry.endTime).toLocaleDateString()}</p>
-                    </div>
-                    <div className="col-4">
-                      <p>{entry.totalTime}</p>
-                    </div>
-                  </div>
-                ))}
+            {userEntries.length > entriesPerPage && (
+              <div className="row">
+                <div className="col-12">
+                  <button onClick={handlePrevPage} disabled={currentPage === 0}>
+                    Previous Page
+                  </button>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={(currentPage + 1) * entriesPerPage >= userEntries.length}
+                  >
+                    Next Page
+                  </button>
+                </div>
               </div>
+            )}
           </div>
         </div>
       </div>

@@ -40,7 +40,7 @@ export default function Team() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/teammemberdata/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/teammemberdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
