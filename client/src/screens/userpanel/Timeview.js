@@ -17,7 +17,7 @@ if(location == null || location.state == null || location.state.teamid == null)
 }
 const teamid = location.state?.teamid;
 useEffect(() => {
-    if (!localStorage.getItem('authToken')) {
+    if (!localStorage.getItem('authToken') || localStorage.getItem("isTeamMember") == "true") {
       navigate('/');
     }
     fetchAllEntries();

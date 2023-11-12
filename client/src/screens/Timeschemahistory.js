@@ -19,7 +19,7 @@ export default function Timeschemahistory() {
   const teamid = location.state?.teamid;
 
   useEffect(() => {
-    if (!localStorage.getItem('authToken')) {
+    if (!localStorage.getItem('authToken') || localStorage.getItem("isTeamMember") == "true") {
       navigate('/');
     }
     fetchAllEntries();

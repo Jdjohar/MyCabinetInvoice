@@ -1,9 +1,9 @@
 import React, { useEffect,useState } from 'react'
 import {Link, useNavigate} from 'react-router-dom'
 // import './Userstyle.css'
-import './Userstyle.css'
+import './Teamstyle.css'
 
-export default function Usernavbar() {
+export default function Teamnavbar() {
   
   let navigate = useNavigate();
   const [ teammember, setTeammember ] = useState("true");
@@ -38,40 +38,9 @@ export default function Usernavbar() {
               <div className="sb-sidenav-menu">
                 <div className="nav">
                   <ul>
-                    <li className='text-center'>
-                      <Link to="/Userpanel/Userdashboard" className='nav-link scrollto icones text-black' >
-                        <span>Dashboard</span>
-                      </Link>
-                    </li>
                     <li>
-                      <p className='greyclr nav-link'>Documents</p>
-                    </li>
-                    <li>
-                      <Link to="" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Invoice</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Estimate</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <p className='greyclr nav-link'>Management</p>
-                    </li>
-                    <li>
-                      <Link to="/userpanel/Customerlist" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Customer List</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/userpanel/Itemlist" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Item List</span>
-                      </Link>
-                    </li>
-                    <li>
-                      <Link to="/userpanel/Team" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
+                      <Link to="/Teammemberpanel/Teammenberdashboard" className='nav-link scrollto icones text-black' >
+                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Dashboard</span>
                       </Link>
                     </li>
                     

@@ -23,25 +23,6 @@ body {
   font-size: 19px;
 }
 
-.nav{
-  display: block;
-}
-
-.greyclr{
-  color: #CDCDCD;
-  font-size: 14px;
-}
-
-.greyclr:hover{
-  color: #CDCDCD;
-  font-size: 14px;
-}
-
-.dashbox{
-  background-color: #ede8e8;
-  border-radius: 10px;
-}
-
 .nav ul li a{
   line-height: 1.75;
 display: inline-block;

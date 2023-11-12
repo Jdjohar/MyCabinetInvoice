@@ -9,13 +9,14 @@ const jwrsecret = "MYNameisJashandeepSInghjoharmukts"
 const bcrypt = require("bcryptjs");
 const Category = require('../models/Category')
 const Subcategory = require('../models/Subcategory')
-const Items = require('../models/Items')
+const Itemlist = require('../models/Itemlist')
 const Menu = require('../models/Menu')
 const WeeklyOffers= require('../models/WeeklyOffers')
 const Offers= require('../models/Offers');
 const UserPreference = require('../models/UserPreference');
 const Timeschema = require('../models/Timeschema');
 const Team = require('../models/Team');
+const Customerlist = require('../models/Customerlist');
 
 router.get('/dashboard/:userid', async (req, res) => {
     try {
@@ -437,9 +438,279 @@ router.get('/userEntries/:userid', async (req, res) => {
 //   }
 // });
 
-  
-  
+router.post("/addcustomer",
+[
+    body('email').isEmail(),
+    body('name').isLength({min:3}),
+    body('information').isLength(),
+    body('number').isNumeric(),
+    body('city').isLength(),
+    body('state').isLength(),
+    body('country').isLength(),
+    body('post').isLength(),
+    
+    // body('address').isLength(),
+]
+, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
 
+    try {
+        Customerlist.create({
+            userid: req.body.userid,
+            name: req.body.name,
+            information: req.body.information,
+            email: req.body.email,
+            number: req.body.number,
+            country: req.body.country,
+            countryid: req.body.countryid,
+            city: req.body.city,
+            cityid: req.body.cityid,
+            state: req.body.state,
+            stateid: req.body.stateid,
+            countrydata: req.body.countrydata,
+            statedata: req.body.statedata,
+            citydata: req.body.citydata,
+            zip: req.body.zip,
+            address1: req.body.address1,
+            address2: req.body.address2,
+            post: req.body.post,
+        })
+        res.json({ 
+            Success: true,
+            message: "Congratulations! Your Customer has been successfully added! "
+        })
+    }
+    catch (error) {
+        console.log(error);
+        res.json({ Success: false })
+    }
+});
+
+router.get('/customers/:userid', async (req, res) => {
+    try {
+        let userid = req.params.userid;
+        const customers = (await Customerlist.find({ userid: userid}));
+        res.json(customers);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+    router.get('/getcustomers/:customerId', async (req, res) => {
+        try {
+            const customerId = req.params.customerId;
+            console.log(customerId);
+    
+            const result = await Customerlist.findById(customerId);
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "Customerdata retrieved successfully",
+                    customer: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "Customerdata not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error retrieving Customerdata:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to retrieve Customerdata"
+            });
+        }
+    });
+
+
+    // Update a restaurant using POST
+    router.post('/updatecostomerdata/:customerId', async (req, res) => {
+        try {
+            const customerId = req.params.customerId; // Fix here
+            const updatedcustomerdata = req.body;
+        
+            const result = await Customerlist.findByIdAndUpdate(customerId, updatedcustomerdata, { new: true });
+        
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "Customerdata updated successfully",
+                    customer: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "Customerdata not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error updating Customerdata:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to update Customerdata"
+            });
+        }
+    });
+
+    router.get('/delcustomers/:customerId', async (req, res) => {
+        try {
+            const customerId = req.params.customerId;
+    
+            const result = await Customerlist.findByIdAndDelete(customerId);
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "Customer deleted successfully"
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "Customer not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error deleting Customer:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to delete Customer"
+            });
+        }
+    });
+
+    router.post("/additem",
+[
+    body('itemname').isLength({min:3}),
+    body('description').isLength(),
+    body('price').isNumeric(),
+    
+    // body('address').isLength(),
+]
+, async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        Itemlist.create({
+            userid: req.body.userid,
+            itemname: req.body.itemname,
+            description: req.body.description,
+            price: req.body.price,
+        })
+        res.json({ 
+            Success: true,
+            message: "Congratulations! Your Item has been successfully added! "
+        })
+    }
+    catch (error) {
+        console.log(error);
+        res.json({ Success: false })
+    }
+});
+
+router.get('/itemdata/:userid', async (req, res) => {
+    try {
+        let userid = req.params.userid;
+        const itemdata = (await Itemlist.find({ userid: userid}));
+        res.json(itemdata);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.get('/delitem/:itemId', async (req, res) => {
+    try {
+        const itemId = req.params.itemId;
+
+        const result = await Itemlist.findByIdAndDelete(itemId);
+
+        if (result) {
+            res.json({
+                Success: true,
+                message: "Item deleted successfully"
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: "Item not found"
+            });
+        }
+    } catch (error) {
+        console.error("Error deleting Item:", error);
+        res.status(500).json({
+            Success: false,
+            message: "Failed to delete Item"
+        });
+    }
+});
+
+router.get('/getitems/:itemId', async (req, res) => {
+    try {
+        const itemId = req.params.itemId;
+        console.log(itemId);
+
+        const result = await Itemlist.findById(itemId);
+
+        if (result) {
+            res.json({
+                Success: true,
+                message: "Itemdata retrieved successfully",
+                item: result
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: "Itemdata not found"
+            });
+        }
+    } catch (error) {
+        console.error("Error retrieving Itemdata:", error);
+        res.status(500).json({
+            Success: false,
+            message: "Failed to retrieve Itemdata"
+        });
+    }
+});
+
+
+// Update a restaurant using POST
+router.post('/updateitemdata/:itemId', async (req, res) => {
+    try {
+        const itemId = req.params.itemId; // Fix here
+        const updateditemdata = req.body;
+    
+        const result = await Itemlist.findByIdAndUpdate(itemId, updateditemdata, { new: true });
+    
+        if (result) {
+            res.json({
+                Success: true,
+                message: "Itemdata updated successfully",
+                item: result
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: "Itemdata not found"
+            });
+        }
+    } catch (error) {
+        console.error("Error updating Itemdata:", error);
+        res.status(500).json({
+            Success: false,
+            message: "Failed to update Itemdata"
+        });
+    }
+});
+  
 router.post("/addteammember",
     [
         body('email').isEmail(),
@@ -487,6 +758,91 @@ router.post("/addteammember",
         }
     });
 
+    router.get('/getteamdata/:teamid', async (req, res) => {
+        try {
+            const teamid = req.params.teamid;
+            console.log(teamid);
+    
+            const result = await Team.findById(teamid);
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "teamdata retrieved successfully",
+                    team: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "teamdata not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error retrieving teamdata:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to retrieve teamdata"
+            });
+        }
+    });
+    
+    
+    // Update a restaurant using POST
+    router.post('/updateteamdata/:teamid', async (req, res) => {
+        try {
+            const teamid = req.params.teamid; // Fix here
+            const updatedteamdata = req.body;
+        
+            const result = await Team.findByIdAndUpdate(teamid, updatedteamdata, { new: true });
+        
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "teamdata updated successfully",
+                    team: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "teamdata not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error updating teamdata:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to update teamdata"
+            });
+        }
+    });
+
+
+    router.get('/delteammember/:teamid', async (req, res) => {
+        try {
+            const teamid = req.params.teamid;
+    
+            const result = await Team.findByIdAndDelete(teamid);
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "teammember deleted successfully"
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "teammember not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error deleting teammember:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to delete teammember"
+            });
+        }
+    });
+
     router.get('/timezones', (req, res) => {
         // Get a list of timezones using moment-timezone
         const timezones = momentTimezone.tz.names();
@@ -495,100 +851,7 @@ router.post("/addteammember",
         res.json(timezones);
       });
 
-    router.get('/restaurants/:userid', async (req, res) => {
-        try {
-            let userid = req.params.userid;
-            const restaurants = (await Restaurant.find({ userid: userid}));
-            res.json(restaurants);
-        } catch (error) {
-            console.error(error);
-            res.status(500).json({ message: 'Internal server error' });
-        }
-    });
-
     
-
-        router.get('/getrestaurants/:restaurantId', async (req, res) => {
-            try {
-                const restaurantId = req.params.restaurantId;
-                console.log(restaurantId);
-        
-                const result = await Restaurant.findById(restaurantId);
-        
-                if (result) {
-                    res.json({
-                        Success: true,
-                        message: "Restaurant retrieved successfully",
-                        restaurant: result
-                    });
-                } else {
-                    res.status(404).json({
-                        Success: false,
-                        message: "Restaurant not found"
-                    });
-                }
-            } catch (error) {
-                console.error("Error retrieving restaurant:", error);
-                res.status(500).json({
-                    Success: false,
-                    message: "Failed to retrieve restaurant"
-                });
-            }
-        });
-        // Update a restaurant using POST
-        router.post('/restaurants/:restaurantId', async (req, res) => {
-            try {
-                const restaurantId = req.params.restaurantId; // Fix here
-                const updatedrestaurant = req.body;
-            
-                const result = await Restaurant.findByIdAndUpdate(restaurantId, updatedrestaurant, { new: true });
-            
-                if (result) {
-                    res.json({
-                        Success: true,
-                        message: "restaurant updated successfully",
-                        restaurant: result
-                    });
-                } else {
-                    res.status(404).json({
-                        Success: false,
-                        message: "restaurant not found"
-                    });
-                }
-            } catch (error) {
-                console.error("Error updating restaurant:", error);
-                res.status(500).json({
-                    Success: false,
-                    message: "Failed to update restaurant"
-                });
-            }
-        });
-
-        router.delete('/restaurants/:restaurantId', async (req, res) => {
-            try {
-                const restaurantId = req.params.restaurantId;
-        
-                const result = await Restaurant.findByIdAndDelete(restaurantId);
-        
-                if (result) {
-                    res.json({
-                        Success: true,
-                        message: "Restaurant deleted successfully"
-                    });
-                } else {
-                    res.status(404).json({
-                        Success: false,
-                        message: "Restaurant not found"
-                    });
-                }
-            } catch (error) {
-                console.error("Error deleting restaurant:", error);
-                res.status(500).json({
-                    Success: false,
-                    message: "Failed to delete restaurant"
-                });
-            }
-        });
 
         // Fetch single category
 router.get('/getcategories/:categoryId', async (req, res) => {

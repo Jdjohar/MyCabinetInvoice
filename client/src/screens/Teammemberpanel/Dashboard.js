@@ -7,8 +7,8 @@ export default function Dashboard() {
   const [ loading, setloading ] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
   const entriesPerPage = 10; // Number of entries to display per page
-    useEffect(() => {
-        if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
+      useEffect(() => {
+        if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "false")
         {
           navigate("/");
         }
@@ -144,8 +144,59 @@ export default function Dashboard() {
               console.error(error);
             }
           };
+        
 
-          
+// Regular expression to match hours, minutes, and seconds
+const timePattern = /(\d+) hours (\d+) minutes (\d+) seconds/;
+
+// Initialize variables for hours, minutes, and seconds
+let totalHours = 0;
+let totalMinutes = 0;
+let totalSeconds = 0;
+
+// Iterate through userEntries to extract and accumulate time
+if(userEntries.length > 0){
+userEntries.forEach((entry) => {
+  if(entry.totalTime != undefined && entry.totalTime != null && entry.totalTime != ""){
+  const matchs = entry.totalTime.match(timePattern);
+  if (matchs) {
+    totalHours += parseInt(matchs[1]);
+    totalMinutes += parseInt(matchs[2]);
+    totalSeconds += parseInt(matchs[3]);
+  }
+}
+});
+}
+
+// Handle any overflow from seconds to minutes or minutes to hours
+totalMinutes += Math.floor(totalSeconds / 60);
+totalSeconds %= 60;
+totalHours += Math.floor(totalMinutes / 60);
+totalMinutes %= 60;
+
+
+// Function to get the current page entries
+const getCurrentPageEntries = () => {
+  const startIndex = currentPage * entriesPerPage;
+  const endIndex = startIndex + entriesPerPage;
+  return userEntries.slice(startIndex, endIndex);
+};
+
+// Function to handle the previous page
+const handlePrevPage = () => {
+  if (currentPage > 0) {
+    setCurrentPage(currentPage - 1);
+  }
+};
+
+// Function to handle the next page
+const handleNextPage = () => {
+  if ((currentPage + 1) * entriesPerPage < userEntries.length) {
+    setCurrentPage(currentPage + 1);
+  }
+};
+
+
 
   return (
     <div>
@@ -168,68 +219,103 @@ export default function Dashboard() {
         <div className=''>
           <div className='txt px-4 py-4'>
             <h2 className='fs-35 fw-bold'>Dashboard</h2>
-            <p>Hi, ! &#128075;</p>
           </div>
-          <div className='row'>
-            <div className='col-12 col-sm-12 col-md-8 col-lg-8 '>
+          <div className='row d-flex'>
+            <div className='col-12 col-sm-4 col-md-4 col-lg-4 '>
               <div className='box1 rounded adminborder p-4 m-2'>
-                <p className='fs-6 fw-bold'>CREATE DOCUMENT</p>
-                <div className="row">
-                    <div className="col-6 ">
-                      <div className='px-4 py-4 dashbox'>
-                        <i class="fa-solid fa-receipt text-primary pe-3 fs-4"></i><span className='fs-6 fw-bold'>Create Invoice</span>
-                      </div>
-                    </div>
-                    <div className="col-6 ">
-                      <div className='px-4 py-4 dashbox'>
-                        <i class="fa-solid fa-receipt text-primary pe-3 fs-4"></i><span className='fs-6 fw-bold'>Create Estimate</span>
-                      </div>
-                    </div>
+                <p className='mb-0'>22-Oct-2023</p>
+                <p className='fs-25 fw-bold'>Clock In/Out</p>
+                <div className="d-flex">
+                {isClockedIn ? (
+                    <button className="btn btn-danger text-white" onClick={handleClockOut}>Stop</button>
+                    ) : (
+                    <button className="btn btn-primary text-white mx-2" onClick={handleClockIn}>Start</button>
+                    )}
+                </div>
+
+                <div className='pt-3'>
+                    <p className='mb-0'>Time</p>
+                    <p className='fs-3 fw-bold'>{totalTime}</p>
                 </div>
               </div>
             </div>
             <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
               <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2'>
-              </div>
-            </div>
-          </div>
+                <div>
+                    <p className='mb-0'>Current month</p>
+                    <p className='fs-25 fw-bold text-danger'>{currentMonth}</p>
+                </div>
+                <div className='pt-3'>
+                    <p className='mb-0'>Total Time</p>
+                    <p className='fs-3 fw-bold'>{totalHours} hrs {totalMinutes} mins {totalSeconds} secs</p>
+                    {/* <p className='fs-3 fw-bold'>{totalMonthTime.hours} hrs {totalMonthTime.minutes} mins</p> */}
 
-          <div className="row">
-            <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
-              <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2 text-center'>
-                <p className='fs-6 fw-bold'>TOTAL PAYMENTS RECEIVED</p>
-                <p className='fs-3 fw-bold'></p>
-              </div>
-            </div>
-            <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
-              <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2 text-center'>
-                <p className='fs-6 fw-bold'>OCTOBER INVOICE AMOUNT</p>
-                <p className='fs-3 fw-bold'></p>
-              </div>
-            </div>
-          </div>
-
-          <div className="row">
-            <div className='col-12 col-sm-8 col-md-8 col-lg-8'>
-              <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2'>
-                <div className="row">
-                  <div className="col-3 greyclr">
-                    <p>INVOICE</p>
-                  </div>
-                  <div className="col-3 greyclr">
-                    <p>STATUS</p>
-                  </div>
-                  <div className="col-3 greyclr">
-                    <p>DATE</p>
-                  </div>
-                  <div className="col-3 greyclr">
-                    <p>AMOUNT</p>
-                  </div>
                 </div>
               </div>
             </div>
           </div>
 
+          <div className="row my-3">
+            <div className="text">
+              <p>This Month</p>
+            </div>
+
+            <div className="box1 rounded adminborder pt-3 text-center">
+              <div className="row">
+                <div className="col-2">
+                  <p>Start Time</p>
+                </div>
+                <div className="col-2">
+                  <p>End Time</p>
+                </div>
+                <div className="col-2">
+                  <p>Start Date</p>
+                </div>
+                <div className="col-2">
+                  <p>End Date</p>
+                </div>
+                <div className="col-4">
+                  <p>Total Time</p>
+                </div>
+              </div>
+
+              {getCurrentPageEntries().map((entry) => (
+                <div className="row" key={entry._id}>
+                  <div className="col-2">
+                    <p>{new Date(entry.startTime).toLocaleTimeString()}</p>
+                  </div>
+                  <div className="col-2">
+                    <p> {entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</p>
+                  </div>
+                  <div className="col-2">
+                    <p>{new Date(entry.startTime).toLocaleDateString()}</p>
+                  </div>
+                  <div className="col-2">
+                    <p>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</p>
+                  </div>
+                  <div className="col-4">
+                    <p>{entry.totalTime}</p>
+                  </div>
+                </div>
+              ))}
+            </div>
+
+            {userEntries.length > entriesPerPage && (
+              <div className="row">
+                <div className="col-12">
+                  <button onClick={handlePrevPage} disabled={currentPage === 0}>
+                    Previous Page
+                  </button>
+                  <button
+                    onClick={handleNextPage}
+                    disabled={(currentPage + 1) * entriesPerPage >= userEntries.length}
+                  >
+                    Next Page
+                  </button>
+                </div>
+              </div>
+            )}
+          </div>
         </div>
       </div>
 }

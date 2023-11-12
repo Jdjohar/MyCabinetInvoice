@@ -39,10 +39,10 @@ export default function Login() {
       localStorage.setItem("startTime", json.startTime)
       console.log(localStorage.getItem("authToken"), "Data")
         // navigate("/userpanel/Userdashboard");
-        if (json.isTeamMember) {
+        if (json.isTeamMember == true) {
           // Redirect to the team member dashboard
-          navigate('/userpanel/Userdashboard');
-        } else {
+          navigate('/Teammemberpanel/Teammenberdashboard');
+        } else if (json.isTeamMember == false){
           // Redirect to the user dashboard
           navigate('/userpanel/Userdashboard');
         }
