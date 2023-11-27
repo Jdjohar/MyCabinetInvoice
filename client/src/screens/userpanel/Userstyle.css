@@ -411,3 +411,21 @@ display: none;}
   border-left: 0px !important;
   border-radius: 0px 5px 5px 0px;
 }
+
+.breadcrumbclr .breadcrumb{
+  background-color: #EDF3FF !important;
+}
+
+.pl-0 {
+  padding-left: 0px !important;
+}
+
+.customerdetail ul{
+  padding-left: 0px;
+  margin-bottom: 2px;
+}
+
+.customerdetail ul li{
+  display: inline-block;
+  padding-right: 15px;
+}

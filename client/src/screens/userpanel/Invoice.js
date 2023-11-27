@@ -4,7 +4,7 @@ import { useNavigate } from 'react-router-dom';
 import Usernav from './Usernav';
 // import Nav from './Nav';
 
-export default function Itemlist() {
+export default function Invoice() {
     const [items, setitems] = useState([]);
     const [selecteditems, setselecteditems] = useState(null);
     const navigate = useNavigate();
@@ -82,13 +82,7 @@ export default function Itemlist() {
                     <div className="bg-white my-5 p-4 box mx-4">
                         <div className='row py-2'>
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
-                                <p className='h5 fw-bold'>Items</p>
-                                <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb mb-0">
-                                        <li class="breadcrumb-item"><a href="/itempanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Items</li>
-                                    </ol>
-                                </nav>
+                                <p className='h5 fw-bold'>Invoice</p>
                             </div>
                             <div className="col-lg-3 col-md-4 col-sm-4 col-5 text-right">
                                 <button className='btn rounded-pill btnclr text-white fw-bold' onClick={handleAddClick}>+ Create</button>

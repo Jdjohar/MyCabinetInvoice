@@ -337,6 +337,17 @@ display: none;}
    justify-content: center;
 }
 
+.navbar-toggler-icon {
+    background-image: url(../../download.svg);
+    background-position: 50%;
+    background-repeat: no-repeat;
+    background-size: 100%;
+    display: inline-block;
+    height: 1.5em;
+    vertical-align: middle;
+    width: 1.5em;
+}
+
 @media screen and (min-width:0px) and (max-width:576px){
   .btnclr{
     border-radius: 10px;

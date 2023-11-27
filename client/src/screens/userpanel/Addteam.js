@@ -2,6 +2,7 @@ import React, { useState,useEffect } from 'react';
 import { useNavigate } from 'react-router-dom';
 import Usernavbar from './Usernavbar';
 import { ColorRing } from  'react-loader-spinner'
+import Usernav from './Usernav';
 
 export default function Addteam() {
   const navigate = useNavigate();
@@ -20,7 +21,6 @@ export default function Addteam() {
     {
       navigate("/");
     }
-    handleSubmit();
       setloading(true)
      setTimeout(()=>{
     setloading(false)
@@ -28,10 +28,10 @@ export default function Addteam() {
   },1000)
   }, [])
 
-  const handleSubmit = async () => {
-    // e.preventDefault();
+  const handleSubmit = async (e) => {
+    e.preventDefault();
     let userid = localStorage.getItem('userid');
-    const response = await fetch('https://invoice-n96k.onrender.com/api/addteammember', {
+    const response = await fetch('http://localhost:3001/api/addteammember', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -48,7 +48,7 @@ export default function Addteam() {
     const json = await response.json();
     console.log(json);
 
-    if (json.Success) {
+    if (json.success) {
       setCredentials({
         name: '',
         email: '',
@@ -60,10 +60,11 @@ export default function Addteam() {
       setAlertShow(json.message);
       navigate('/userpanel/Team');
     
-    } else {
-      console.log('Error fetching data:');
-      setloading(false);
-  }
+    } 
+
+    else{
+        alert("This Team Email already exist")
+    }
   };
 
   const onchange = (event) => {
@@ -95,6 +96,9 @@ export default function Addteam() {
           </div>
 
           <div className="col-lg-10 col-md-9 col-12 mx-auto">
+            <div className="d-lg-none d-md-none d-block mt-2">
+              <Usernav/>
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="bg-white my-5 p-4 box mx-4">
                 <div className="row">

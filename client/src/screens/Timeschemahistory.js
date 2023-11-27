@@ -3,6 +3,7 @@ import React, { useState, useEffect } from 'react';
 import Usernavbar from './userpanel/Usernavbar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ColorRing } from 'react-loader-spinner';
+import Usernav from './userpanel/Usernav';
 
 export default function Timeschemahistory() {
   const [loading, setloading] = useState(true);
@@ -28,7 +29,7 @@ export default function Timeschemahistory() {
   const fetchAllEntries = async () => {
     try {
       // Fetch all entries for the merchant's team (teamid)
-      const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${teamid}`);
+      const response = await fetch(`http://localhost:3001/api/userEntries/${teamid}`);
       const data = await response.json();
 
       setUserEntries(data.userEntries);
@@ -85,12 +86,15 @@ export default function Timeschemahistory() {
           </div>
 
           <div className="col-lg-10 col-md-9 col-12 mx-auto">
+            <div className="d-lg-none d-md-none d-block mt-2">
+              <Usernav/>
+            </div>
             <div className="row my-4 mx-3">
               <div className="text">
                 <p>History</p>
               </div>
 
-              <div className="box1 rounded adminborder pt-3 text-center">
+              {/* <div className="box1 rounded adminborder pt-3 text-center">
                 {uniqueMonths.map((monthIndex, index) => {
                   const monthEntries = userEntries.filter(
                     (entry) => new Date(entry.startTime).getMonth() === monthIndex
@@ -165,7 +169,65 @@ export default function Timeschemahistory() {
                     </React.Fragment>
                   );
                 })}
-              </div>
+              </div> */}
+
+<div className="box1 rounded adminborder pt-3 text-center pb-3">
+  {uniqueMonths.map((monthIndex, index) => {
+    const monthEntries = userEntries.filter(
+      (entry) => new Date(entry.startTime).getMonth() === monthIndex
+    );
+    const monthName = new Date(monthEntries[0].startTime).toLocaleDateString('default', { month: 'long' });
+    const paginatedEntries = paginate(monthEntries, currentPageByMonth[monthIndex], entriesPerPage);
+
+    return (
+      <React.Fragment key={monthName}>
+        {index > 0 && <hr />}
+        <div className='table-responsive'>
+          <h2>{monthName}</h2>
+          <table className="table">
+            <thead>
+              <tr>
+                <th>Start Time</th>
+                <th>End Time</th>
+                <th>Start Date</th>
+                <th>End Date</th>
+                <th>Total Time</th>
+              </tr>
+            </thead>
+            <tbody>
+              {paginatedEntries.map((entry) => (
+                <tr key={entry._id}>
+                  <td>{new Date(entry.startTime).toLocaleTimeString()}</td>
+                  <td>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</td>
+                  <td>{new Date(entry.startTime).toLocaleDateString()}</td>
+                  <td>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</td>
+                  <td>{entry.totalTime}</td>
+                </tr>
+              ))}
+            </tbody>
+          </table>
+          {monthEntries.length > entriesPerPage && (
+            <div>
+              <button
+                onClick={() => changePageForMonth(monthIndex, currentPageByMonth[monthIndex] - 1)}
+                disabled={currentPageByMonth[monthIndex] === 0}
+              >
+                Previous Page
+              </button>
+              <button
+                onClick={() => changePageForMonth(monthIndex, currentPageByMonth[monthIndex] + 1)}
+                disabled={(currentPageByMonth[monthIndex] + 1) * entriesPerPage >= monthEntries.length}
+              >
+                Next Page
+              </button>
+            </div>
+          )}
+        </div>
+      </React.Fragment>
+    );
+  })}
+</div>
+
             </div>
           </div>
         </div>

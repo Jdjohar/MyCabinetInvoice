@@ -2,6 +2,7 @@ import React, { useState, useEffect } from 'react';
 import Usernavbar from './Usernavbar';
 import { useNavigate, useLocation } from 'react-router-dom';
 import { ColorRing } from 'react-loader-spinner';
+import Usernav from './Usernav';
 
 export default function Timeview() {
   const [loading, setloading] = useState(true);
@@ -31,7 +32,7 @@ useEffect(() => {
       const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
       const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
 
-      const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${teamid}`);
+      const response = await fetch(`http://localhost:3001/api/userEntries/${teamid}`);
       const data = await response.json();
 
       // Filter userEntries to include only entries for the current month
@@ -88,19 +89,49 @@ const GoToHistory = () => {
           </div>
 
           <div className="col-lg-10 col-md-9 col-12 mx-auto">
-            <div className="row my-4 mx-5">
+            <div className="d-lg-none d-md-none d-block mt-2">
+              <Usernav/>
+            </div>
+            <div className="row my-4 mx-4">
                 <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                   <p className="h5 fw-bold">Current Month</p>
                 </div>
                 <div className="col-lg-3 col-md-4 col-sm-4 col-5 text-right">
-                  <button className="btn rounded-pill btnclr text-white fw-bold" onClick={GoToHistory}>
+                  <button className="btn rounded-pill btnclr text-white fw-bold mb-2" onClick={GoToHistory}>
                     History
                   </button>
                 </div>
               <hr />
 
-              <div className="box1 rounded adminborder pt-3 text-center">
-                <div className="row">
+              <div className="row px-0 table-responsive box1 rounded adminborder text-center">
+                <table class="table table-bordered">
+                    <thead>
+                      <tr>
+                          {/* <th scope="col">ID </th> */}
+                          <th scope="col">Start Time</th>
+                          <th scope="col">End Time</th>
+                          <th scope="col">Start Date</th>
+                          <th scope="col">End Date</th>
+                          <th scope="col">Total Time</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                        {currentEntries.map((entry) => (
+                              <tr key={entry._id}>
+                                  {/* <th scope="row">{index + 1}</th> */}
+                                  <td>{new Date(entry.startTime).toLocaleTimeString()}</td>
+                                  <td>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</td>
+                                  <td>{new Date(entry.startTime).toLocaleDateString()}</td>
+                                  <td>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</td>
+                                  <td>{entry.totalTime}</td>
+                              </tr>
+                          ))}
+                    </tbody>
+                </table>
+              </div>
+
+              {/* <div className="box1 rounded adminborder pt-3 text-center">
+                <div className="row pt-3">
                   <div className="col-2">
                     <p>Start Time</p>
                   </div>
@@ -137,14 +168,14 @@ const GoToHistory = () => {
                     </div>
                   </div>
                 ))}
-              </div>
+              </div> */}
 
               {/* Pagination component */}
-              <div className="pagination justify-content-end">
+              <div className="pagination justify-content-end mt-3">
                 {Array(Math.ceil(userEntries.length / entriesPerPage))
                   .fill(null)
                   .map((_, index) => (
-                    <button key={index} onClick={() => handlePageChange(index + 1)}>
+                    <button key={index} className='mx-1' onClick={() => handlePageChange(index + 1)}>
                       {index + 1}
                     </button>
                   ))}

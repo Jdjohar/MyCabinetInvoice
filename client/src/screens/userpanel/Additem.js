@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import Usernavbar from './Usernavbar';
 import { useNavigate } from 'react-router-dom';
+import Usernav from './Usernav';
 // import Usernavbar from './Usernavbar';
 
 export default function Additem() {
@@ -20,13 +21,12 @@ export default function Additem() {
       navigate("/");
     }
     // setloading(true)
-    handleSubmit();
 }, [])
 
-  const handleSubmit = async () => {
+  const handleSubmit = async (e) => {
     // e.preventDefault();
     let userid = localStorage.getItem('userid');
-    const response = await fetch('https://invoice-n96k.onrender.com/api/additem', {
+    const response = await fetch('http://localhost:3001/api/additem', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -53,6 +53,9 @@ export default function Additem() {
       setAlertShow(json.message);
       navigate('/userpanel/Itemlist');
     }
+    else{
+      console.log("else part")
+    }
   };
 
   const onchange = (event) => {
@@ -71,10 +74,9 @@ export default function Additem() {
           </div>
 
           <div className="col-lg-10 col-md-9 col-12 mx-auto">
-            {/* <div className="d-lg-none d-md-none d-block mt-2">
-              <Retailernav />
-            </div> */}
-            <form onSubmit={handleSubmit}>
+            <div className="d-lg-none d-md-none d-block mt-2">
+              <Usernav/>
+            </div>
               <div className="bg-white my-5 p-4 box mx-4">
                 <div className="row">
                   <p className="h5 fw-bold">Item</p>
@@ -105,7 +107,7 @@ export default function Additem() {
                             Item Name
                             </label>
                             <input
-                              type="itemname"
+                              type="text"
                               name="itemname"
                               className="form-control"
                               onChange={onchange}
@@ -158,11 +160,10 @@ export default function Additem() {
                 <div className="row pt-4 pe-2">
                   <div className="col-3 me-auto"></div>
                   <div className="col-4 col-sm-2">
-                    <button className="btn btnclr text-white">Next</button>
+                    <button onClick={(e)=> handleSubmit(e)} className="btn btnclr text-white">Next</button>
                   </div>
                 </div>
               </div>
-            </form>
           </div>
         </div>
       </div>

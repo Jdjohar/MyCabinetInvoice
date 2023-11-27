@@ -15,7 +15,6 @@ const ItemsSchema = new Schema({
 
     userid: { 
         type: String,
-        required: true 
     },
     createdAt:{
         type: Date,

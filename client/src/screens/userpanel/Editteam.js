@@ -1,6 +1,7 @@
 import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Usernavbar from './Usernavbar';
+import Usernav from './Usernav';
 
 export default function Editteam() {
     const location = useLocation();
@@ -24,7 +25,7 @@ export default function Editteam() {
 
     const fetchteamData = async () => {
         try {
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/getteamdata/${teamid}`);
+            const response = await fetch(`http://localhost:3001/api/getteamdata/${teamid}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -43,7 +44,7 @@ export default function Editteam() {
             const updatedteamdata = {
                 ...team
             };
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/updateteamdata/${teamid}`, {
+            const response = await fetch(`http://localhost:3001/api/updateteamdata/${teamid}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -80,9 +81,9 @@ export default function Editteam() {
                     </div>
 
                     <div className="col-lg-10 col-md-9 col-12 mx-auto">
-                        {/* <div className='d-lg-none d-md-none d-block mt-2'>
-                            <Nav/>
-                        </div> */}
+                        <div className='d-lg-none d-md-none d-block mt-2'>
+                            <Usernav/>
+                        </div>
                         <form>
                             <div className="bg-white my-5 p-4 box mx-4">
                                 <div className='row'>

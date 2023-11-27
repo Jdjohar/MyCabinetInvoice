@@ -4,6 +4,7 @@ import { useNavigate } from 'react-router-dom';
 // import Usernavbar from './Usernavbar';
 import { CountrySelect, StateSelect, CitySelect } from '@davzon/react-country-state-city';
 import "@davzon/react-country-state-city/dist/react-country-state-city.css";
+import Usernav from './Usernav';
 
 export default function Addcustomer() {
   const navigate = useNavigate();
@@ -41,7 +42,7 @@ export default function Addcustomer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let userid = localStorage.getItem('userid');
-    const response = await fetch('https://invoice-n96k.onrender.com/api/addcustomer', {
+    const response = await fetch('http://localhost:3001/api/addcustomer', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -88,6 +89,10 @@ export default function Addcustomer() {
       setAlertShow(json.message);
       navigate('/userpanel/Customerlist');
     }
+
+    else{
+        alert("This Customer Email already exist")
+    }
   };
 
   const onchange = (event) => {
@@ -106,9 +111,9 @@ export default function Addcustomer() {
           </div>
 
           <div className="col-lg-10 col-md-9 col-12 mx-auto">
-            {/* <div className="d-lg-none d-md-none d-block mt-2">
-              <Retailernav />
-            </div> */}
+            <div className="d-lg-none d-md-none d-block mt-2">
+              <Usernav/>
+            </div>
             <form onSubmit={handleSubmit}>
               <div className="bg-white my-5 p-4 box mx-4">
                 <div className="row">

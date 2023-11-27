@@ -20,7 +20,7 @@ export default function SignUp() {
     const handleSubmit = async (e) => {
         e.preventDefault();
     
-        const response = await fetch("https://invoice-n96k.onrender.com/api/createuser", {
+        const response = await fetch("http://localhost:3001/api/createuser", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -38,7 +38,7 @@ export default function SignUp() {
         const json = await response.json();
         console.log(json);
     
-        if (json.Success) {
+        if (json.success) {
           setcredentails({ 
             companyname: "", 
             Businesstype: "", 
@@ -51,6 +51,10 @@ export default function SignUp() {
           setmessage(true)
           setalertshow(json.message)
           navigate('/')
+        }
+
+        else{
+            alert("This Email id already Registered")
         }
       }
     
@@ -67,14 +71,14 @@ export default function SignUp() {
                 <p className='h4 fw-bold'>Sign Up</p>
 
                 <div className="row">
-                    <div className="col-6">
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div class="form-group pt-3">
                             <label class="label py-2" for="company_name">Company name</label>
                             <input type="text" class="form-control" name="companyname" onChange={onchange} value={credentails.companyname} placeholder="Company name" required />
                         </div>
                     </div>
 
-                    <div className="col-6">
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div className="form-group pt-3">
                             <label htmlFor="exampleInputtext2" className="form-label py-1">Business Type</label>
                             <select
@@ -95,7 +99,7 @@ export default function SignUp() {
                         </div>
                     </div>
 
-                    <div className="col-6">
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div className="form-group pt-3">
                             <label htmlFor="exampleInputtext3" className="form-label py-1">Currency Type</label>
                             <select
@@ -114,25 +118,25 @@ export default function SignUp() {
                         </div>
                     </div>
                     
-                    <div className="col-6">
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div class="form-group pt-3">
                             <label class="label py-2" for="First_Name">First Name</label>
                             <input type="text" class="form-control" name="FirstName" value={credentails.FirstName} onChange={onchange} placeholder="First Name" required />
                         </div>
                     </div>
-                    <div className="col-6">
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div class="form-group pt-3">
                             <label class="label py-2" for="Last_Name">Last Name</label>
                             <input type="text" class="form-control" name="LastName" value={credentails.LastName} onChange={onchange} placeholder="Last Name"  />
                         </div>
                     </div>
-                    <div className="col-6">
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div class="form-group mb-3 pt-3">
                             <label class="label py-2" for="email">Email</label>
                             <input type="text" class="form-control" name="email" value={credentails.email} onChange={onchange} placeholder="Email" required />
                         </div>
                     </div>
-                    <div className="col-6">
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div className="form-group mb-3 pt-3">
                             <label htmlFor="password" className="form-label">Password</label>
                             <input type="password" className="form-control" name="password" value={credentails.password} onChange={onchange} placeholder="Password" id="exampleInputPassword1" required />

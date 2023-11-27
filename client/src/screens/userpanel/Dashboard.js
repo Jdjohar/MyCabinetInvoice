@@ -31,7 +31,7 @@ export default function Dashboard() {
           let userEmail = localStorage.getItem('userEmail');
           let isTeamMember = localStorage.getItem('isTeamMember');
 
-            const response = await fetch('https://invoice-n96k.onrender.com/api/clockin', {
+            const response = await fetch('http://localhost:3001/api/clockin', {
               method: 'POST', // Use POST method for clock-in
               headers: {
                 'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export default function Dashboard() {
               let username = localStorage.getItem('username');
               let userEmail = localStorage.getItem('userEmail');
               let isTeamMember = localStorage.getItem('isTeamMember');
-              const response = await fetch('https://invoice-n96k.onrender.com/api/clockout', {
+              const response = await fetch('http://localhost:3001/api/clockout', {
                 method: 'POST', // Use POST method for clock-out
                 headers: {
                   'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export default function Dashboard() {
           const fetchUserEntries = async (start, end) => {
             try {
               const userid = localStorage.getItem('userid');
-              const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${userid}`);
+              const response = await fetch(`http://localhost:3001/api/userEntries/${userid}`);
               const data = await response.json();
         
               // Filter userEntries to include only entries for the current month
@@ -144,6 +144,10 @@ export default function Dashboard() {
               console.error(error);
             }
           };
+
+          const handleAddClick = () => {
+            navigate('/userpanel/Createinvoice');
+        }
 
           
 
@@ -176,7 +180,7 @@ export default function Dashboard() {
                 <p className='fs-6 fw-bold'>CREATE DOCUMENT</p>
                 <div className="row">
                     <div className="col-6 ">
-                      <div className='px-4 py-4 dashbox'>
+                      <div className='px-4 py-4 dashbox pointer' onClick={handleAddClick}>
                         <i class="fa-solid fa-receipt text-primary pe-3 fs-4"></i><span className='fs-6 fw-bold'>Create Invoice</span>
                       </div>
                     </div>

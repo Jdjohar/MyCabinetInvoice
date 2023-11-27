@@ -3,6 +3,7 @@ import Usernavbar from './Usernavbar';
 import { useNavigate } from 'react-router-dom';
 import { ColorRing } from  'react-loader-spinner'
 import { format } from 'date-fns';
+import Usernav from './Usernav';
 
 export default function Team() {
 
@@ -38,7 +39,7 @@ export default function Team() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/teammemberdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/teammemberdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -59,7 +60,7 @@ export default function Team() {
 
     const handleDeleteClick = async (teamid) => {
         try {
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/delteammember/${teamid}`, {
+            const response = await fetch(`http://localhost:3001/api/delteammember/${teamid}`, {
                 method: 'GET'
             });
     
@@ -101,9 +102,9 @@ export default function Team() {
                 </div>
 
                 <div className="col-lg-10 col-md-9 col-12 mx-auto">
-                    {/* <div className='d-lg-none d-md-none d-block mt-2'>
-                        <Nav/>
-                    </div> */}
+                    <div className='d-lg-none d-md-none d-block mt-2'>
+                        <Usernav/>
+                    </div>
                     <div className="bg-white my-5 p-4 box mx-4">
                         <div className='row py-2'>
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">

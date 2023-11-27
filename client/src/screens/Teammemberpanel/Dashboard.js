@@ -31,8 +31,8 @@ export default function Dashboard() {
           let userEmail = localStorage.getItem('userEmail');
           let isTeamMember = localStorage.getItem('isTeamMember');
 
-            const response = await fetch('https://invoice-n96k.onrender.com/api/clockin', {
-              method: 'POST', // Use POST method for clock-in
+            const response = await fetch('http://localhost:3001/api/clockin', {
+              method: 'POST',
               headers: {
                 'Content-Type': 'application/json',
               },
@@ -59,8 +59,8 @@ export default function Dashboard() {
               let username = localStorage.getItem('username');
               let userEmail = localStorage.getItem('userEmail');
               let isTeamMember = localStorage.getItem('isTeamMember');
-              const response = await fetch('https://invoice-n96k.onrender.com/api/clockout', {
-                method: 'POST', // Use POST method for clock-out
+              const response = await fetch('http://localhost:3001/api/clockout', {
+                method: 'POST',
                 headers: {
                   'Content-Type': 'application/json',
                 },
@@ -115,18 +115,23 @@ export default function Dashboard() {
             else {
               setTotalTime('0 hrs 0 mins 0 secs');
             }
+
+
             // Calculate the start and end timestamps for the current month
             const currentMonthIndex = currentDate.getMonth(); // Get the current month (0-indexed)
             const currentYear = currentDate.getFullYear();
             const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
             const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
 
-    fetchUserEntries(startOfMonth, endOfMonth);
+          fetchUserEntries(startOfMonth, endOfMonth);
           }, [isClockedIn, startTime]);
+
+
+
           const fetchUserEntries = async (start, end) => {
             try {
               const userid = localStorage.getItem('userid');
-              const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${userid}`);
+              const response = await fetch(`http://localhost:3001/api/userEntries/${userid}`);
               const data = await response.json();
         
               // Filter userEntries to include only entries for the current month
@@ -136,12 +141,11 @@ export default function Dashboard() {
               });
         
               setUserEntries(filteredEntries);
-        
-              setTimeout(() => {
-                setloading(false);
-              }, 2000);
+              setloading(false);
+
             } catch (error) {
               console.error(error);
+              setloading(false);
             }
           };
         
@@ -221,7 +225,7 @@ const handleNextPage = () => {
             <h2 className='fs-35 fw-bold'>Dashboard</h2>
           </div>
           <div className='row d-flex'>
-            <div className='col-12 col-sm-4 col-md-4 col-lg-4 '>
+            <div className='col-12 col-sm-6 col-md-6 col-lg-4 '>
               <div className='box1 rounded adminborder p-4 m-2'>
                 <p className='mb-0'>22-Oct-2023</p>
                 <p className='fs-25 fw-bold'>Clock In/Out</p>
@@ -239,7 +243,7 @@ const handleNextPage = () => {
                 </div>
               </div>
             </div>
-            <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
+            <div className='col-12 col-sm-6 col-md-6 col-lg-4'>
               <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2'>
                 <div>
                     <p className='mb-0'>Current month</p>
@@ -260,50 +264,37 @@ const handleNextPage = () => {
               <p>This Month</p>
             </div>
 
-            <div className="box1 rounded adminborder pt-3 text-center">
-              <div className="row">
-                <div className="col-2">
-                  <p>Start Time</p>
-                </div>
-                <div className="col-2">
-                  <p>End Time</p>
-                </div>
-                <div className="col-2">
-                  <p>Start Date</p>
-                </div>
-                <div className="col-2">
-                  <p>End Date</p>
-                </div>
-                <div className="col-4">
-                  <p>Total Time</p>
-                </div>
-              </div>
-
-              {getCurrentPageEntries().map((entry) => (
-                <div className="row" key={entry._id}>
-                  <div className="col-2">
-                    <p>{new Date(entry.startTime).toLocaleTimeString()}</p>
-                  </div>
-                  <div className="col-2">
-                    <p> {entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</p>
-                  </div>
-                  <div className="col-2">
-                    <p>{new Date(entry.startTime).toLocaleDateString()}</p>
-                  </div>
-                  <div className="col-2">
-                    <p>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</p>
-                  </div>
-                  <div className="col-4">
-                    <p>{entry.totalTime}</p>
-                  </div>
-                </div>
-              ))}
-            </div>
+            <div className="row px-0 table-responsive box1 rounded adminborder text-center">
+              <table class="table table-bordered">
+                  <thead>
+                      <tr>
+                          {/* <th scope="col">ID </th> */}
+                          <th scope="col">Start Time</th>
+                          <th scope="col">End Time</th>
+                          <th scope="col">Start Date</th>
+                          <th scope="col">End Date</th>
+                          <th scope="col">Total Time</th>
+                      </tr>
+                  </thead>
+                  <tbody>
+                  {getCurrentPageEntries().map((entry) => (
+                              <tr key={entry._id}>
+                                  {/* <th scope="row">{index + 1}</th> */}
+                                  <td>{new Date(entry.startTime).toLocaleTimeString()}</td>
+                                  <td>{entry.endTime ? new Date(entry.endTime).toLocaleTimeString() : '--'}</td>
+                                  <td>{new Date(entry.startTime).toLocaleDateString()}</td>
+                                  <td>{entry.endTime ? new Date(entry.endTime).toLocaleDateString() : '--'}</td>
+                                  <td>{entry.totalTime}</td>
+                              </tr>
+                          ))}
+                      </tbody>
+              </table>
+          </div>
 
             {userEntries.length > entriesPerPage && (
-              <div className="row">
+              <div className="row mt-3">
                 <div className="col-12">
-                  <button onClick={handlePrevPage} disabled={currentPage === 0}>
+                  <button onClick={handlePrevPage} className='me-2' disabled={currentPage === 0}>
                     Previous Page
                   </button>
                   <button

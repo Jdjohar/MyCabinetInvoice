@@ -32,26 +32,35 @@ router.get('/dashboard/:userid', async (req, res) => {
     }
 });
 
-router.post("/createuser",
-    [
-        body('email').isEmail(),
-        body('companyname').isLength(),
-        body('Businesstype').isLength(),
-        body('CurrencyType').isLength(),
-        body('FirstName').isLength({min:3}),
-        body('LastName').isLength({min:3}),
-        body('password').isLength({ min: 5 }),
-    ]
-    , async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        const salt = await bcrypt.genSalt(10);
-        let secPassword= await bcrypt.hash(req.body.password, salt)
+router.post("/createuser", [
+    body('email').isEmail(),
+    body('companyname').isLength(),
+    body('Businesstype').isLength(),
+    body('CurrencyType').isLength(),
+    body('FirstName').isLength({ min: 3 }),
+    body('LastName').isLength({ min: 3 }),
+    body('password').isLength({ min: 5 }),
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
 
-        try {
-            User.create({
+    try {
+        const email = req.body.email;
+        const existingUser = await User.findOne({ email });
+
+        if (existingUser) {
+            console.log('Email already registered:', email);
+            return res.status(400).json({
+                success: false,
+                message: "This Email ID is already registered!"
+            });
+        } else {
+            const salt = await bcrypt.genSalt(10);
+            const secPassword = await bcrypt.hash(req.body.password, salt);
+
+            await User.create({
                 companyname: req.body.companyname,
                 Businesstype: req.body.Businesstype,
                 CurrencyType: req.body.CurrencyType,
@@ -59,17 +68,70 @@ router.post("/createuser",
                 LastName: req.body.LastName,
                 password: secPassword,
                 email: req.body.email,
-            })
-            res.json({ 
-                Success: true,
-                message: "Congratulations! Your account Succefully created! "
-            })
+            });
+
+            return res.json({
+                success: true,
+                message: "Congratulations! Your account successfully created!"
+            });
         }
-        catch (error) {
-            console.log(error);
-            res.json({ Success: false })
-        }
-    });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+});
+
+
+    // router.post("/createuser",
+    // [
+    //     body('email').isEmail(),
+    //     body('companyname').isLength(),
+    //     body('Businesstype').isLength(),
+    //     body('CurrencyType').isLength(),
+    //     body('FirstName').isLength({min:3}),
+    //     body('LastName').isLength({min:3}),
+    //     body('password').isLength({ min: 5 }),
+    // ]
+    // , async (req, res) => {
+    //     const errors = validationResult(req);
+    //     if (!errors.isEmpty()) {
+    //         return res.status(400).json({ errors: errors.array() });
+    //     }
+    //     const salt = await bcrypt.genSalt(10);
+    //     let secPassword= await bcrypt.hash(req.body.password, salt)
+
+    //     try {
+    //         let emaild = req.body.email;
+    //             let userdata = await User.findOne({ emaild });
+    //     if (!userdata) {
+    //         User.create({
+    //             companyname: req.body.companyname,
+    //             Businesstype: req.body.Businesstype,
+    //             CurrencyType: req.body.CurrencyType,
+    //             FirstName: req.body.FirstName,
+    //             LastName: req.body.LastName,
+    //             password: secPassword,
+    //             email: req.body.email,
+    //         })
+    //         res.json({ 
+    //             Success: true,
+    //             message: "Congratulations! Your account Succefully created! "
+    //         })
+    //     }else{
+            
+    //         res.json({ 
+    //             Success: false,
+    //             message: "This Email id already Registered! "
+    //         })
+    //     }
+    //     }
+    //     catch (error) {
+    //         console.log(error);
+    //         res.json({ Success: false })
+    //     }
+    // });
+
+
 
 // Create a new user document
 // const newUser = new User({
@@ -249,6 +311,7 @@ router.post("/createuser",
 // });
 
 // User and Team Member login route
+
 router.post('/login', [
     body('email').isEmail(),
     body('password').isLength({ min: 4 }),
@@ -458,6 +521,16 @@ router.post("/addcustomer",
     }
 
     try {
+        const email = req.body.email;
+        const existingcustomer = await Customerlist.findOne({ email });
+
+        if (existingcustomer) {
+            console.log('Email already registered:', email);
+            return res.status(400).json({
+                success: false,
+                message: "This Customer Email already exist!"
+            });
+        } else {
         Customerlist.create({
             userid: req.body.userid,
             name: req.body.name,
@@ -482,12 +555,13 @@ router.post("/addcustomer",
             Success: true,
             message: "Congratulations! Your Customer has been successfully added! "
         })
+        }
     }
     catch (error) {
-        console.log(error);
-        res.json({ Success: false })
+    console.log(error);
+    return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
-});
+    });
 
 router.get('/customers/:userid', async (req, res) => {
     try {
@@ -711,41 +785,85 @@ router.post('/updateitemdata/:itemId', async (req, res) => {
     }
 });
   
-router.post("/addteammember",
-    [
-        body('email').isEmail(),
-        body('name').isLength({ min: 3 }),
-        body('number').isNumeric(),
-        body('password').isLength({ min: 4 }),
+// router.post("/addteammember",
+//     [
+//         body('email').isEmail(),
+//         body('name').isLength({ min: 3 }),
+//         body('number').isNumeric(),
+//         body('password').isLength({ min: 4 }),
         
-        // body('address').isLength(),
-    ]
-    , async (req, res) => {
-        const errors = validationResult(req);
-        if (!errors.isEmpty()) {
-            return res.status(400).json({ errors: errors.array() });
-        }
-        const salt = await bcrypt.genSalt(10);
-        let sectmemberPassword= await bcrypt.hash(req.body.password, salt)
+//         // body('address').isLength(),
+//     ]
+//     , async (req, res) => {
+//         const errors = validationResult(req);
+//         if (!errors.isEmpty()) {
+//             return res.status(400).json({ errors: errors.array() });
+//         }
+//         const salt = await bcrypt.genSalt(10);
+//         let sectmemberPassword= await bcrypt.hash(req.body.password, salt)
 
-        try {
-            Team.create({
+//         try {
+//             Team.create({
+//                 userid: req.body.userid,
+//                 name: req.body.name,
+//                 password: sectmemberPassword,
+//                 email: req.body.email,
+//                 number: req.body.number,
+//             })
+//             res.json({ 
+//                 Success: true,
+//                 message: "Congratulations! Your Team member has been successfully added! "
+//             })
+//         }
+//         catch (error) {
+//             console.log(error);
+//             res.json({ Success: false })
+//         }
+//     });
+
+router.post("/addteammember", [
+    body('email').isEmail(),
+    body('name').isLength({ min: 3 }),
+    body('number').isNumeric(),
+    body('password').isLength({ min: 4 }),
+], async (req, res) => {
+    const errors = validationResult(req);
+    if (!errors.isEmpty()) {
+        return res.status(400).json({ errors: errors.array() });
+    }
+
+    try {
+        const email = req.body.email;
+        const existingTeamMember = await Team.findOne({ email });
+
+        if (existingTeamMember) {
+            console.log('Email already registered:', email);
+            return res.status(400).json({
+                success: false,
+                message: "This Email ID is already registered as a team member!"
+            });
+        } else {
+            const salt = await bcrypt.genSalt(10);
+            const sectmemberPassword = await bcrypt.hash(req.body.password, salt);
+
+            await Team.create({
                 userid: req.body.userid,
                 name: req.body.name,
                 password: sectmemberPassword,
                 email: req.body.email,
                 number: req.body.number,
-            })
-            res.json({ 
-                Success: true,
-                message: "Congratulations! Your Team member has been successfully added! "
-            })
+            });
+
+            return res.json({
+                success: true,
+                message: "Congratulations! Your Team member has been successfully added!"
+            });
         }
-        catch (error) {
-            console.log(error);
-            res.json({ Success: false })
-        }
-    });
+    } catch (error) {
+        console.log(error);
+        return res.status(500).json({ success: false, message: "Internal Server Error" });
+    }
+});
 
     router.get('/teammemberdata/:userid', async (req, res) => {
         try {

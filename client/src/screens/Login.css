@@ -31,6 +31,10 @@ body{
     .loginbox{
         width: 90%;
     }
+
+    .signupbox{
+    width: 90% !important;
+    }
   
   }
   
@@ -39,12 +43,19 @@ body{
     .loginbox{
         width: 70%;
     }
+    .signupbox{
+        width: 85% !important;
+    }
   
   }
   @media screen and (min-width:767px) and (max-width:992px){
   
     .loginbox{
         width: 50%;
+    }
+    
+    .signupbox{
+        width: 80% !important;
     }
   
   }

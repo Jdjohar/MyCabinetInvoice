@@ -3,6 +3,7 @@ import { useLocation, useNavigate } from 'react-router-dom';
 import Usernavbar from './Usernavbar';
 import { CountrySelect, StateSelect, CitySelect } from '@davzon/react-country-state-city';
 import "@davzon/react-country-state-city/dist/react-country-state-city.css";
+import Usernav from './Usernav';
 
 export default function Editcustomer() {
     const location = useLocation();
@@ -33,7 +34,7 @@ export default function Editcustomer() {
 
     const fetchCustomerData = async () => {
         try {
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/getcustomers/${customerId}`);
+            const response = await fetch(`http://localhost:3001/api/getcustomers/${customerId}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -52,7 +53,7 @@ export default function Editcustomer() {
             const updatedcustomerdata = {
                 ...customer
             };
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/updatecostomerdata/${customerId}`, {
+            const response = await fetch(`http://localhost:3001/api/updatecostomerdata/${customerId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -89,9 +90,9 @@ export default function Editcustomer() {
                     </div>
 
                     <div className="col-lg-10 col-md-9 col-12 mx-auto">
-                        {/* <div className='d-lg-none d-md-none d-block mt-2'>
-                            <Nav/>
-                        </div> */}
+                        <div className='d-lg-none d-md-none d-block mt-2'>
+                            <Usernav/>
+                        </div>
                         <form>
                             <div className="bg-white my-5 p-4 box mx-4">
                                 <div className='row'>

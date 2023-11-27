@@ -14,6 +14,7 @@ import Itemlist from './screens/userpanel/Itemlist';
 import Additem from './screens/userpanel/Additem';
 import Edititem from './screens/userpanel/Edititem';
 import Editteam from './screens/userpanel/Editteam';
+import Createinvoice from './screens/userpanel/Createinvoice';
 // import { InvoiceProvider } from './components/InvoiceContext';
 import {
   BrowserRouter as Router,
@@ -41,6 +42,7 @@ function App() {
             <Route exact path='/userpanel/Itemlist' element={<Itemlist/>} />
             <Route exact path='/userpanel/Additem' element={<Additem/>} />
             <Route exact path='/userpanel/Edititem' element={<Edititem/>} />
+            <Route exact path='/userpanel/Createinvoice' element={<Createinvoice/>} />
             <Route exact path='/Timeschemahistory' element={<Timeschemahistory/>} />
             <Route exact path='/Teammemberpanel/Teammenberdashboard' element={<Teammenberdashboard/>} />
           </Routes>
