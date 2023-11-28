@@ -29,7 +29,7 @@ export default function Timeschemahistory() {
   const fetchAllEntries = async () => {
     try {
       // Fetch all entries for the merchant's team (teamid)
-      const response = await fetch(`http://localhost:3001/api/userEntries/${teamid}`);
+      const response = await fetch(`http://invoice-n96k.onrender.com/api/userEntries/${teamid}`);
       const data = await response.json();
 
       setUserEntries(data.userEntries);

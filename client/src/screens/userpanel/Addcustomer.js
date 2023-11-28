@@ -42,7 +42,7 @@ export default function Addcustomer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let userid = localStorage.getItem('userid');
-    const response = await fetch('http://localhost:3001/api/addcustomer', {
+    const response = await fetch('http://invoice-n96k.onrender.com/api/addcustomer', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',

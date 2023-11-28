@@ -42,7 +42,7 @@ export default function Createinvoice() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
+            const response = await fetch(`http://invoice-n96k.onrender.com/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -56,7 +56,7 @@ export default function Createinvoice() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
+            const response = await fetch(`http://invoice-n96k.onrender.com/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {

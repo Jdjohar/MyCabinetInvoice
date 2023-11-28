@@ -34,7 +34,7 @@ export default function Editcustomer() {
 
     const fetchCustomerData = async () => {
         try {
-            const response = await fetch(`http://localhost:3001/api/getcustomers/${customerId}`);
+            const response = await fetch(`http://invoice-n96k.onrender.com/api/getcustomers/${customerId}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -53,7 +53,7 @@ export default function Editcustomer() {
             const updatedcustomerdata = {
                 ...customer
             };
-            const response = await fetch(`http://localhost:3001/api/updatecostomerdata/${customerId}`, {
+            const response = await fetch(`http://invoice-n96k.onrender.com/api/updatecostomerdata/${customerId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

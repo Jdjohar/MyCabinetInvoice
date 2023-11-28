@@ -38,7 +38,7 @@ export default function Customerlist() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
+            const response = await fetch(`http://invoice-n96k.onrender.com/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -56,7 +56,7 @@ export default function Customerlist() {
 
     const handleDeleteClick = async (customerId) => {
         try {
-            const response = await fetch(`http://localhost:3001/api/delcustomers/${customerId}`, {
+            const response = await fetch(`http://invoice-n96k.onrender.com/api/delcustomers/${customerId}`, {
                 method: 'GET'
             });
     
