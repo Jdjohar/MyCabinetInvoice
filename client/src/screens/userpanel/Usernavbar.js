@@ -48,7 +48,7 @@ export default function Usernavbar() {
                       <p className='greyclr nav-link'>Documents</p>
                     </li>
                     <li>
-                      <Link to="" className='nav-link scrollto icones text-black' >
+                      <Link to="/userpanel/Invoice" className='nav-link scrollto icones text-black' >
                         <i class="fa-solid fa-house me-2 dashclr"></i> <span>Invoice</span>
                       </Link>
                     </li>

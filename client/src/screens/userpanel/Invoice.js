@@ -1,12 +1,14 @@
 import React, { useState, useEffect } from 'react';
 import Usernavbar from './Usernavbar';
-import { useNavigate } from 'react-router-dom';
+import { useNavigate,useLocation } from 'react-router-dom';
 import Usernav from './Usernav';
 // import Nav from './Nav';
 
 export default function Invoice() {
-    const [items, setitems] = useState([]);
-    const [selecteditems, setselecteditems] = useState(null);
+    const [invoices, setinvoices] = useState([]);
+    const [selectedinvoices, setselectedinvoices] = useState(null);
+    const location = useLocation();
+    const invoiceid = location.state?.invoiceid;
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -17,53 +19,34 @@ export default function Invoice() {
         fetchdata();
     }, [])
 
-    const handleAddClick = () => {
-        navigate('/userpanel/Additem');
-    }
-
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://invoice-n96k.onrender.com/api/itemdata/${userid}`);
+            const response = await fetch(`http://invoice-n96k.onrender.com/api/invoicedata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
-                setitems(json);
+                setinvoices(json);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
-    const handleEditClick = (item) => {
-        setselecteditems(item);
-        let itemId = item._id;
-        navigate('/userpanel/Edititem', { state: { itemId } });
+
+    const handleViewClick = (invoice) => {
+        let invoiceid = invoice._id;
+        navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
     };
 
-    const formatDate = (dateString) => {
-        const date = new Date(dateString);
+    const formatCustomDate = (dateString) => {
         const options = { day: 'numeric', month: 'short', year: 'numeric' };
+        const date = new Date(dateString);
         return date.toLocaleDateString('en-US', options);
-        
-    };
+      };
 
-    const handleDeleteClick = async (itemId) => {
-        try {
-            const response = await fetch(`http://invoice-n96k.onrender.com/api/delitem/${itemId}`, {
-                method: 'GET'
-            });
-    
-            const json = await response.json();
-    
-            if (json.Success) {
-                fetchdata(); // Refresh the items list
-            } else {
-                console.error('Error deleting item:', json.message);
-            }
-        } catch (error) {
-            console.error('Error deleting item:', error);
-        }
-    };
+    const handleAddClick = () => {
+        navigate('/userpanel/Createinvoice');
+    }
 
   return (
     <div className='bg'>
@@ -85,7 +68,7 @@ export default function Invoice() {
                                 <p className='h5 fw-bold'>Invoice</p>
                             </div>
                             <div className="col-lg-3 col-md-4 col-sm-4 col-5 text-right">
-                                <button className='btn rounded-pill btnclr text-white fw-bold' onClick={handleAddClick}>+ Create</button>
+                                <button className='btn rounded-pill btnclr text-white fw-bold' onClick={handleAddClick}>+ Add New</button>
                             </div>
                         </div><hr />
 
@@ -93,30 +76,38 @@ export default function Invoice() {
                             <table class="table table-bordered">
                                 <thead>
                                     <tr>
-                                        <th scope="col">ID </th>
-                                        <th scope="col">Item </th>
-                                        <th scope="col">Amount </th>
-                                        <th scope="col">Date </th>
-                                        <th scope="col">Edit/Delete </th>
+                                        <th scope="col">INVOICE </th>
+                                        <th scope="col">STATUS </th>
+                                        <th scope="col">DATE </th>
+                                        <th scope="col">View </th>
+                                        <th scope="col">AMOUNT </th>
                                     </tr>
                                 </thead>
                                 <tbody>
-                                        {items.map((item, index) => (
+                                        {invoices.map((invoice, index) => (
                                             <tr key={index}>
-                                                <th scope="row">{index + 1}</th>
-                                                <td>{item.itemname}</td>
-                                                <td>{item.price}</td>
-                                                <td>{formatDate(item.createdAt)}</td>
                                                 <td>
-                                                    <div className="d-flex">
-                                                        <a role='button' className="btn btn-success btn-sm me-2 text-white" onClick={ () => handleEditClick(item)}>
-                                                                    <i className="fa-solid fa-pen"></i>
-                                                                </a>
-                                                                <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item._id)}>
-                                                                    <i className="fas fa-trash"></i>
-                                                                </button>
+                                                    <p className='my-0'>{invoice.customername}</p>
+                                                    <p className='my-0'>{invoice.invoicenumber}</p>
+                                                </td>
+                                                <td></td>
+                                                <td>
+                                                    <div className='d-flex'>
+                                                        <p className='issue px-1 my-1'>Issued</p>
+                                                        <p className='datetext my-1'>{formatCustomDate(invoice.date)}</p>
+                                                    </div>
+                                                    <div className='d-flex'>
+                                                        <p className='due px-1'>Due</p>
+                                                        <p className='datetext'>{formatCustomDate(invoice.duedate)}</p>
                                                     </div>
                                                 </td>
+                                                 
+                                                <td className='text-center'>
+                                                    <a role="button" className='text-black text-center' onClick={ () => handleViewClick(invoice)}>
+                                                        <i class="fa-solid fa-eye"></i>
+                                                    </a>
+                                                </td>
+                                                <td>&#8377; {invoice.total}</td>
                                             </tr>
                                         ))}
                                     </tbody>

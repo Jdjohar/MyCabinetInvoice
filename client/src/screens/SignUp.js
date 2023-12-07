@@ -11,7 +11,8 @@ export default function SignUp() {
         FirstName: "", 
         LastName: "", 
         email: "",
-        password: "" 
+        password: "",
+        address: "" 
     })
     const [message, setmessage] = useState(false);
     const [alertshow, setalertshow] = useState('');
@@ -32,7 +33,9 @@ export default function SignUp() {
             Businesstype: credentails.Businesstype, 
             CurrencyType: credentails.CurrencyType, 
             FirstName: credentails.FirstName, 
-            LastName: credentails.LastName })
+            LastName: credentails.LastName, 
+            address: credentails.address 
+        })
         });
     
         const json = await response.json();
@@ -46,7 +49,8 @@ export default function SignUp() {
             FirstName: "", 
             LastName: "", 
             email: "",
-            password: ""
+            password: "",
+            address: ""
         })
           setmessage(true)
           setalertshow(json.message)
@@ -140,6 +144,12 @@ export default function SignUp() {
                         <div className="form-group mb-3 pt-3">
                             <label htmlFor="password" className="form-label">Password</label>
                             <input type="password" className="form-control" name="password" value={credentails.password} onChange={onchange} placeholder="Password" id="exampleInputPassword1" required />
+                        </div>
+                    </div>
+                    <div className="col-12 col-sm-12 col-md-6 col-lg-6">
+                        <div className="form-group mb-3 pt-3">
+                            <label htmlFor="address" className="form-label">Address</label>
+                            <textarea type="message" className="form-control" name="address" value={credentails.address} onChange={onchange} placeholder="Address" id="exampleInputaddress" required />
                         </div>
                     </div>
                     

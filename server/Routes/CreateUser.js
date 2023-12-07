@@ -17,6 +17,8 @@ const UserPreference = require('../models/UserPreference');
 const Timeschema = require('../models/Timeschema');
 const Team = require('../models/Team');
 const Customerlist = require('../models/Customerlist');
+const Invoice = require('../models/Invoice');
+const Transactions = require('../models/Transactions');
 
 router.get('/dashboard/:userid', async (req, res) => {
     try {
@@ -40,6 +42,7 @@ router.post("/createuser", [
     body('FirstName').isLength({ min: 3 }),
     body('LastName').isLength({ min: 3 }),
     body('password').isLength({ min: 5 }),
+    body('address').isLength(),
 ], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
@@ -68,6 +71,7 @@ router.post("/createuser", [
                 LastName: req.body.LastName,
                 password: secPassword,
                 email: req.body.email,
+                address: req.body.address,
             });
 
             return res.json({
@@ -563,6 +567,421 @@ router.post("/addcustomer",
     }
     });
 
+// router.post(
+//         '/savecreateinvoice',
+//         [
+//           body('userid').isLength({ min: 3 }),
+//           body('invoiceData').isObject(),
+//           // Add validation for other fields if needed
+//         ],
+//         async (req, res) => {
+//           try {
+//             const errors = validationResult(req);
+//             if (!errors.isEmpty()) {
+//               return res.status(400).json({ errors: errors.array() });
+//             }
+      
+//             const {
+//               userid,
+//               customername,
+//               itemname,
+//               customeremail,
+//               invoicenumber,
+//               purchaseorder,
+//               date,
+//               duedate,
+//               description,
+//               itemquantity,
+//               price,
+//               discount,
+//               amount,
+//               tax,
+//               subtotal,
+//               total,
+//               amountdue,
+//               information,
+//             } = req.body.invoiceData; // Destructure invoice data
+      
+//             // Create the invoice in the database
+//             const newInvoice = new Invoice({
+//               userid,
+//               customername,
+//               itemname,
+//               customeremail,
+//               invoicenumber,
+//               purchaseorder,
+//               date,
+//               duedate,
+//               description,
+//               itemquantity,
+//               price,
+//               discount,
+//               amount,
+//               tax,
+//               subtotal,
+//               total,
+//               amountdue,
+//               information,
+//             });
+      
+//             await newInvoice.save(); // Save the new invoice to the database
+      
+//             res.json({
+//               success: true,
+//               message: 'Congratulations! Your Invoice has been successfully saved!',
+//             });
+//           } catch (error) {
+//             console.error('Error:', error);
+//             res.status(500).json({ success: false, message: 'Failed to save the invoice.' });
+//           }
+//         }
+//       );
+
+    // router.post("/savecreateinvoice", [
+    //     // Validate the incoming data (placeholders)
+    //     body('userid').isLength({ min: 1 }),
+    //     body('invoiceData').isObject(),
+    // ], async (req, res) => {
+    //     const errors = validationResult(req);
+    //     if (!errors.isEmpty()) {
+    //         return res.status(400).json({ errors: errors.array() });
+    //     }
+    
+    //     try {
+    //         // Save the invoice data to the database (placeholders)
+    //         const { userid, invoiceData } = req.body;
+    //         // Save the invoiceData to the database using Mongoose or other ORM
+    
+    //         res.json({ success: true, message: "Invoice saved successfully" });
+    //     } catch (error) {
+    //         console.error(error);
+    //         return res.status(500).json({ success: false, message: "Internal Server Error" });
+    //     }
+    // });
+
+
+    // Create a new invoice
+router.post('/savecreateinvoice', async (req, res) => {
+        try {
+            const { userid, invoiceData } = req.body; // Extracting invoiceData from the request body
+            console.log('Received userid:', userid);
+
+          // Create a new instance of the Invoice model using the extracted data
+          const newInvoice = new Invoice({
+            ...invoiceData,
+            userid: userid,
+            createdAt: new Date(), // Adding the current date as createdAt
+          });
+      
+          // Save the new invoice to the database
+          const savedInvoice = await newInvoice.save();
+      
+          res.status(201).json({
+            success: true,
+            message: 'Invoice saved successfully!',
+            invoice: savedInvoice,
+          });
+        } catch (error) {
+          console.error('Error creating invoice:', error);
+          res.status(500).json({ success: false, message: 'Failed to save the invoice.' });
+        }
+      });
+
+      router.get('/invoicedata/:userid', async (req, res) => {
+        try {
+            let userid = req.params.userid;
+            const invoicedata = (await Invoice.find({ userid: userid}));
+            res.json(invoicedata);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    });
+
+    router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
+        try {
+            const invoiceid = req.params.invoiceid;
+            console.log(invoiceid);
+    
+            const result = await Invoice.findById(invoiceid);
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "invoicedata retrieved successfully",
+                    invoices: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "invoicedata not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error retrieving invoicedata:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to retrieve invoicedata"
+            });
+        }
+    });
+
+    router.post('/updateinvoicedata/:invoiceid', async (req, res) => {
+        try {
+            const invoiceid = req.params.invoiceid;
+            const { subtotal, total, items, ...updatedData } = req.body; // Ensure this matches your MongoDB schema
+    
+            // Add the updated subtotal and total to the incoming data
+            updatedData.subtotal = subtotal;
+            updatedData.total = total;
+
+            // Update or replace the 'items' field
+            updatedData.items = items; 
+    
+            // Perform the update operation in your database here
+            const result = await Invoice.findByIdAndUpdate(invoiceid, updatedData, { new: true });
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "Invoice data updated successfully",
+                    invoice: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "Invoice data not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error updating invoice data:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to update invoice data"
+            });
+        }
+    });
+
+    // DELETE route to remove data
+// router.get('/removeData/:invoiceid', async (req, res) => {
+//     const { invoiceid } = req.params;
+  
+//     try {
+//       // Remove data associated with the provided invoiceid
+//       await Invoice.findByIdAndDelete(invoiceid);
+  
+//       res.status(200).json({ message: 'Data removed successfully' });
+//     } catch (error) {
+//       console.error('Error removing data:', error);
+//       res.status(500).json({ error: 'Error removing data' });
+//     }
+//   });
+
+router.get('/deldata/:invoiceid', async (req, res) => {
+    try {
+      const invoiceid = req.params.invoiceid;
+      const invoice = await Invoice.findById(invoiceid);
+  
+      if (!invoice) {
+        return res.status(404).json({
+          success: false,
+          message: 'Invoice not found'
+        });
+      }
+  
+      const transactions = await Transactions.find({ invoiceid: invoiceid });
+      
+      if (transactions.length > 0) {
+        transactions.forEach(async (transaction) => {
+          await Transactions.findByIdAndDelete(transaction._id);
+        });
+      }
+  
+      const result = await Invoice.findByIdAndDelete(invoiceid);
+  
+      if (result) {
+        return res.json({
+          success: true,
+          message: 'Invoice and associated transactions deleted successfully'
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Failed to delete Invoice'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting Invoice:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete Invoice'
+      });
+    }
+  });
+
+// DELETE route to remove invoice and associated transactions by invoice ID
+router.get('/removeInvoiceAndTransactions/:invoiceid', async (req, res) => {
+    try {
+      const invoiceId = req.params.invoiceid;
+  
+      // Deleting the transaction associated with the invoiceId
+      const deletedTransaction = await Transactions.find({ invoiceId });
+  
+      if (!deletedTransaction) {
+        return res.status(404).json({ success: false, error: 'Transaction not found for the invoice.' });
+      }
+  
+      // Deleting the invoice by ID
+      const deletedInvoice = await Invoice.findByIdAndDelete(invoiceId);
+  
+      if (deletedInvoice) {
+        res.status(200).json({ success: true, message: 'Invoice and associated transaction deleted successfully.' });
+      } else {
+        res.status(404).json({ success: false, error: 'Invoice not found.' });
+      }
+    } catch (error) {
+      console.error('Error deleting invoice and transactions:', error);
+      res.status(500).json({ success: false, error: 'Failed to delete invoice and transactions.' });
+    }
+  });
+  
+  
+
+
+router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
+    try {
+        const invoiceid = req.params.invoiceid;
+        const itemId = req.params.itemId;
+        const result = await Invoice.findById(invoiceid);
+        console.log(result);
+        const updateditems = [];
+        result.items.forEach(element => {
+            if(element.itemId != itemId)
+            {
+                updateditems.push(element);
+            }
+        });
+        result.items = updateditems;
+        const deletedItem = await Invoice.findByIdAndUpdate(invoiceid, result, { new: true });
+
+        if (deletedItem) {
+            res.json({
+                Success: true,
+                message: 'Item deleted successfully'
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: 'Item not found'
+            });
+        }
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        res.status(500).json({
+            Success: false,
+            message: 'Failed to delete item'
+        });
+    }
+});
+
+    // Fetch invoicedetail from a invoice
+    router.get('/getinvoicedata/:invoiceid', async (req, res) => {
+    try {
+    const invoiceid = req.params.invoiceid;
+    const invoicedetail = await Invoice.findById(invoiceid);
+    
+    res.json(invoicedetail);
+    } catch (error) {
+    console.error('Error fetching invoicedetail:', error);
+    res.status(500).json({ message: 'Internal server error' });
+    }
+    });
+
+    router.get('/lastinvoicenumber/:userid', async (req, res) => {
+        try {
+            const userid = req.params.userid;
+            const lastInvoice = await Invoice.findOne({ userid: userid}).sort({ invoice_id: -1 });
+    
+            if (lastInvoice) {
+                if(lastInvoice.invoice_id == " " || lastInvoice.invoice_id == null || lastInvoice.invoice_id == undefined || lastInvoice.invoice_id == ""){
+                    res.json({ lastInvoiceNumber: "Invoice-1", lastInvoiceId: 0 }); // Default value if no invoices found
+                }else{
+                res.json({ lastInvoiceId: lastInvoice.invoice_id, lastInvoiceNumber: lastInvoice.InvoiceNumber });
+                }
+            } else {
+                res.json({ lastInvoiceNumber: "Invoice-1", lastInvoiceId: 0 }); // Default value if no invoices found
+            }
+        } catch (error) {
+            console.error('Error fetching last invoice number:', error);
+            res.status(500).json({ message: 'Server Error' });
+        }
+    });
+    // Fetch invoicedetail from a invoice
+    router.get('/gettransactiondata/:invoiceid', async (req, res) => {
+    try {
+    const invoiceid = req.params.invoiceid;
+    const transactiondata = (await Transactions.find({ invoiceid: invoiceid}));
+    res.json(transactiondata);
+    } catch (error) {
+    console.error('Error fetching transactiondata:', error);
+    res.status(500).json({ message: 'Internal server error' });
+    }
+    });
+
+    // Fetch invoicedetail from a userid
+    router.get('/invoicedata/:userid', async (req, res) => {
+        try {
+            let userid = req.params.userid;
+            const invoices = (await Invoice.find({ userid: userid}));
+            res.json(invoices);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    });
+
+    // Route to add payment for an invoice
+router.post('/addpayment', async (req, res) => {
+    try {
+        const { paidamount, paiddate, method, note, userid, invoiceid } = req.body;
+
+        // Create a new transaction
+        const newTransaction = new Transactions({
+            paidamount,
+            paiddate,
+            method,
+            note,
+            userid,
+            invoiceid,
+        });
+
+        // Save the transaction to the database
+        const savedTransaction = await newTransaction.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Payment added successfully!',
+            transaction: savedTransaction,
+        });
+    } catch (error) {
+        console.error('Error adding payment:', error);
+        res.status(500).json({ success: false, message: 'Failed to add payment.' });
+    }
+});
+
+    // Fetch signupdata from a signup
+    router.get('/getsignupdata/:userid', async (req, res) => {
+    try {
+    const userid = req.params.userid;
+    const signupdetail = await User.findById(userid);
+    res.json(signupdetail);
+    } catch (error) {
+    console.error('Error fetching signupdetail:', error);
+    res.status(500).json({ message: 'Internal server error' });
+    }
+    });
+      
+  
 router.get('/customers/:userid', async (req, res) => {
     try {
         let userid = req.params.userid;

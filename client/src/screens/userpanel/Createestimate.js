@@ -10,7 +10,8 @@ import VirtualizedSelect from 'react-virtualized-select';
 import 'react-virtualized-select/styles.css';
 import 'react-virtualized/styles.css'
 
-export default function Createinvoice() {
+export default function Createestimate() {
+//   const [ loading, setloading ] = useState(true);
     const [customers, setcustomers] = useState([]);
     const [items, setitems] = useState([]);
     const [searchcustomerResults, setSearchcustomerResults] = useState([]);
@@ -19,50 +20,24 @@ export default function Createinvoice() {
     const [discountMap, setDiscountMap] = useState({});
     const [discount, setDiscount] = useState();
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
-        name: '', email: ''});
+        name: '',
+        email: ''
+    });
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
     const [taxPercentage, setTaxPercentage] = useState(0);
-    const [invoiceData, setInvoiceData] = useState({
-        customername: '',itemname: '',customeremail: '',invoice_id: '', InvoiceNumber:'',purchaseorder: '',
-        date: '',duedate: '',description: '',itemquantity: '', price: '',discount: '',
-        amount: '',tax: '',taxpercentage:'',subtotal: '',total: '',amountdue: '',information: '',
-    });
-    const [editorData, setEditorData] = useState("<p></p>");
+
+
 
     useEffect(() => {
-        const fetchData = async () => {
-            if (!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") === "true") {
-                navigate("/");
-            }
-            await fetchcustomerdata();
-            await fetchitemdata();
-            await fetchLastInvoiceNumber();
-        };
-    
-        fetchData();
+        if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
+        {
+          navigate("/");
+        }
+        fetchcustomerdata();
+        fetchitemdata();
+        
     }, [])
     let navigate = useNavigate();
-
-    const fetchLastInvoiceNumber = async () => {
-        try {
-            const userid = localStorage.getItem('userid');
-            const response = await fetch(`http://invoice-n96k.onrender.com/api/lastinvoicenumber/${userid}`);
-            const json = await response.json();
-    
-            // let nextInvoiceNumber = 1;
-            // if (json && json.lastInvoiceNumber) {
-            //     nextInvoiceNumber = json.lastInvoiceNumber + 1;
-            // }
-            setInvoiceData({
-                ...invoiceData,
-                InvoiceNumber: `Invoice-${json.lastInvoiceId+1}`,
-                invoice_id: json.lastInvoiceId+1,
-            });
-        } catch (error) {
-            console.error('Error fetching last invoice number:', error);
-        }
-    };
-    
 
     const fetchcustomerdata = async () => {
         try {
@@ -100,11 +75,6 @@ export default function Createinvoice() {
         setSearchitemResults([...searchitemResults,event]);
     }
 
-    const handleEditorChange = (event, editor) => {
-        const data = editor.getData();
-        setEditorData(data);
-    };
-
     // const onChangeQuantity = (event, itemId) => {
     //     const newQuantity = event.target.value ? parseInt(event.target.value) : 1;
     
@@ -125,10 +95,11 @@ export default function Createinvoice() {
         }));
       };
 
-    const onDeleteItem = (itemIdToDelete) => {
+      const onDeleteItem = (itemIdToDelete) => {
         setSearchitemResults((prevResults) => {
             return prevResults.filter((item) => item.value !== itemIdToDelete);
         });
+        // Perform any other actions related to deletion in the UI
     };
 
     const onChangecustomer = (event) => {
@@ -136,17 +107,11 @@ export default function Createinvoice() {
         const selectedCustomer = customers.find((customer) => customer._id === selectedCustomerId);
 
         if (selectedCustomer) {
-            setInvoiceData({
-                ...invoiceData,
-                customername: selectedCustomer.name,
-                customeremail: selectedCustomer.email,
-            });
-    
             setSelectedCustomerDetails({
                 name: selectedCustomer.name,
                 email: selectedCustomer.email
             });
-            setIsCustomerSelected(true); 
+            setIsCustomerSelected(true); // Set the flag to indicate a customer is selected
         }
 
         setSearchcustomerResults([...searchcustomerResults, event]);
@@ -178,7 +143,7 @@ export default function Createinvoice() {
             }));
     
             // Use discountedAmount in your code where needed
-            // console.log('Discounted Amount:', discountedAmount.toFixed(2)); // Output the discounted amount
+            console.log('Discounted Amount:', discountedAmount.toFixed(2)); // Output the discounted amount
         } else {
             // Handle invalid input (e.g., show a message to the user)
             console.log('Invalid input for discount');
@@ -204,7 +169,7 @@ export default function Createinvoice() {
       };
 
       // Function to handle tax change
-    const handleTaxChange = (event) => {
+      const handleTaxChange = (event) => {
         let enteredTax = event.target.value;
         // Restrict input to two digits after the decimal point
         const regex = /^\d*\.?\d{0,2}$/; // Regex to allow up to two decimal places
@@ -212,10 +177,10 @@ export default function Createinvoice() {
             // Ensure that the entered value is a valid number
             enteredTax = parseFloat(enteredTax);
             setTaxPercentage(enteredTax);
-            setInvoiceData({ ...invoiceData, taxpercentage: enteredTax }); 
         }
     };
     
+
     // Function to calculate tax amount
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
@@ -230,91 +195,6 @@ const calculateTotal = () => {
     const totalAmount = subtotal + taxAmount;
     return totalAmount;
   };
-
-const handleSubmit = async (e) => {
-    e.preventDefault();
-    try {
-      const userid = localStorage.getItem('userid'); // Assuming you have user ID stored in local storage
-  
-      const invoiceItems = searchitemResults.map((item) => {
-        const selectedItem = items.find((i) => i._id === item.value);
-        const itemPrice = selectedItem?.price || 0;
-        const itemId = item.value;
-        const quantity = quantityMap[itemId] || 1;
-        const discount = discountMap[itemId] || 0;
-        const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
-  
-        return {
-            itemId:itemId,
-          itemname: selectedItem.itemname,
-          itemquantity: quantity,
-          price: itemPrice,
-          discount,
-          description: selectedItem.description,
-          amount: discountedAmount, // Add subtotal to each item
-        //   total: calculateTotal(), // Calculate total for each item
-        //   amountdue: calculateTotal() // Amount due is also total for each item initially
-        };
-      });
-  
-      // Summing up subtotal, total, and amount due for the entire invoice
-      const subtotal = invoiceItems.reduce((acc, curr) => acc + curr.amount, 0);
-      const total = calculateTotal();
-      const amountdue = total;
-      const taxAmount = calculateTaxAmount(); // Calculate tax amount based on subtotal and tax percentage
-      
-        const taxPercentageValue  = taxPercentage; // Retrieve tax percentage from invoiceData state
-  
-      const data  = {
-        userid: userid,
-        customername: invoiceData.customername,
-        customeremail: invoiceData.customeremail, 
-        invoice_id: invoiceData.invoice_id, 
-        InvoiceNumber: invoiceData.InvoiceNumber, 
-        purchaseorder: invoiceData.purchaseorder,
-        information: editorData, 
-        date: invoiceData.date,
-        items: invoiceItems,
-        duedate: invoiceData.duedate, 
-        subtotal: subtotal,
-        total: total,
-        tax: taxAmount, 
-        taxpercentage: taxPercentageValue , 
-        amountdue: amountdue
-      };
-  
-  
-      // Sending invoice data to the backend API
-      const response = await fetch('http://invoice-n96k.onrender.com/api/savecreateinvoice', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({ userid, invoiceData: data }),
-      });
-  
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.success) {
-           const invoiceid =  responseData.invoice._id;
-        navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
-          console.log('Invoice saved successfully!');
-        } else {
-          console.error('Failed to save the invoice.');
-        }
-      } else {
-        console.error('Failed to save the invoice.');
-      }
-    } catch (error) {
-      console.error('Error creating invoice:', error);
-    }
-  };
-  
-  
-const onchange = (event) => {
-    setInvoiceData({ ...invoiceData, [event.target.name]: event.target.value });
-  };
-
 
   return (
     <div className='bg'>
@@ -332,21 +212,31 @@ const onchange = (event) => {
                     </div>
                     <div className='mx-4'>
         
-                        <form onSubmit={handleSubmit}>
+                        <div className=''>
                         <div className='row py-4 px-2 breadcrumbclr'>
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                                 <p className='fs-35 fw-bold'>Invoice</p>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb mb-0">
                                         <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Invoice</li>
+                                        <li class="breadcrumb-item active" aria-current="page">Team</li>
                                     </ol>
                                 </nav>
                             </div>
                             <div className="col-lg-3 col-md-4 col-sm-4 col-5 text-right">
-                                <button className='btn rounded-pill btn-danger text-white fw-bold' type="submit">Save</button>
+                                <button className='btn rounded-pill btn-danger text-white fw-bold'>Save</button>
                             </div>
                         </div>
+                        {/* <div className='txt px-4 py-4 breadcrumbclr'>
+                            <h2 className='fs-35 fw-bold'>Invoice</h2>
+                            <nav aria-label="breadcrumb">
+                                <ol class="breadcrumb mb-0">
+                                    <li class="breadcrumb-item"><a href="" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                    <li class="breadcrumb-item"><a href="" className='txtclr text-decoration-none'>Invoice</a></li>
+                                    <li class="breadcrumb-item active" aria-current="page">Create</li>
+                                </ol>
+                            </nav>
+                        </div> */}
                         <div className='box1 rounded adminborder p-4 m-2 mb-5'>
                             <div className='row me-2'>
                                 <div className="col-5">
@@ -365,9 +255,9 @@ const onchange = (event) => {
                                             <p className='fs-20 mb-0'>Select Customers</p>
                                             <VirtualizedSelect
                                                 id="searchitems" 
-                                                name="customername"
+                                                name="customers"
                                                 className="form-control zindex op pl-0"
-                                                placeholder="" 
+                                                placeholder=""
                                                 onChange={onChangecustomer}
                                                 options={ customers.map((customer,index)=>
                                                     ({label: customer.name, value: customer._id})
@@ -385,10 +275,9 @@ const onchange = (event) => {
                                                 </label>
                                                 <input
                                                 type="text"
-                                                name="InvoiceNumber"
+                                                name="invoicenumbr"
                                                 className="form-control"
-                                                value={invoiceData.InvoiceNumber} 
-                                                onChange={onchange}
+                                                // onChange={onchange}
                                                 // placeholder="Invoice Number"
                                                 id="invoicenumbr"
                                                 required
@@ -402,9 +291,10 @@ const onchange = (event) => {
                                                 </label>
                                                 <input
                                                 type="text"
-                                                name="purchaseorder"
+                                                name="purchaseoder"
                                                 className="form-control"
-                                                onChange={onchange}
+                                                // onChange={onchange}
+                                                // placeholder="Purchase Order (PO) #"
                                                 id="purchaseoder"
                                                 required
                                                 />
@@ -417,10 +307,9 @@ const onchange = (event) => {
                                                 </label>
                                                 <input
                                                 type="date"
-                                                name="date"
+                                                name="Date"
                                                 className="form-control"
-                                                value={invoiceData.date} 
-                                                onChange={onchange}
+                                                // onChange={onchange}
                                                 // placeholder="Date"
                                                 id="Date"
                                                 required
@@ -436,8 +325,7 @@ const onchange = (event) => {
                                                 type="date"
                                                 name="duedate"
                                                 className="form-control"
-                                                value={invoiceData.duedate} 
-                                                onChange={onchange}
+                                                // onChange={onchange}
                                                 // placeholder="Due Date"
                                                 id="duedate"
                                                 required
@@ -537,7 +425,6 @@ const onchange = (event) => {
                                                     <label htmlFor="description" className="form-label">Description</label>
                                                     <textarea
                                                         class="form-control"
-                                                        name='description'
                                                         id={`item-description-${itemId}`}
                                                         placeholder='Item Description'
                                                         rows="3"
@@ -547,7 +434,21 @@ const onchange = (event) => {
                                                     </textarea>
                                                 </div>
                                             </div>
-                                            
+                                            <div className="col-4">
+                                                <div class="mb-3">
+                                                    <label htmlFor="taxInput" className="form-label">Tax</label>
+                                                    <input
+                                                        type="number"
+                                                        name="taxInput"
+                                                        className="form-control"
+                                                        value={taxPercentage}
+                                                        onChange={handleTaxChange}
+                                                        placeholder="Enter Tax Percentage"
+                                                        id="taxInput"
+                                                        min="0"
+                                                    />
+                                                </div>
+                                            </div>
                                             <div className="col-3">
                                                 <div class="mb-3">
                                                     <label htmlFor="Discount" className="form-label">Discount</label>
@@ -575,7 +476,7 @@ const onchange = (event) => {
                                             <p className='fs-20 mb-0'>Select Item</p>
                                             <VirtualizedSelect
                                                 id="searchitems" 
-                                                name="itemname"
+                                                name="items"
                                                 className="form-control zindex op pl-0"
                                                 placeholder=""
                                                 onChange={onChangeitem}
@@ -592,8 +493,7 @@ const onchange = (event) => {
                                         <div className="row">
                                             <div className="col-6">
                                                 <p>Subtotal</p>
-                                                <p>Tax</p>
-                                                <p>Tax {taxPercentage}%</p>
+                                                <p>TAX {taxPercentage}%</p>
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6">
@@ -601,20 +501,6 @@ const onchange = (event) => {
                                                     style: 'currency',
                                                     currency: 'INR',
                                                 })}</p>
-                                                <div className="col-6">
-                                                <div class="mb-3">
-                                                    <input
-                                                        type="number"
-                                                        name="tax"
-                                                        className="form-control"
-                                                        value={taxPercentage}
-                                                        onChange={handleTaxChange}
-                                                        placeholder="Enter Tax Percentage"
-                                                        id="taxInput"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                            </div>
                                                 <p>{calculateTaxAmount().toLocaleString('en-IN', {
                                                     style: 'currency',
                                                     currency: 'INR',
@@ -636,10 +522,7 @@ const onchange = (event) => {
                                                 <p>Amount due</p>
                                             </div>
                                             <div className="col-6">
-                                                <p>{calculateTotal().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
-                                                    })}</p>
+                                                <p>₹1,920.00</p>
                                             </div>
                                         </div>
                                     </div>
@@ -649,12 +532,14 @@ const onchange = (event) => {
                             <div className='box1 rounded adminborder m-2 mt-5'>
                                 <CKEditor
                                     editor={ ClassicEditor }
-                                    data={editorData}
-                                    // onReady={ editor => {
-                                    //     console.log( 'Editor is ready to use!', editor );
-                                    // } }
-                                    
-                                    onChange={handleEditorChange}
+                                    data="<p></p>"
+                                    onReady={ editor => {
+                                        console.log( 'Editor is ready to use!', editor );
+                                    } }
+                                    onChange={ ( event, editor ) => {
+                                        const data = editor.getData();
+                                        console.log( { event, editor, data } );
+                                    } }
                                     onBlur={ ( event, editor ) => {
                                         console.log( 'Blur.', editor );
                                     } }
@@ -665,7 +550,7 @@ const onchange = (event) => {
                             </div>
                         </div>
 
-                        </form>
+                        </div>
                     </div>
                 </div>
             </div>

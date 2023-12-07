@@ -429,3 +429,59 @@ display: none;}
   display: inline-block;
   padding-right: 15px;
 }
+
+.detailbg{
+  background-color: #f0f3f4;
+}
+
+.invoice-content {
+  padding: 20px 38px 10px;
+}
+
+.greenclr{
+  color: #009688;
+}
+
+.greenclr:hover{
+  color: #009688;
+}
+
+.issue {
+  color: #856404;
+  border: 1px solid #dcc374 !important;
+  background-color: #fff3cd;
+  border-radius: 5px;
+  font-size: 10px;
+}
+
+.datetext {
+  color: #484848;
+  font-size: 14px;
+  font-weight: 600;
+  margin-left: 10px;
+}
+
+.due{  color: #155724;
+  border:1px solid #6dbf81;
+  background-color: #d4edda;
+  font-size: 10px;
+  border-radius: 5px;
+}
+
+.no-arrow::after {
+  display: none;
+}
+
+.ellipse{
+  border: 1px solid black;
+  border-radius: 4px;
+}
+
+.alertwidth{
+width: 6%;
+}
+
+.addpayment{
+  border: 0px solid #fff;
+  background-color: #fff;
+}
