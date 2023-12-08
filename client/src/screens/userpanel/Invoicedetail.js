@@ -209,155 +209,123 @@ export default function Invoicedetail() {
       <head>
         <title>Print Invoice</title>
         <style>
-        body {
-            font-family: 'Lato', sans-serif;
-            background-color: #EDF3FF;
-          }
+      //   @media print {
+      //    .row {
+      //         background-color: #1a4567 !important;
+      //         print-color-adjust: exact; 
+      //     }
+      // }
+      
+        .print-page{
+          width:80%;
+          margin:auto
+        }
+        .adminborder{
+        
           
-          h4 {
-            font-weight: bold;
-          }
-          
-          p {
-            margin: 0;
-          }
-          
-          /* Container Styles */
-          .box1 {
-            background-color: #f7f7f7;
-            border-radius: 10px;
-            margin-bottom: 50px;
-            padding-bottom: 50px;
-          }
-          
-          /* Header Section Styles */
-          .row.py-5.px-3 {
-            padding: 30px;
-          }
+          width:100%;
+        }
+        .row{
+  
+          width:100% !important;
+          margin:auto;
+        }
+      .pt-30{
+        padding-top:30px;
+      }
+      .pb-30{
+        padding-bottom:30px;
+      }
+      .pb-90{
+        padding-bottom: 66px;
+        padding-top: 15px;
+        padding-left: 10px;
+        margin-top: 20px;
+        margin-bottom: 30px;
+      }
 
-          .row{
-            width:90%;
-            margin:auto;
-          }
-          
-          .box1.row.col-5 {
-            width: 41.67%; /* 5 out of 12 columns */
-            float:left;
-          }
-          
-          .box1.row.col-7 {
-            width: 58.33%; /* 7 out of 12 columns */
-            float:left;
-          }
-          
-          .text-end {
-            text-align: right;
-          }
+      .padding-20{
+        padding-top:15px;
+        padding-bottom:45px;
+      }
+        .col-6{
+          width:50%;
+          float:left
+        }
+        .col-md-6{
+          width:50%;
+          float:left
+        }
+        p, h1,h2,h3,h4,h5,h6 {
+          margin:0
+        }
+        .clear{
+          clear:both;
+        }
 
-          
-          /* Detail Background Styles */
-          .detailbg {
-            background-color: #f0f3f4 !important;
-            padding: 20px;
-            margin-bottom: 20px;
-            margin-top: 20px;
-            border-radius: 5px;
-          }
+        .invoice-contentcol-6{
+          width:25% !important;
+          float:left
+        }
 
-          .col-lg-6{
-            width:50%;
-            float:left;
-          }
-          .col-lg-3{
-            width:25%;
-            float:left;
-          }
-          .col-lg-3{
-            width:25%;
-            float:left;
-          }
+        .invoice-contentcol-2{
+          width:25% !important;
+          float:left;
+        }
+        
+        .fw-bold{
+          font-weight:bold;
+        }
 
-          .col-6{
-            width:50%;
-            float:left;
-          }
-          .row.pt-3.col-6{
-            width:50%;
-            float:left;
-          }
+        .invoice-contentcol-12{
+          width:100%;
+        }
 
-          .col-2{
-            width:16.67%;
-            float:left;
-          }
-          
-          /* Customer Detail Styles */
-          .customerdetail {
-            padding-top: 20px;
-          }
-          
-          .customerdetail p {
-            margin: 5px 0;
-          }
-          
-          /* Invoice Content Styles */
-          .invoice-content {
-            padding: 20px 38px 10px;
-          }
-          
-          .invoice-content .fw-bold {
-            font-weight: bold;
-          }
-          
-          .invoice-content hr {
-            border-top: 1px solid #ccc;
-            margin-top: 15px;
-            margin-bottom: 15px;
-          }
-          
-          /* Item List Styles */
-          .invoice-content .row.pt-3 {
-            font-weight: bold;
-          }
+        .printcol-8{
+          width:50%;
+          float:left;
+          text-align:right
+        }
+        // .printcol-2{
+        //   width:25%;
+        //   text-align:right
+        // }
+        .invoice-contentcol-8{
+          width:50% !important;
+          float:left;
+          text-align:center;
+        }
 
-          .invoice-content .row.pt-3 .col-6{
-            width:50%;
-            float:left;
-          }
+        .detailbg{
+          background-color: #f0f3f4 !important;
+        }
 
-          .invoice-content .row.pt-3 .col-2,
-          .invoice-content .row.pt-3 .col-2,
-          .invoice-content .row.pt-3 .col-2 {
-            width:16.67%;
-            float:left;
-          }
-          
-          .invoice-content .row.pt-3 .col-6,
-          .invoice-content .row.pt-3 .col-2,
-          .invoice-content .row.pt-3 .col-2,
-          .invoice-content .row.pt-3 .col-2 {
-            padding: 0;
-          }
-          
-          /* Transaction Styles */
-          .row.pt-3.fw-bold .col-6 {
-            padding-top: 20px;
-          }
-          
-          .row.pt-3.fw-bold .col-4.text-end {
-            padding-top: 20px;
-          }
-          
-          .row.pt-3.fw-bold .col-2.text-end {
-            padding-top: 20px;
-          }
-          
-          /* Amount Due Styles */
-          .row.pt-3.fw-bold .col-3.offset-8 .detailbg {
-            margin-top: 20px;
-            padding: 10px;
-            border-radius: 5px;
-          }
+        .offset-8{
+          width:25%;
+        }
+
+        .text-left{
+          text-align:left;
+        }
+
+        .text-right{
+          text-align:right;
+        }
+
+        .padding{
+          padding:20px
+        }
+
+        .flex{
+          display: flex;
+          justify-content: end;
+        }
+
+        .m-right{
+          margin-right:100px;
+        }
+
+
         </style>
       </head>
       <body>
@@ -544,105 +512,122 @@ const handleRemove = async (invoiceid) => {
                         <div className="row">
                             <div className="col-12 col-sm-12 col-md-12 col-lg-8" id="invoiceContent">
                                 <div className='box1 rounded adminborder mb-5 pb-5'>
-                                    <div className='row py-5 px-3'>
-                                        <div className="col-5">
+                                    <div className='row pt-30 py-5 px-3'>
+                                        <div className="col-6">
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
                                         </div>    
-                                        <div className="col-7">
+                                        <div className="col-6">
                                             <div className="row text-end">
                                                 <p className='h4 fw-bold'>Invoice</p>
                                                 <p className='fw-bold'>{signupdata.address}</p>
                                                 <p className='fw-bold'>{signupdata.email}</p>
                                             </div>
-                                        </div>    
+                                        </div>   
+                                        <div className='clear'></div> 
                                     </div>
 
-                                    <div className='row py-4 px-4 mx-0 mb-4 detailbg'>
-                                        <div className="col-12 col-lg-6 col-md-6 col-sm-6 customerdetail">
+                                    <div className='row py-4 pb-90 px-4 mx-0 mb-4 detailbg'>
+                                        <div bgcolor="#333" className="col-12 col-lg-6 col-md-6 col-sm-6 customerdetail">
                                             <p className='fw-bold pt-3'>BILL TO</p>
                                             <p className='my-0'>{invoiceData.customername}</p>
                                             <p className='my-0'>{invoiceData.customeremail}</p>
                                         </div>
-                                        <div className="col-5 col-md-3 col-lg-3 col-sm-3 text-md-end text-lg-end fw-bold">
-                                            <p className='pt-3'>Invoice #</p>
-                                            <p className='my-0'>Date</p>
-                                            <p className='my-0'>Due date</p>
+                                        <div className="col-12 col-lg-6 col-md-6 col-sm-6 text-md-end text-lg-end fw-bold">
+                                            <div className='row'>
+                                              <div className='col-6'>
+                                                  <p className='pt-3'>Invoice #</p>
+                                                  <p className='my-0'>Date</p>
+                                                  <p className='my-0'>Due date</p>
+                                              </div>
+                                              <div className='col-6'>
+                                              <p className='pt-3'>{invoiceData.InvoiceNumber}</p>
+                                              <p className='my-0'>{formatCustomDate(invoiceData.date)}</p>
+                                              <p className='my-0'>{formatCustomDate(invoiceData.duedate)}</p>
+
+                                              </div>
+                                              
+                                            </div>
+                                            
+                                           
                                         </div>
-                                        <div className="col-7 col-md-3 col-lg-3 col-sm-3 text-end">
-                                            <p className='pt-3'>{invoiceData.InvoiceNumber}</p>
-                                            <p className='my-0'>{formatCustomDate(invoiceData.date)}</p>
-                                            <p className='my-0'>{formatCustomDate(invoiceData.duedate)}</p>
-                                        </div>
+                                        
                                     </div>
 
-                                    <div className='invoice-content'>
-                                        <div className="row pt-3 fw-bold">
-                                            <div className="col-6">
+                                    {/* <div className=''> */}
+                                        <div className="row pb-30 pt-1 fw-bold invoice-content">
+                                            <div className="col-6 invoice-contentcol-6">
                                                 <p>ITEM</p>
                                             </div>
-                                            <div className="col-2">
+                                            <div className="col-2 invoice-contentcol-6">
                                                 <p>QUANTITY</p>
                                             </div>
-                                            <div className="col-2">
+                                            <div className="col-2 invoice-contentcol-6">
                                                 <p>PRICE</p>
                                             </div>
-                                            <div className="col-2">
+                                            <div className="col-2 invoice-contentcol-6">
                                                 <p>AMOUNT</p>
                                             </div>
                                         </div>
                                         <hr/>
 
                                         {items.map((item) => (
-                                            <div className='row'  key={item._id}>
-                                            <div className='col-6'>
-                                                <p className='fw-bold my-0'>{item.itemname}</p>
-                                                <p className='my-0'>{item.description}</p>
-                                            </div>
-                                            <div className='col-2'>
-                                                <p>{item.itemquantity}</p>
-                                            </div>
-                                            <div className='col-2'>
-                                                <p>&#8377; {item.price}</p>
-                                            </div>
-                                            <div className='col-2'>
-                                                <p> &#8377; {item.amount}</p>
-                                            </div>
+                                            <div className='row padding-20 invoice-content'  key={item._id}>
+                                              <div className='col-6 invoice-contentcol-6'>
+                                                  <p className='fw-bold my-0'>{item.itemname}</p>
+                                                  {/* <p className='my-0 decwidth'>{item.description}</p> */}
+                                              </div>
+                                              <div className='col-2 invoice-contentcol-2'>
+                                                  <p>{item.itemquantity}</p>
+                                              </div>
+                                              <div className='col-2 invoice-contentcol-2'>
+                                                  <p>&#8377; {item.price}</p>
+                                              </div>
+                                              <div className='col-2 invoice-contentcol-2'>
+                                                  <p> &#8377; {item.amount}</p>
+                                              </div>
+                                              <div className="col-6 invoice-contentcol-12">
+                                                <p className='my-0 decwidth'>{item.description}</p>
+                                              </div>
                                             </div>
                                         ))}
                                         <hr />
 
-                                        <div className="row">
-                                            <div className="col-8"></div>
-                                            <div className="col-2">
+                                          <div className="row padding-20">
+                                            <div className="col-8 printcol-8">
+                                              <p className='d-none'>.</p>
+                                            </div>
+                                            <div className="col-2 invoice-contentcol-2">
                                                 <p className='mb-2'>Subtotal</p>
                                                 <p className=''>Total</p>
                                             </div>
-                                            <div className="col-2">
+                                            <div className="col-2 invoice-contentcol-2">
                                                 <p className='mb-2'>&#8377; {invoiceData.subtotal}</p>
                                                 <p className=''>&#8377; {invoiceData.total}</p>
-                                            </div><hr />
+                                            </div>
+                                          </div><hr />
                                             {transactions.map((transaction) => (
-                                            <div className='row'  key={transaction._id}>
+                                            <div className='row padding-20'  key={transaction._id}>
                                             
-                                                <div className="col-6"></div>
-                                                <div className="col-4 text-end">
+                                                <div className="col-6 invoice-contentcol-2">.</div>
+                                                <div className="col-4 invoice-contentcol-8">
                                                     <p className='mb-2'>Paid on {formatCustomDate(transaction.paiddate)}</p>
                                                 </div>
-                                                <div className="col-2 text-end">
+                                                <div className="col-2 invoice-contentcol-2">
                                                     <p>&#8377; {transaction.paidamount}</p>
                                                 </div>
                                             </div>
                                             ))}
-                                            <div className="col-3 offset-8">
-                                                <div className="mt-2 detailbg p-2">
-                                                    <p className=''>Amount Due</p>
-                                                    <p className='fs-5 text-end'>
-                                                        &#8377; {invoiceData.amountdue - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
-                                                    </p>
-                                                </div>
+                                            <div className="row flex">
+                                              <div className="col-3 offset-8 m-right">
+                                                  <div className="mt-2 detailbg p-2 padding">
+                                                      <p className='text-left'>Amount Due</p>
+                                                      <p className='fs-5 text-end text-right'>
+                                                          &#8377; {invoiceData.amountdue - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
+                                                      </p>
+                                                  </div>
+                                              </div>
                                             </div>
-                                        </div>
-                                    </div>
+                                    {/* </div> */}
                                 </div>
                             </div>
 
