@@ -31,7 +31,7 @@ export default function Dashboard() {
           let userEmail = localStorage.getItem('userEmail');
           let isTeamMember = localStorage.getItem('isTeamMember');
 
-            const response = await fetch('http://invoice-n96k.onrender.com/api/clockin', {
+            const response = await fetch('https://invoice-n96k.onrender.com/api/clockin', {
               method: 'POST', // Use POST method for clock-in
               headers: {
                 'Content-Type': 'application/json',
@@ -59,7 +59,7 @@ export default function Dashboard() {
               let username = localStorage.getItem('username');
               let userEmail = localStorage.getItem('userEmail');
               let isTeamMember = localStorage.getItem('isTeamMember');
-              const response = await fetch('http://invoice-n96k.onrender.com/api/clockout', {
+              const response = await fetch('https://invoice-n96k.onrender.com/api/clockout', {
                 method: 'POST', // Use POST method for clock-out
                 headers: {
                   'Content-Type': 'application/json',
@@ -126,7 +126,7 @@ export default function Dashboard() {
           const fetchUserEntries = async (start, end) => {
             try {
               const userid = localStorage.getItem('userid');
-              const response = await fetch(`http://invoice-n96k.onrender.com/api/userEntries/${userid}`);
+              const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${userid}`);
               const data = await response.json();
         
               // Filter userEntries to include only entries for the current month

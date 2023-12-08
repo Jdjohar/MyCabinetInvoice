@@ -25,7 +25,7 @@ export default function Edititem() {
 
     const fetchitemData = async () => {
         try {
-            const response = await fetch(`http://invoice-n96k.onrender.com/api/getitems/${itemId}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getitems/${itemId}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -44,7 +44,7 @@ export default function Edititem() {
             const updateditemdata = {
                 ...item
             };
-            const response = await fetch(`http://invoice-n96k.onrender.com/api/updateitemdata/${itemId}`, {
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/updateitemdata/${itemId}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -22,7 +22,7 @@ export default function Invoice() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://invoice-n96k.onrender.com/api/invoicedata/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/invoicedata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {

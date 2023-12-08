@@ -12,7 +12,7 @@ export default function Login() {
   const handleSubmit = async(e) => {
     e.preventDefault();
 
-    const response = await fetch("http://invoice-n96k.onrender.com/api/login",{
+    const response = await fetch("https://invoice-n96k.onrender.com/api/login",{
         method:'POST',
         headers: {
             'Content-Type':'application/json'
