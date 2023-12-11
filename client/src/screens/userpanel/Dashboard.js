@@ -12,11 +12,13 @@ export default function Dashboard() {
         {
           navigate("/");
         }
+        fetchsignupdata();
         // setloading(true)
         
     }, [])
     let navigate = useNavigate();
     const [isClockedIn, setIsClockedIn] = useState(false);
+    const [signupdata, setsignupdata] = useState([]);
     const [startTime, setStartTime] = useState(null);
     const [totalTime, setTotalTime] = useState(0);
     const [userEntries, setUserEntries] = useState([]);
@@ -24,130 +26,79 @@ export default function Dashboard() {
   
     const currentMonth = format(currentDate, 'MMMM');
 
-    const handleClockIn = async () => {
-        try {
-          let userid = localStorage.getItem('userid');
-          let username = localStorage.getItem('username');
-          let userEmail = localStorage.getItem('userEmail');
-          let isTeamMember = localStorage.getItem('isTeamMember');
 
-            const response = await fetch('https://invoice-n96k.onrender.com/api/clockin', {
-              method: 'POST', // Use POST method for clock-in
-              headers: {
-                'Content-Type': 'application/json',
-              },
-              body: JSON.stringify(
-                {
-                userid:userid,
-                username:username,
-                userEmail:userEmail,
-                isTeamMember:isTeamMember
-              }),
-            });
-            const data = await response.json();
-            setIsClockedIn(true);
-            setStartTime(data.startTime);
-            localStorage.setItem("startTime", data.startTime);
-          } catch (error) {
-            console.error(error);
-          }
-        };
+    useEffect(() => {
+      const localstarttime = localStorage.getItem("startTime");
+      if(localstarttime != undefined && localstarttime != null && localstarttime != "")
+      {
+        setStartTime(localstarttime);
+        setIsClockedIn(true);
+      }
 
-        const handleClockOut = async () => {
-            try {
-              let userid = localStorage.getItem('userid');
-              let username = localStorage.getItem('username');
-              let userEmail = localStorage.getItem('userEmail');
-              let isTeamMember = localStorage.getItem('isTeamMember');
-              const response = await fetch('https://invoice-n96k.onrender.com/api/clockout', {
-                method: 'POST', // Use POST method for clock-out
-                headers: {
-                  'Content-Type': 'application/json',
-                },
-                body: JSON.stringify(
-                  {
-                  userid:userid,
-                  username:username,
-                  userEmail:userEmail,
-                  isTeamMember:isTeamMember
-                }),
-              });
-              const data = await response.json();
-              setIsClockedIn(false);
-              localStorage.setItem("startTime", "");
+      if (isClockedIn && startTime) {
+        const interval = setInterval(() => {
+          const currentTimestamp = new Date().getTime();
+          const startTimestamp = new Date(startTime).getTime();
+          const timeDifference = currentTimestamp - startTimestamp;
+          const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+          const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
+          const seconds = Math.floor((timeDifference / 1000) % 60);
+          setTotalTime(`${hours} hrs ${minutes} mins ${seconds} secs`);
+        }, 1000);
         
-              if (startTime) {
-                const startTimestamp = new Date(startTime).getTime();
-                const endTimestamp = new Date(data.endTime).getTime();
-                const timeDifference = endTimestamp - startTimestamp;
-                const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-                const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-                const seconds = Math.floor((timeDifference / 1000) % 60);
-                setTotalTime(`${hours} hrs ${minutes} mins ${seconds} secs`);
-              }
-            } catch (error) {
-              console.error(error);
-              setloading(false);
-            }
-          };
+        return () => clearInterval(interval);
+      } 
+      else {
+        setTotalTime('0 hrs 0 mins 0 secs');
+      }
+        // Calculate the start and end timestamps for the current month
+        const currentMonthIndex = currentDate.getMonth(); // Get the current month (0-indexed)
+        const currentYear = currentDate.getFullYear();
+        const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
+        const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
 
-          useEffect(() => {
-            const localstarttime = localStorage.getItem("startTime");
-            if(localstarttime != undefined && localstarttime != null && localstarttime != "")
-            {
-              setStartTime(localstarttime);
-              setIsClockedIn(true);
-            }
+        fetchUserEntries(startOfMonth, endOfMonth);
+    }, [isClockedIn, startTime]);
 
-            if (isClockedIn && startTime) {
-              const interval = setInterval(() => {
-                const currentTimestamp = new Date().getTime();
-                const startTimestamp = new Date(startTime).getTime();
-                const timeDifference = currentTimestamp - startTimestamp;
-                const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-                const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-                const seconds = Math.floor((timeDifference / 1000) % 60);
-                setTotalTime(`${hours} hrs ${minutes} mins ${seconds} secs`);
-              }, 1000);
+    const fetchUserEntries = async (start, end) => {
+      try {
+        const userid = localStorage.getItem('userid');
+        const response = await fetch(`http://localhost:3001/api/userEntries/${userid}`);
+        const data = await response.json();
         
-              return () => clearInterval(interval);
-            } 
-            else {
-              setTotalTime('0 hrs 0 mins 0 secs');
-            }
-            // Calculate the start and end timestamps for the current month
-            const currentMonthIndex = currentDate.getMonth(); // Get the current month (0-indexed)
-            const currentYear = currentDate.getFullYear();
-            const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
-            const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
+        // Filter userEntries to include only entries for the current month
+        const filteredEntries = data.userEntries.filter((entry) => {
+          const entryTime = new Date(entry.startTime).getTime();
+          return entryTime >= start.getTime() && entryTime <= end.getTime();
+        });
+        
+        setUserEntries(filteredEntries);
+        
+        setTimeout(() => {
+          setloading(false);
+        }, 2000);
+      } catch (error) {
+        console.error(error);
+      }
+    };
 
-    fetchUserEntries(startOfMonth, endOfMonth);
-          }, [isClockedIn, startTime]);
-          const fetchUserEntries = async (start, end) => {
-            try {
-              const userid = localStorage.getItem('userid');
-              const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${userid}`);
-              const data = await response.json();
-        
-              // Filter userEntries to include only entries for the current month
-              const filteredEntries = data.userEntries.filter((entry) => {
-                const entryTime = new Date(entry.startTime).getTime();
-                return entryTime >= start.getTime() && entryTime <= end.getTime();
-              });
-        
-              setUserEntries(filteredEntries);
-        
-              setTimeout(() => {
-                setloading(false);
-              }, 2000);
-            } catch (error) {
-              console.error(error);
-            }
-          };
+    const handleAddClick = () => {
+      navigate('/userpanel/Createinvoice');
+    }
 
-          const handleAddClick = () => {
-            navigate('/userpanel/Createinvoice');
-        }
+    const fetchsignupdata = async () => {
+      try {
+          const userid =  localStorage.getItem("userid");
+          const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
+          const json = await response.json();
+          
+          // if (Array.isArray(json)) {
+              setsignupdata(json);
+          // }
+      } catch (error) {
+          console.error('Error fetching data:', error);
+      }
+  }
 
           
 
@@ -172,7 +123,7 @@ export default function Dashboard() {
         <div className=''>
           <div className='txt px-4 py-4'>
             <h2 className='fs-35 fw-bold'>Dashboard</h2>
-            <p>Hi, ! &#128075;</p>
+            <p>Hi, {signupdata.FirstName} ! &#128075;</p>
           </div>
           <div className='row'>
             <div className='col-12 col-sm-12 col-md-8 col-lg-8 '>

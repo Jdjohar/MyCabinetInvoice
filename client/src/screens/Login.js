@@ -1,18 +1,20 @@
 import React,{useState,useEffect} from 'react';
 import {Link, useNavigate} from 'react-router-dom'
+import { ColorRing } from  'react-loader-spinner'
 import jwt_decode from "jwt-decode";
 import './Login.css'
 
 export default function Login() {
   const [credentials, setCredentials] = useState({email:"", password:""})
   const [message, setmessage] = useState(false);
+  const [loginbtnloader, setloginbtnloader] = useState(false);
   const [alertShow, setAlertShow] = useState("");
 
   let navigate = useNavigate();
   const handleSubmit = async(e) => {
     e.preventDefault();
-
-    const response = await fetch("https://invoice-n96k.onrender.com/api/login",{
+    setloginbtnloader(true);
+    const response = await fetch("http://localhost:3001/api/login",{
         method:'POST',
         headers: {
             'Content-Type':'application/json'
@@ -28,6 +30,7 @@ export default function Login() {
         // alert('Enter vaild  Credentails');
         setmessage(true);
         setAlertShow(json.errors)
+        setloginbtnloader(false);
 
     }
     if(json.Success){
@@ -74,7 +77,21 @@ const onchange = (event) => {
                     <input type="password" class="form-control" name="password" value={credentials.password}  onChange={onchange} placeholder="Password" required />
                 </div>
                 <div class="form-group d-flex justify-content-center">
-                    <button type="submit" class="form-control w-75 btn btnblur text-white mb-1">Sign In</button>
+                    {
+        loginbtnloader?
+        <button class="form-control w-75 btn btnblur text-white mb-1">
+          <ColorRing
+        // width={200}
+        loading={loginbtnloader}
+        height={30}
+        display="flex"
+        padding-bottom= "12px"
+        justify-content= "center"
+        align-items="center"
+        aria-label="Loading Spinner"
+        data-testid="loader"        
+      /></button>
+        :<button type="submit" class="form-control w-75 btn btnblur text-white mb-1">Sign In</button>}
                 </div>
             </div>
             <div class="form-group mb-3">

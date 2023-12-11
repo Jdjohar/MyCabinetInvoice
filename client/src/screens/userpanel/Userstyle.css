@@ -461,6 +461,14 @@ display: none;}
   margin-left: 10px;
 }
 
+.fs-12{
+  font-size: 12px;
+}
+
+.clrtrxtstatus{
+  color: #484848;
+}
+
 .due{  color: #155724;
   border:1px solid #6dbf81;
   background-color: #d4edda;
@@ -484,4 +492,15 @@ width: 6%;
 .addpayment{
   border: 0px solid #fff;
   background-color: #fff;
+}
+
+.saved{
+  color: #6dbf81;
+}
+.paid{
+  color: #6dbf81;
+}
+
+.partiallypaid{
+  color: #ffb74d;
 }

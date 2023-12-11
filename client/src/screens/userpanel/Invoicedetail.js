@@ -52,7 +52,7 @@ export default function Invoicedetail() {
     const fetchinvoicedata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/getinvoicedata/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/getinvoicedata/${invoiceid}`);
             const json = await response.json();
             
             setInvoiceData(json);
@@ -67,7 +67,7 @@ export default function Invoicedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/gettransactiondata/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/gettransactiondata/${invoiceid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -88,7 +88,7 @@ export default function Invoicedetail() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/getsignupdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -140,10 +140,13 @@ export default function Invoicedetail() {
   await fetchtransactiondata();
 
   // Calculate total paid amount from transactions
-  const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
-
+  // const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
+  const totalPaidAmount = transactions.reduce(
+    (total, payment) => total + parseFloat(payment.paidamount),
+    0
+  );
   // Check if the paid amount exceeds the due amount
-  const dueAmount = invoiceData.amountdue - totalPaidAmount;
+  const dueAmount = invoiceData.total - totalPaidAmount;
   const paymentAmount = parseFloat(transactionData.paidamount);
 
   if (paymentAmount > dueAmount) {
@@ -156,7 +159,7 @@ export default function Invoicedetail() {
 
 
     try {
-      const response = await fetch('https://invoice-n96k.onrender.com/api/addpayment', {
+      const response = await fetch('http://localhost:3001/api/addpayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -356,7 +359,7 @@ const handleEditContent = (invoiceData) => {
 
 // const handleRemove = async (invoiceid) => {
 //     try {
-//       const response = await fetch(`https://invoice-n96k.onrender.com/api/removeData/${invoiceid}`, {
+//       const response = await fetch(`http://localhost:3001/api/removeData/${invoiceid}`, {
 //         method: 'GET',
 //         // Add any required headers or authentication tokens
 //       });
@@ -378,7 +381,7 @@ const handleEditContent = (invoiceData) => {
 
 const handleRemove = async (invoiceid) => {
     try {
-      const response = await fetch(`https://invoice-n96k.onrender.com/api/deldata/${invoiceid}`, {
+      const response = await fetch(`http://localhost:3001/api/deldata/${invoiceid}`, {
         method: 'GET'
       });
   
@@ -398,7 +401,7 @@ const handleRemove = async (invoiceid) => {
 // const handleRemove = async (invoiceid) => {
 //     try {
 //       // Delete invoice and associated transactions based on the invoice ID
-//       const response = await fetch(`https://invoice-n96k.onrender.com/api/removeInvoiceAndTransactions/${invoiceid}`, {
+//       const response = await fetch(`http://localhost:3001/api/removeInvoiceAndTransactions/${invoiceid}`, {
 //         method: 'GET',
 //         // Add any required headers or authentication tokens
 //       });
@@ -419,7 +422,26 @@ const handleRemove = async (invoiceid) => {
 //   };
   
 
-  
+const getStatus = () => {
+  if (transactions.length === 0) {
+    return "Saved";
+  }
+
+  const totalPaidAmount = transactions.reduce(
+    (total, payment) => total + parseFloat(payment.paidamount),
+    0
+  );
+
+  if (totalPaidAmount === 0) {
+    return "Saved";
+  } else if (totalPaidAmount > 0 && totalPaidAmount < invoiceData.total) {
+    return "Partially Paid";
+  } else if (totalPaidAmount === invoiceData.total) {
+    return "Paid";
+  } else {
+    return "Payment Pending";
+  }
+};
 
   return (
     <div className='bg'>
@@ -617,12 +639,19 @@ const handleRemove = async (invoiceid) => {
                                                 </div>
                                             </div>
                                             ))}
+                                            <div className='row'>
+                                              <div className=''>
+                                                <p></p>
+                                              </div>
+                                            </div>
                                             <div className="row flex">
                                               <div className="col-3 offset-8 m-right">
                                                   <div className="mt-2 detailbg p-2 padding">
                                                       <p className='text-left'>Amount Due</p>
                                                       <p className='fs-5 text-end text-right'>
-                                                          &#8377; {invoiceData.amountdue - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
+                                                        {console.log(invoiceData.amountdue, "Due Amount")}
+                                                        {console.log(transactions.reduce((total, payment) => total + payment.paidamount, 0), "transactions")}
+                                                          &#8377; {invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
                                                       </p>
                                                   </div>
                                               </div>
@@ -641,7 +670,10 @@ const handleRemove = async (invoiceid) => {
                                             <div className="col-6 text-end">
                                                 <p>&#8377; {invoiceData.total}</p>
                                                 {console.log(transactions)}
+                                                
+                                                
                                                 <p>&#8377; {transactions.reduce((total, payment) => total + payment.paidamount, 0)}</p>
+                                               
                                             </div>
 
                                             {/* <!-- Button trigger modal --> */}

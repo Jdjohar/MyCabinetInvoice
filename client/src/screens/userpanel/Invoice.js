@@ -10,28 +10,42 @@ export default function Invoice() {
     const location = useLocation();
     const invoiceid = location.state?.invoiceid;
     const navigate = useNavigate();
+    const [transactions, setTransactions] = useState([]);
 
     useEffect(() => {
         if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
         {
           navigate("/");
         }
-        fetchdata();
+        fetchData();
     }, [])
 
-    const fetchdata = async () => {
+    const fetchData = async () => {
         try {
-            const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/invoicedata/${userid}`);
+            const userid = localStorage.getItem("userid");
+            const response = await fetch(`http://localhost:3001/api/invoicedata/${userid}`);
             const json = await response.json();
-            
+
             if (Array.isArray(json)) {
                 setinvoices(json);
+
+                const transactionPromises = json.map(async (invoice) => {
+                    const response = await fetch(`http://localhost:3001/api/gettransactiondata/${invoice._id}`);
+                    const transactionJson = await response.json();
+                    return transactionJson.map(transaction => ({
+                        ...transaction,
+                        invoiceId: invoice._id // Attach invoiceId to each transaction
+                    }));
+                });
+
+                const transactionsData = await Promise.all(transactionPromises);
+                const flattenedTransactions = transactionsData.flat(); // Flatten the transactions array
+                setTransactions(flattenedTransactions);
             }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
-    }
+    };
 
     const handleViewClick = (invoice) => {
         let invoiceid = invoice._id;
@@ -47,6 +61,44 @@ export default function Invoice() {
     const handleAddClick = () => {
         navigate('/userpanel/Createinvoice');
     }
+
+    const getStatus = (invoice) => {
+        // Filter transactions related to the current invoice
+        const relatedTransactions = transactions.filter(transaction => transaction.invoiceId === invoice._id);
+    
+        console.log("relatedTransactions:", relatedTransactions);
+        console.log("Transactions:", transactions);
+        console.log("Invoices:", invoices);
+        // Calculate the total paid amount for the current invoice
+        const totalPaidAmount = relatedTransactions.reduce(
+            (total, payment) => total + parseFloat(payment.paidamount),
+            0
+        );
+
+    console.log("totalPaidAmount:", totalPaidAmount);
+        if (totalPaidAmount === 0) {
+            return (
+                <strong>
+                    <i class="fa-solid fa-circle fs-12 mx-2 saved"></i> Saved
+                </strong>
+            )
+        } else if (totalPaidAmount > 0 && totalPaidAmount < invoice.total) {
+            return (
+                <strong>
+                    <i class="fa-solid fa-circle fs-12 mx-2 partiallypaid"></i> Partially Paid
+                </strong>
+            )
+        } else if (totalPaidAmount === invoice.total) {
+            return (
+                <strong>
+                    <i class="fa-solid fa-circle fs-12 mx-2 paid"></i> Paid
+                </strong>
+            )
+        } else {
+            return "Payment Pending";
+        }
+    };
+    
 
   return (
     <div className='bg'>
@@ -87,10 +139,12 @@ export default function Invoice() {
                                         {invoices.map((invoice, index) => (
                                             <tr key={index}>
                                                 <td>
-                                                    <p className='my-0'>{invoice.customername}</p>
-                                                    <p className='my-0'>{invoice.invoicenumber}</p>
+                                                    <p className='my-0 fw-bold clrtrxtstatus'>{invoice.customername}</p>
+                                                    <p className='my-0'>{invoice.InvoiceNumber}</p>
                                                 </td>
-                                                <td></td>
+                                                <td>
+                                                    <span className='clrtrxtstatus'>{getStatus(invoice)}</span>
+                                                </td>
                                                 <td>
                                                     <div className='d-flex'>
                                                         <p className='issue px-1 my-1'>Issued</p>
