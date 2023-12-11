@@ -21,7 +21,7 @@ export default function SignUp() {
     const handleSubmit = async (e) => {
         e.preventDefault();
     
-        const response = await fetch("http://localhost:3001/api/createuser", {
+        const response = await fetch("https://invoice-n96k.onrender.com/api/createuser", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

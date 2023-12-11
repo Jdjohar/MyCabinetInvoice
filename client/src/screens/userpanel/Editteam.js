@@ -25,7 +25,7 @@ export default function Editteam() {
 
     const fetchteamData = async () => {
         try {
-            const response = await fetch(`http://localhost:3001/api/getteamdata/${teamid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getteamdata/${teamid}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -44,7 +44,7 @@ export default function Editteam() {
             const updatedteamdata = {
                 ...team
             };
-            const response = await fetch(`http://localhost:3001/api/updateteamdata/${teamid}`, {
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/updateteamdata/${teamid}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'

@@ -63,7 +63,7 @@ export default function Dashboard() {
     const fetchUserEntries = async (start, end) => {
       try {
         const userid = localStorage.getItem('userid');
-        const response = await fetch(`http://localhost:3001/api/userEntries/${userid}`);
+        const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${userid}`);
         const data = await response.json();
         
         // Filter userEntries to include only entries for the current month
@@ -89,7 +89,7 @@ export default function Dashboard() {
     const fetchsignupdata = async () => {
       try {
           const userid =  localStorage.getItem("userid");
-          const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
+          const response = await fetch(`https://invoice-n96k.onrender.com/api/getsignupdata/${userid}`);
           const json = await response.json();
           
           // if (Array.isArray(json)) {
