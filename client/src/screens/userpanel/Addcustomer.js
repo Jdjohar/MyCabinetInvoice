@@ -5,9 +5,11 @@ import { useNavigate } from 'react-router-dom';
 import { CountrySelect, StateSelect, CitySelect } from '@davzon/react-country-state-city';
 import "@davzon/react-country-state-city/dist/react-country-state-city.css";
 import Usernav from './Usernav';
+import { ColorRing } from  'react-loader-spinner'
 
 export default function Addcustomer() {
   const navigate = useNavigate();
+  const [ loading, setloading ] = useState(true);
   const [credentials, setCredentials] = useState({
     name: '',
     email: '',
@@ -37,6 +39,7 @@ export default function Addcustomer() {
     {
       navigate("/");
     }
+    setloading(false);
 })
 
   const handleSubmit = async (e) => {
@@ -102,6 +105,20 @@ export default function Addcustomer() {
 
   return (
     <div className="bg">
+    {
+      loading?
+      <div className='row'>
+        <ColorRing
+      // width={200}
+      loading={loading}
+      // size={500}
+      display="flex"
+      justify-content= "center"
+      align-items="center"
+      aria-label="Loading Spinner"
+      data-testid="loader"        
+    />
+      </div>:
       <div className="container-fluid">
         <div className="row">
           <div className="col-lg-2 col-md-3 b-shadow bg-white d-lg-block d-md-block d-none">
@@ -341,6 +358,7 @@ export default function Addcustomer() {
           </div>
         </div>
       </div>
+}
     </div>
   );
 }

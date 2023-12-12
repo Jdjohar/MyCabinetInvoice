@@ -4,8 +4,10 @@ import Usernavbar from './Usernavbar';
 import { CountrySelect, StateSelect, CitySelect } from '@davzon/react-country-state-city';
 import "@davzon/react-country-state-city/dist/react-country-state-city.css";
 import Usernav from './Usernav';
+import { ColorRing } from  'react-loader-spinner'
 
 export default function Editcustomer() {
+    const [ loading, setloading ] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -43,6 +45,7 @@ export default function Editcustomer() {
                 console.error('Error fetching Customerdata:', json.message);
             }
             console.log(customer);
+            setloading(false);
         } catch (error) {
             console.error('Error fetching Customerdata:', error);
         }
@@ -81,6 +84,20 @@ export default function Editcustomer() {
 
     return (
         <div className='bg'>
+        {
+          loading?
+          <div className='row'>
+            <ColorRing
+          // width={200}
+          loading={loading}
+          // size={500}
+          display="flex"
+          justify-content= "center"
+          align-items="center"
+          aria-label="Loading Spinner"
+          data-testid="loader"        
+        />
+          </div>:
             <div className='container-fluid'>
                 <div className="row">
                     <div className='col-lg-2 col-md-3 vh-lg-100 vh-md-100 b-shadow bg-white d-lg-block d-md-block d-none'>
@@ -293,6 +310,7 @@ export default function Editcustomer() {
                     </div>
                 </div>
             </div>
+}
         </div>
     );
 }

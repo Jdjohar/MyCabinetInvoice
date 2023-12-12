@@ -2,9 +2,11 @@ import React, { useState, useEffect } from 'react';
 import Usernavbar from './Usernavbar';
 import { useNavigate } from 'react-router-dom';
 import Usernav from './Usernav';
+import { ColorRing } from  'react-loader-spinner'
 // import Usernavbar from './Usernavbar';
 
 export default function Additem() {
+  const [ loading, setloading ] = useState(true);
   const navigate = useNavigate();
   const [credentials, setCredentials] = useState({
     itemname: '',
@@ -20,7 +22,7 @@ export default function Additem() {
     {
       navigate("/");
     }
-    // setloading(true)
+    setloading(false);
 }, [])
 
   const handleSubmit = async (e) => {
@@ -51,6 +53,7 @@ export default function Additem() {
 
       setMessage(true);
       setAlertShow(json.message);
+      setloading(false);
       navigate('/userpanel/Itemlist');
     }
     else{
@@ -65,6 +68,20 @@ export default function Additem() {
 
   return (
     <div className="bg">
+    {
+      loading?
+      <div className='row'>
+        <ColorRing
+      // width={200}
+      loading={loading}
+      // size={500}
+      display="flex"
+      justify-content= "center"
+      align-items="center"
+      aria-label="Loading Spinner"
+      data-testid="loader"        
+    />
+      </div>:
       <div className="container-fluid">
         <div className="row">
           <div className="col-lg-2 col-md-3 b-shadow bg-white d-lg-block d-md-block d-none">
@@ -167,6 +184,7 @@ export default function Additem() {
           </div>
         </div>
       </div>
+}
     </div>
   );
 }

@@ -18,6 +18,10 @@ import Createinvoice from './screens/userpanel/Createinvoice';
 import Invoicedetail from './screens/userpanel/Invoicedetail';
 import Editinvoice from './screens/userpanel/Editinvoice';
 import Invoice from './screens/userpanel/Invoice';
+import Createestimate from './screens/userpanel/Createestimate';
+import Estimatedetail from './screens/userpanel/Estimatedetail';
+import Editestimate from './screens/userpanel/Editestimate';
+import Estimate from './screens/userpanel/Estimate';
 // import { InvoiceProvider } from './components/InvoiceContext';
 import {
   BrowserRouter as Router,
@@ -49,6 +53,10 @@ function App() {
             <Route exact path='/userpanel/Invoicedetail' element={<Invoicedetail/>} />
             <Route exact path='/userpanel/Invoice' element={<Invoice/>} />
             <Route exact path='/userpanel/Editinvoice' element={<Editinvoice/>} />
+            <Route exact path='/userpanel/Createestimate' element={<Createestimate/>} />
+            <Route exact path='/userpanel/Estimatedetail' element={<Estimatedetail/>} />
+            <Route exact path='/userpanel/Editestimate' element={<Editestimate/>} />
+            <Route exact path='/userpanel/Estimate' element={<Estimate/>} />
             <Route exact path='/Timeschemahistory' element={<Timeschemahistory/>} />
             <Route exact path='/Teammemberpanel/Teammenberdashboard' element={<Teammenberdashboard/>} />
           </Routes>

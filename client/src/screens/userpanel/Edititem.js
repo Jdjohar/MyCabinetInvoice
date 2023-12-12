@@ -2,8 +2,10 @@ import React, { useState, useEffect } from 'react';
 import { useLocation, useNavigate } from 'react-router-dom';
 import Usernavbar from './Usernavbar';
 import Usernav from './Usernav';
+import { ColorRing } from  'react-loader-spinner'
 
 export default function Edititem() {
+    const [ loading, setloading ] = useState(true);
     const location = useLocation();
     const navigate = useNavigate();
     
@@ -34,6 +36,7 @@ export default function Edititem() {
                 console.error('Error fetching itemdata:', json.message);
             }
             console.log(item);
+            setloading(false);
         } catch (error) {
             console.error('Error fetching itemdata:', error);
         }
@@ -72,6 +75,20 @@ export default function Edititem() {
 
     return (
         <div className='bg'>
+        {
+          loading?
+          <div className='row'>
+            <ColorRing
+          // width={200}
+          loading={loading}
+          // size={500}
+          display="flex"
+          justify-content= "center"
+          align-items="center"
+          aria-label="Loading Spinner"
+          data-testid="loader"        
+        />
+          </div>:
             <div className='container-fluid'>
                 <div className="row">
                     <div className='col-lg-2 col-md-3 vh-lg-100 vh-md-100 b-shadow bg-white d-lg-block d-md-block d-none'>
@@ -162,6 +179,7 @@ export default function Edititem() {
                     </div>
                 </div>
             </div>
+}
         </div>
     );
 }

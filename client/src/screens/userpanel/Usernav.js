@@ -56,7 +56,7 @@ export default function Usernav() {
                       </Link>
                     </li>
                     <li>
-                      <Link to="" className='nav-link scrollto icones text-black' >
+                      <Link to="/userpanel/Estimate" className='nav-link scrollto icones text-black' >
                         <i class="fa-solid fa-house me-2 dashclr"></i> <span>Estimate</span>
                       </Link>
                     </li>

@@ -18,6 +18,7 @@ const Timeschema = require('../models/Timeschema');
 const Team = require('../models/Team');
 const Customerlist = require('../models/Customerlist');
 const Invoice = require('../models/Invoice');
+const Estimate = require('../models/Estimate');
 const Transactions = require('../models/Transactions');
 
 router.get('/dashboard/:userid', async (req, res) => {
@@ -687,7 +688,34 @@ router.post('/savecreateinvoice', async (req, res) => {
         }
       });
 
-      router.get('/invoicedata/:userid', async (req, res) => {
+    // Create a new estimate
+router.post('/savecreateestimate', async (req, res) => {
+        try {
+            const { userid, estimateData } = req.body; // Extracting estimateData from the request body
+            console.log('Received userid:', userid);
+
+          // Create a new instance of the Estimate model using the extracted data
+          const newEstimate = new Estimate({
+            ...estimateData,
+            userid: userid,
+            createdAt: new Date(), // Adding the current date as createdAt
+          });
+      
+          // Save the new Estimate to the database
+          const savedEstimate = await newEstimate.save();
+      
+          res.status(201).json({
+            success: true,
+            message: 'Estimate saved successfully!',
+            estimate: savedEstimate,
+          });
+        } catch (error) {
+          console.error('Error creating Estimate:', error);
+          res.status(500).json({ success: false, message: 'Failed to save the Estimate.' });
+        }
+      });
+
+router.get('/invoicedata/:userid', async (req, res) => {
         try {
             let userid = req.params.userid;
             const invoicedata = (await Invoice.find({ userid: userid}));
@@ -726,6 +754,34 @@ router.post('/savecreateinvoice', async (req, res) => {
         }
     });
 
+    router.get('/geteditestimateData/:estimateid', async (req, res) => {
+        try {
+            const estimateid = req.params.estimateid;
+            console.log(estimateid);
+    
+            const result = await Estimate.findById(estimateid);
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "estimatedata retrieved successfully",
+                    estimates: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "estimatedata not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error retrieving estimatedata:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to retrieve estimatedata"
+            });
+        }
+    });
+
     router.post('/updateinvoicedata/:invoiceid', async (req, res) => {
         try {
             const invoiceid = req.params.invoiceid;
@@ -758,6 +814,42 @@ router.post('/savecreateinvoice', async (req, res) => {
             res.status(500).json({
                 Success: false,
                 message: "Failed to update invoice data"
+            });
+        }
+    });
+
+    router.post('/updateestimateData/:estimateid', async (req, res) => {
+        try {
+            const estimateid = req.params.estimateid;
+            const { subtotal, total, items, ...updatedestimateData } = req.body; // Ensure this matches your MongoDB schema
+    
+            // Add the updated subtotal and total to the incoming data
+            updatedestimateData.subtotal = subtotal;
+            updatedestimateData.total = total;
+
+            // Update or replace the 'items' field
+            updatedestimateData.items = items; 
+    
+            // Perform the update operation in your database here
+            const result = await Estimate.findByIdAndUpdate(estimateid, updatedestimateData, { new: true });
+    
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "estimate data updated successfully",
+                    estimate: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "estimate data not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error updating estimate data:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to update estimate data"
             });
         }
     });
@@ -819,6 +911,31 @@ router.get('/deldata/:invoiceid', async (req, res) => {
     }
   });
 
+router.get('/delestimatedata/:estimateid', async (req, res) => {
+    try {
+      const estimateid = req.params.estimateid;
+      const result = await Estimate.findByIdAndDelete(estimateid);
+  
+      if (result) {
+        return res.json({
+          success: true,
+          message: 'Estimate deleted successfully'
+        });
+      } else {
+        return res.status(404).json({
+          success: false,
+          message: 'Failed to delete Estimate'
+        });
+      }
+    } catch (error) {
+      console.error('Error deleting Estimate:', error);
+      return res.status(500).json({
+        success: false,
+        message: 'Failed to delete Estimate'
+      });
+    }
+  });
+
 // DELETE route to remove invoice and associated transactions by invoice ID
 router.get('/removeInvoiceAndTransactions/:invoiceid', async (req, res) => {
     try {
@@ -845,8 +962,6 @@ router.get('/removeInvoiceAndTransactions/:invoiceid', async (req, res) => {
     }
   });
   
-  
-
 
 router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
     try {
@@ -884,6 +999,42 @@ router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
     }
 });
 
+router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
+    try {
+        const estimateid = req.params.estimateid;
+        const itemId = req.params.itemId;
+        const result = await Estimate.findById(estimateid);
+        console.log(result);
+        const updateditems = [];
+        result.items.forEach(element => {
+            if(element.itemId != itemId)
+            {
+                updateditems.push(element);
+            }
+        });
+        result.items = updateditems;
+        const deletedItem = await Estimate.findByIdAndUpdate(estimateid, result, { new: true });
+
+        if (deletedItem) {
+            res.json({
+                Success: true,
+                message: 'Item deleted successfully'
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: 'Item not found'
+            });
+        }
+    } catch (error) {
+        console.error('Error deleting item:', error);
+        res.status(500).json({
+            Success: false,
+            message: 'Failed to delete item'
+        });
+    }
+});
+
     // Fetch invoicedetail from a invoice
     router.get('/getinvoicedata/:invoiceid', async (req, res) => {
     try {
@@ -893,6 +1044,19 @@ router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
     res.json(invoicedetail);
     } catch (error) {
     console.error('Error fetching invoicedetail:', error);
+    res.status(500).json({ message: 'Internal server error' });
+    }
+    });
+
+    // Fetch estimatedetail from a estimate
+    router.get('/getestimatedata/:estimateid', async (req, res) => {
+    try {
+    const estimateid = req.params.estimateid;
+    const estimatedetail = await Estimate.findById(estimateid);
+    
+    res.json(estimatedetail);
+    } catch (error) {
+    console.error('Error fetching estimatedetail:', error);
     res.status(500).json({ message: 'Internal server error' });
     }
     });
@@ -916,6 +1080,28 @@ router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
             res.status(500).json({ message: 'Server Error' });
         }
     });
+
+    router.get('/lastEstimateNumber/:userid', async (req, res) => {
+        try {
+            const userid = req.params.userid;
+            const lastEstimate = await Estimate.findOne({ userid: userid}).sort({ estimate_id: -1 });
+    
+            if (lastEstimate) {
+                if(lastEstimate.estimate_id == " " || lastEstimate.estimate_id == null || lastEstimate.estimate_id == undefined || lastEstimate.estimate_id == ""){
+                    res.json({ lastEstimateNumber: "Estimate-1", lastEstimate: 0 }); // Default value if no estimate found
+                }else{
+                res.json({ lastEstimateId: lastEstimate.estimate_id, lastEstimateNumber: lastEstimate.EstimateNumber });
+                }
+            } else {
+                res.json({ lastEstimateNumber: "Estimate-1", lastEstimateId: 0 }); // Default value if no estimate found
+            }
+        } catch (error) {
+            console.error('Error fetching last estimate number:', error);
+            res.status(500).json({ message: 'Server Error' });
+        }
+    });
+
+    
     // Fetch invoicedetail from a invoice
     router.get('/gettransactiondata/:invoiceid', async (req, res) => {
     try {
@@ -934,6 +1120,18 @@ router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
             let userid = req.params.userid;
             const invoices = (await Invoice.find({ userid: userid}));
             res.json(invoices);
+        } catch (error) {
+            console.error(error);
+            res.status(500).json({ message: 'Internal server error' });
+        }
+    });
+
+    // Fetch invoicedetail from a userid
+    router.get('/estimatedata/:userid', async (req, res) => {
+        try {
+            let userid = req.params.userid;
+            const estimates = (await Estimate.find({ userid: userid}));
+            res.json(estimates);
         } catch (error) {
             console.error(error);
             res.status(500).json({ message: 'Internal server error' });

@@ -4,25 +4,20 @@ import { ColorRing } from  'react-loader-spinner'
 import Usernav from './Usernav';
 import Usernavbar from './Usernavbar';
 
-export default function Invoicedetail() {
+export default function Estimatedetail() {
     const [ loading, setloading ] = useState(true);
     const [signupdata, setsignupdata] = useState([]);
     const modalRef = useRef(null);
     const [items, setitems] = useState([]);
     const location = useLocation();
     const [selectedinvoices, setselectedinvoices] = useState(null);
-    const [invoiceData, setInvoiceData] = useState({
-        customername: '',itemname: '',customeremail: '',InvoiceNumber: '',purchaseorder: '',
-        date: '',duedate: '',description: '',itemquantity: '', price: '',discount: '',
+    const [estimateData, setestimateData] = useState({
+        customername: '',itemname: '',customeremail: '',EstimateNumber: '',purchaseorder: '',
+        date: '',description: '',itemquantity: '', price: '',discount: '',
         amount: '',tax: '',taxpercentage:'',subtotal: '',total: '',amountdue: '',information: '',
     });
-    const [editorData, setEditorData] = useState("<p></p>");
-    const [paidamounterror, setpaidamounterror] = useState("");
-    const [paiddateerror, setpaiddateerror] = useState("");
-    const [methoderror, setmethoderror] = useState("");
-    const [exceedpaymenterror, setexceedpaymenterror] = useState("");
     
-    const invoiceid = location.state?.invoiceid;
+    const estimateid = location.state?.estimateid;
     const [transactionData, setTransactionData] = useState({
         paidamount: '',
         paiddate: '',
@@ -39,20 +34,20 @@ export default function Invoicedetail() {
           navigate("/");
         }
         fetchsignupdata();
-        if (invoiceid) {
-            fetchinvoicedata();
+        if (estimateid) {
+            fetchestimateData();
             fetchtransactiondata();
         }
-    }, [invoiceid])
+    }, [estimateid])
     let navigate = useNavigate();
 
-    const fetchinvoicedata = async () => {
+    const fetchestimateData = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/getinvoicedata/${invoiceid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getestimatedata/${estimateid}`);
             const json = await response.json();
             
-            setInvoiceData(json);
+            setestimateData(json);
             if (Array.isArray(json.items)) {
                 setitems(json.items);
             }
@@ -64,7 +59,7 @@ export default function Invoicedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/gettransactiondata/${invoiceid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/gettransactiondata/${estimateid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -96,108 +91,11 @@ export default function Invoicedetail() {
         }
     }
 
-  const onchange = (event) => {
-    setTransactionData({
-      ...transactionData,
-      [event.target.name]: event.target.value,
-    });
-  };
 
   const formatCustomDate = (dateString) => {
     const options = { day: 'numeric', month: 'short', year: 'numeric' };
     const date = new Date(dateString);
     return date.toLocaleDateString('en-US', options);
-  };
-
-  const handleAddPayment = async () => {
-    // const invoiceid = 'your-invoice-id'; 
-    const userid =  localStorage.getItem("userid");
-    // Check for errors
-  if (transactionData.paidamount === '') {
-    setpaidamounterror("Fill detail");
-    return; // Exit the function early if there's an error
-  } else {
-    setpaidamounterror(""); // Clear the error if the field is filled
-  }
-  
-  if (transactionData.paiddate === '') {
-    setpaiddateerror("Fill detail");
-    return;
-  } else {
-    setpaiddateerror("");
-  }
-  
-  if (transactionData.method === '') {
-    setmethoderror("Fill detail");
-    return;
-  } else {
-    setmethoderror("");
-  }
-  // Fetch updated transaction data after payment addition
-  await fetchtransactiondata();
-
-  // Calculate total paid amount from transactions
-  // const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
-  const totalPaidAmount = transactions.reduce(
-    (total, payment) => total + parseFloat(payment.paidamount),
-    0
-  );
-  // Check if the paid amount exceeds the due amount
-  const dueAmount = invoiceData.total - totalPaidAmount;
-  const paymentAmount = parseFloat(transactionData.paidamount);
-
-  if (paymentAmount > dueAmount) {
-    console.error('Payment amount exceeds the due amount.');
-    setexceedpaymenterror("Payment amount exceeds the amount.");
-    return;
-  } else {
-    setexceedpaymenterror("");
-  }
-
-
-    try {
-      const response = await fetch('https://invoice-n96k.onrender.com/api/addpayment', {
-        method: 'POST',
-        headers: {
-          'Content-Type': 'application/json',
-        },
-        body: JSON.stringify({
-          paidamount: transactionData.paidamount,
-          paiddate: transactionData.paiddate,
-          method: transactionData.method,
-          note:transactionData.note,
-          userid: userid,
-          invoiceid: invoiceid,
-        }),
-      });
-
-      if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.success) {
-          console.log('Payment added successfully!');
-          // Fetch updated transaction data after payment addition
-        await fetchtransactiondata();
-
-        // Calculate total paid amount from transactions
-        const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
-
-        // Update amount due by subtracting totalPaidAmount from total invoice amount
-        const updatedAmountDue = invoiceData.total - totalPaidAmount;
-        setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
-        // Close the modal after adding payment
-        document.getElementById('closebutton').click();
-        if (modalRef.current) {
-            modalRef.current.hide();
-          }
-        } else {
-          console.error('Failed to add payment.');
-        }
-      } else {
-        console.error('Failed to add payment.');
-      }
-    } catch (error) {
-      console.error('Error adding payment:', error);
-    }
   };
 
   const handlePrintContent = () => {
@@ -339,46 +237,16 @@ export default function Invoicedetail() {
   printWindow.print();
 };
 
-const handleEditContent = (invoiceData) => {
-    const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
-
-    if (totalPaidAmount === 0) {
-        // If totalPaidAmount is 0, navigate to /userpanel/Createinvoice page
-        setselectedinvoices(invoiceData);
-        let invoiceid = invoiceData._id;
-        console.log(invoiceid);
-        navigate('/userpanel/Editinvoice', { state: { invoiceid } });
-    } else {
-        // If totalPaidAmount is not 0, show an alert
-        setShowAlert(true);
-    }
+const handleEditContent = (estimateData) => {
+        setselectedinvoices(estimateData);
+        let estimateid = estimateData._id;
+        console.log(estimateid);
+        navigate('/userpanel/Editestimate', { state: { estimateid } });
 };
 
-// const handleRemove = async (invoiceid) => {
-//     try {
-//       const response = await fetch(`https://invoice-n96k.onrender.com/api/removeData/${invoiceid}`, {
-//         method: 'GET',
-//         // Add any required headers or authentication tokens
-//       });
-  
-//       console.log('Response status:', response.status); // Log response status
-  
-//       if (response.ok) {
-//         console.log('Data removed successfully!');
-//         navigate('/userpanel/Invoice');
-//       } else {
-//         console.error('Failed to remove data.');
-//         const errorData = await response.json(); // If available, log the error response data
-//         console.error('Error response:', errorData);
-//       }
-//     } catch (error) {
-//       console.error('Error removing data:', error); // Log any fetch-related errors
-//     }
-//   };
-
-const handleRemove = async (invoiceid) => {
+const handleRemove = async (estimateid) => {
     try {
-      const response = await fetch(`https://invoice-n96k.onrender.com/api/deldata/${invoiceid}`, {
+      const response = await fetch(`https://invoice-n96k.onrender.com/api/delestimatedata/${estimateid}`, {
         method: 'GET'
       });
   
@@ -386,7 +254,7 @@ const handleRemove = async (invoiceid) => {
   
       if (json.success) {
         console.log('Data removed successfully!');
-        navigate('/userpanel/Invoice');
+        navigate('/userpanel/Userdashboard');
       } else {
         console.error('Error deleting Invoice:', json.message);
       }
@@ -394,51 +262,6 @@ const handleRemove = async (invoiceid) => {
       console.error('Error deleting Invoice:', error);
     }
   };
-  
-// const handleRemove = async (invoiceid) => {
-//     try {
-//       // Delete invoice and associated transactions based on the invoice ID
-//       const response = await fetch(`https://invoice-n96k.onrender.com/api/removeInvoiceAndTransactions/${invoiceid}`, {
-//         method: 'GET',
-//         // Add any required headers or authentication tokens
-//       });
-  
-//       if (response.ok) {
-//         console.log('Invoice and transactions deleted successfully!');
-//         //         navigate('/userpanel/Invoice');
-//         // Redirect or perform any other necessary actions after deletion
-//         // ...
-//       } else {
-//         console.error('Failed to delete invoice and transactions.');
-//         const errorData = await response.json(); // If available, log the error response data
-//         console.error('Error response:', errorData);
-//       }
-//     } catch (error) {
-//       console.error('Error deleting invoice and transactions:', error);
-//     }
-//   };
-  
-
-const getStatus = () => {
-  if (transactions.length === 0) {
-    return "Saved";
-  }
-
-  const totalPaidAmount = transactions.reduce(
-    (total, payment) => total + parseFloat(payment.paidamount),
-    0
-  );
-
-  if (totalPaidAmount === 0) {
-    return "Saved";
-  } else if (totalPaidAmount > 0 && totalPaidAmount < invoiceData.total) {
-    return "Partially Paid";
-  } else if (totalPaidAmount === invoiceData.total) {
-    return "Paid";
-  } else {
-    return "Payment Pending";
-  }
-};
 
   return (
     <div className='bg'>
@@ -472,11 +295,11 @@ const getStatus = () => {
                         <form>
                         <div className='row py-4 px-2 breadcrumbclr'>
                             <div className="col-lg-6 col-md-6 col-sm-6 col-7 me-auto">
-                                <p className='fs-35 fw-bold'>Invoice</p>
+                                <p className='fs-35 fw-bold'>Estimate</p>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb mb-0">
                                         <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Invoicedetail</li>
+                                        <li class="breadcrumb-item active" aria-current="page">Estimatedetail</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -495,8 +318,8 @@ const getStatus = () => {
                                     
 
                                         <li><a className="dropdown-item" onClick={handlePrintContent}>Print</a></li>
-                                        <li><a className="dropdown-item" onClick={ () => handleEditContent(invoiceData)}>Edit</a></li>
-                                        <li><a className="dropdown-item" onClick={() => handleRemove(invoiceData._id)}>Remove</a></li>
+                                        <li><a className="dropdown-item" onClick={ () => handleEditContent(estimateData)}>Edit</a></li>
+                                        <li><a className="dropdown-item" onClick={() => handleRemove(estimateData._id)}>Remove</a></li>
                                     </ul>
                                 </div>
                             
@@ -537,7 +360,7 @@ const getStatus = () => {
                                         </div>    
                                         <div className="col-6">
                                             <div className="row text-end">
-                                                <p className='h4 fw-bold'>Invoice</p>
+                                                <p className='h4 fw-bold'>Estimate</p>
                                                 <p className='fw-bold'>{signupdata.address}</p>
                                                 <p className='fw-bold'>{signupdata.email}</p>
                                             </div>
@@ -548,20 +371,18 @@ const getStatus = () => {
                                     <div className='row py-4 pb-90 px-4 mx-0 mb-4 detailbg'>
                                         <div bgcolor="#333" className="col-12 col-lg-6 col-md-6 col-sm-6 customerdetail">
                                             <p className='fw-bold pt-3'>BILL TO</p>
-                                            <p className='my-0'>{invoiceData.customername}</p>
-                                            <p className='my-0'>{invoiceData.customeremail}</p>
+                                            <p className='my-0'>{estimateData.customername}</p>
+                                            <p className='my-0'>{estimateData.customeremail}</p>
                                         </div>
-                                        <div className="col-12 col-lg-6 col-md-6 col-sm-6 text-md-end text-lg-end ">
+                                        <div className="col-12 col-lg-6 col-md-6 col-sm-6 text-md-end text-lg-end">
                                             <div className='row'>
-                                              <div className='col-6 fw-bold'>
+                                              <div className='col-6  fw-bold'>
                                                   <p className='pt-3'>Invoice #</p>
                                                   <p className='my-0'>Date</p>
-                                                  <p className='my-0'>Due date</p>
                                               </div>
                                               <div className='col-6'>
-                                              <p className='pt-3'>{invoiceData.InvoiceNumber}</p>
-                                              <p className='my-0'>{formatCustomDate(invoiceData.date)}</p>
-                                              <p className='my-0'>{formatCustomDate(invoiceData.duedate)}</p>
+                                              <p className='pt-3'>{estimateData.EstimateNumber}</p>
+                                              <p className='my-0'>{formatCustomDate(estimateData.date)}</p>
 
                                               </div>
                                               
@@ -572,7 +393,6 @@ const getStatus = () => {
                                         
                                     </div>
 
-                                    {/* <div className=''> */}
                                         <div className="row pb-30 pt-1 fw-bold invoice-content">
                                             <div className="col-lg-5 col-md-5 col-sm-5 col-4 invoice-contentcol-6">
                                                 <p>ITEM</p>
@@ -617,25 +437,11 @@ const getStatus = () => {
                                             </div>
                                             <div className="col-lg-2 col-md-2 col-sm-3 col-4 invoice-contentcol-2">
                                                 <p className='mb-2'>Subtotal</p>
-                                                <p className=''>Total</p>
                                             </div>
                                             <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
-                                                <p className='mb-2'>&#8377; {invoiceData.subtotal}</p>
-                                                <p className=''>&#8377; {invoiceData.total}</p>
+                                                <p className='mb-2'>&#8377; {estimateData.subtotal}</p>
                                             </div>
                                           </div><hr />
-                                            {transactions.map((transaction) => (
-                                            <div className='row padding-20'  key={transaction._id}>
-                                            
-                                                <div className="col-lg-6 col-sm-6 col-md-6  col-2 invoice-contentcol-2">.</div>
-                                                <div className="col-lg-3 col-sm-3 col-md-3 col-6 invoice-contentcol-8">
-                                                    <p className='mb-2'>Paid on {formatCustomDate(transaction.paiddate)}</p>
-                                                </div>
-                                                <div className="col-lg-3 col-sm-3 col-md-3 col-4 invoice-contentcol-2">
-                                                    <p>&#8377; {transaction.paidamount}</p>
-                                                </div>
-                                            </div>
-                                            ))}
                                             <div className='row'>
                                               <div className=''>
                                                 <p></p>
@@ -644,44 +450,28 @@ const getStatus = () => {
                                             <div className="row flex">
                                               <div className="col-lg-4 col-sm-4 col-md-4 col-6 offset-6 offset-lg-7 offset-md-7 offset-sm-7 m-right">
                                                   <div className="mt-2 detailbg p-2 padding">
-                                                      <p className='text-left'>Amount Due</p>
+                                                      <p className='text-left'>Grand Total</p>
                                                       <p className='fs-5 text-end text-right'>
-                                                        {console.log(invoiceData.amountdue, "Due Amount")}
-                                                        {console.log(transactions.reduce((total, payment) => total + payment.paidamount, 0), "transactions")}
-                                                          &#8377; {invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
+                                                          &#8377; {estimateData.total}
                                                       </p>
                                                   </div>
                                               </div>
                                             </div>
-                                    {/* </div> */}
                                 </div>
                             </div>
 
                             <div className="col-12 col-sm-12 col-md-12 col-lg-4">
-                                <div className='box1 rounded adminborder px-4 py-5'>
+                                <div className='box1 rounded adminborder px-4 py-4'>
                                     <div className="row">
                                             <div className="col-6">
                                                 <p>Total</p>
-                                                <p>Paid</p>
                                             </div>
                                             <div className="col-6 text-end">
-                                                <p>&#8377; {invoiceData.total}</p>
-                                                {console.log(transactions)}
-                                                
-                                                
-                                                <p>&#8377; {transactions.reduce((total, payment) => total + payment.paidamount, 0)}</p>
+                                                <p>&#8377; {estimateData.total}</p>
                                                
                                             </div>
 
-                                            {/* <!-- Button trigger modal --> */}
-                                            <a className='greenclr pointer mb-3' data-bs-toggle="modal" data-bs-target="#exampleModal1">
-                                             View Transactions 
-                                            </a>
-                                            <a className='greenclr pointer' data-bs-toggle="modal" data-bs-target="#exampleModal">
-                                             Mark paid 
-                                            </a>
-
-                                    </div>
+                                    </div><hr />
                                 </div>
                             </div>
                             
@@ -694,98 +484,6 @@ const getStatus = () => {
             </div>
         </div>
 }
-
-{/* payment modal  */}
-<form action="">
-  <div class="modal fade" id="exampleModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Mark paid</h1>
-          <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-          <div class="mb-3">
-            <label for="amount" class="form-label">Amount<span class="text-danger">*</span></label>
-            <input type="number" class="form-control" name='paidamount' onChange={onchange} id="exampleFormControlInput1" placeholder="Amount" required/>
-            {paidamounterror && <p className="text-danger">{paidamounterror}</p>}
-            {exceedpaymenterror && <p className="text-danger">{exceedpaymenterror}</p>}
-          </div>
-          <div class="mb-3">
-            <label for="date" class="form-label">Date<span class="text-danger">*</span></label>
-            <input type="date" class="form-control" name='paiddate' onChange={onchange} id="exampleFormControlInput2" placeholder="Date" required/>
-            {paiddateerror && <p className="text-danger">{paiddateerror}</p>}
-          </div>
-          <div class="mb-3">
-            <label for="date" class="form-label">Method<span class="text-danger">*</span></label>
-            <select class="form-select" name='method' onChange={onchange} aria-label="Default select example" required>
-              <option selected disabled hidden>Method</option>
-              <option value="Cash">Cash</option>
-              <option value="Credit">Credit</option>
-              <option value="Cheque">Cheque</option>
-              <option value="Transfer">Transfer</option>
-            </select>
-            {methoderror && <p className="text-danger">{methoderror}</p>}
-          </div>
-          <div class="mb-3">
-            <label for="note" class="form-label">Note</label>
-            <input type="text" class="form-control" name='note' onChange={onchange} id="exampleFormControlInput4" placeholder="Note"/>
-          </div>
-        </div>
-        <div class="modal-footer">
-          <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
-          <a className='greenclr ms-2 text-decoration-none pointer' onClick={handleAddPayment}>Add Payment</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</form>
-
-
-{/* transaction modal  */}
-
-<div class="modal fade" id="exampleModal1" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-  <div class="modal-dialog modal-lg">
-    <div class="modal-content">
-      <div class="modal-header">
-        <h1 class="modal-title fs-5" id="exampleModalLabel">View Transactions</h1>
-        <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
-      </div>
-      <div class="modal-body">
-        <div className="row px-2 text-center">
-            <div className="col-4">
-                <p>DATE</p>
-            </div>
-            <div className="col-4">
-                <p>NOTE</p>
-            </div>
-            <div className="col-4">
-                <p>AMOUNT</p>
-            </div>
-        </div><hr />
-        {transactions.map((transaction) => (
-            <>
-            <div className='row px-2  text-center'  key={transaction._id}>
-                <div className="col-4">
-                    <p className='mb-0'> {formatCustomDate(transaction.paiddate)}</p>
-                </div>
-                <div className="col-4">
-                    <p className='mb-0'>{transaction.note}</p>
-                </div>
-                <div className="col-4">
-                    <p className='mb-0'>&#8377; {transaction.paidamount}</p>
-                </div>
-            </div><hr />
-            </>
-            ))}
-      </div>
-      <div class="modal-footer">
-        <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
-      </div>
-    </div>
-  </div>
-
-</div>
     </div>
   )
 }

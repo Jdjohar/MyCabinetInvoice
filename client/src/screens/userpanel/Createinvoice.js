@@ -11,6 +11,7 @@ import 'react-virtualized-select/styles.css';
 import 'react-virtualized/styles.css'
 
 export default function Createinvoice() {
+    const [ loading, setloading ] = useState(true);
     const [customers, setcustomers] = useState([]);
     const [items, setitems] = useState([]);
     const [searchcustomerResults, setSearchcustomerResults] = useState([]);
@@ -40,6 +41,7 @@ export default function Createinvoice() {
         };
     
         fetchData();
+        setloading(false);
     }, [])
     let navigate = useNavigate();
 
@@ -318,6 +320,20 @@ const onchange = (event) => {
 
   return (
     <div className='bg'>
+    {
+      loading?
+      <div className='row'>
+        <ColorRing
+      // width={200}
+      loading={loading}
+      // size={500}
+      display="flex"
+      justify-content= "center"
+      align-items="center"
+      aria-label="Loading Spinner"
+      data-testid="loader"        
+    />
+      </div>:
         <div className='container-fluid'>
             <div className="row">
                 <div className='col-lg-2 col-md-3 vh-100 b-shadow bg-white d-lg-block d-md-block d-none'>
@@ -334,7 +350,7 @@ const onchange = (event) => {
         
                         <form onSubmit={handleSubmit}>
                         <div className='row py-4 px-2 breadcrumbclr'>
-                            <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
+                            <div className="col-lg-4 col-md-6 col-sm-12 col-7 me-auto">
                                 <p className='fs-35 fw-bold'>Invoice</p>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb mb-0">
@@ -343,13 +359,13 @@ const onchange = (event) => {
                                     </ol>
                                 </nav>
                             </div>
-                            <div className="col-lg-3 col-md-4 col-sm-4 col-5 text-right">
+                            <div className="col-lg-3 col-md-4 col-sm-12 col-5 text-right">
                                 <button className='btn rounded-pill btn-danger text-white fw-bold' type="submit">Save</button>
                             </div>
                         </div>
                         <div className='box1 rounded adminborder p-4 m-2 mb-5'>
                             <div className='row me-2'>
-                                <div className="col-5">
+                                <div className="col-md-6 col-lg-5 col-12">
                                     {isCustomerSelected ? (
                                         <div className="customerdetail p-3">
                                             <ul>
@@ -376,9 +392,9 @@ const onchange = (event) => {
                                         </div>
                                     )}
                                 </div>    
-                                <div className="col-7">
+                                <div className="col-lg-7 col-md-6">
                                     <div className="row">
-                                        <div className="col-6">
+                                        <div className="col-lg-6">
                                             <div className="mb-3">
                                                 <label htmlFor="invoicenumbr" className="form-label">
                                                     Invoice Number
@@ -395,7 +411,7 @@ const onchange = (event) => {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="col-6">
+                                        <div className="col-lg-6">
                                             <div className="mb-3">
                                                 <label htmlFor="purchaseoder" className="form-label">
                                                     Purchase Order (PO) #
@@ -410,7 +426,7 @@ const onchange = (event) => {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="col-6">
+                                        <div className="col-lg-6">
                                             <div className="mb-3">
                                                 <label htmlFor="Date" className="form-label">
                                                 Date
@@ -427,7 +443,7 @@ const onchange = (event) => {
                                                 />
                                             </div>
                                         </div>
-                                        <div className="col-6">
+                                        <div className="col-lg-6">
                                             <div className="mb-3">
                                                 <label htmlFor="duedate" className="form-label">
                                                     Due Date
@@ -448,7 +464,7 @@ const onchange = (event) => {
                                 </div>    
                             </div>
 
-                            <div className='box1 rounded adminborder p-4 m-2'>
+                            {/* <div className='box1 rounded adminborder p-4 m-2'>
                                 <div className="row pt-3">
                                     <div className="col-4">
                                         <p>ITEM</p>
@@ -644,7 +660,182 @@ const onchange = (event) => {
                                         </div>
                                     </div>
                                 </div>
-                            </div>
+                            </div> */}
+
+                            <div className='box1 rounded adminborder p-4 m-2'>
+                                <div className="table-responsive">
+                                    <table className="table">
+                                        <thead>
+                                            <tr>
+                                                <th scope="col">ITEM</th>
+                                                <th scope="col">QUANTITY</th>
+                                                <th scope="col">PRICE</th>
+                                                <th scope="col">DISCOUNT</th>
+                                                <th scope="col">AMOUNT</th>
+                                            </tr>
+                                        </thead>
+            <tbody>
+                {searchitemResults.map((item) => {
+                    const selectedItem = items.find((i) => i._id === item.value);
+                    const itemPrice = selectedItem?.price || 0;
+                    const itemId = item.value;
+                    const quantity = quantityMap[itemId] || 1;
+                    const discount = discountMap[itemId] || 0;
+
+                    const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
+                    const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                    });
+
+                    return (
+                        <tr key={item.value}>
+                            <td>
+                                <div className="mb-3 d-flex align-items-baseline justify-content-between">
+                                    <p>{item.label}</p>
+                                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
+                                        <i className="fas fa-trash"></i>
+                                    </button>
+                                </div>
+                                <div className="row">
+                                    <div className="col">
+                                        <label htmlFor={`item-description-${itemId}`} className="form-label">Description</label>
+                                        <textarea
+                                            className="form-control mb-3"
+                                            name='description'
+                                            id={`item-description-${itemId}`}
+                                            placeholder='Item Description'
+                                            rows="3"
+                                            value={selectedItem?.description || ''}
+                                        ></textarea>
+                                    </div>
+                                    <div className="col">
+                                        <label htmlFor={`discount-${itemId}`} className="form-label">Discount</label>
+                                        <input
+                                            type='number'
+                                            name={`discount-${itemId}`}
+                                            className='form-control mb-3'
+                                            value={discount}
+                                            onChange={(event) => onDiscountChange(event, itemId)}
+                                            placeholder='Discount'
+                                            id={`discount-${itemId}`}
+                                            min="0"
+                                        />
+                                    </div>
+                                </div>
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    name={`quantity-${itemId}`}
+                                    className="form-control"
+                                    value={quantity}
+                                    onChange={(event) => onChangeQuantity(event, itemId)}
+                                    id={`quantity-${itemId}`}
+                                    required
+                                />
+                            </td>
+                            <td>
+                                <input
+                                    type="number"
+                                    name="price"
+                                    className="form-control"
+                                    value={itemPrice}
+                                    id="price"
+                                    required
+                                />
+                            </td>
+                            <td className="text-center">
+                                <p>₹{discount.toFixed(2)}</p>
+                            </td>
+                            <td className="text-center">
+                                <p>{formattedTotalAmount}</p>
+                            </td>
+                        </tr>
+                    );
+                })}
+            </tbody>
+        </table>
+    </div>
+
+    <div className="row pt-3">
+        <div className="col-lg-6 col-md-12">
+            <div className="search-container forms">
+                <p className='fs-20 mb-0'>Select Item</p>
+                <VirtualizedSelect
+                                                id="searchitems" 
+                                                name="itemname"
+                                                className="form-control zindex op pl-0"
+                                                placeholder=""
+                                                onChange={onChangeitem}
+                                                options={ items.map((item,index)=>
+                                                    ({label: item.itemname, value: item._id})
+                                                        
+                                                )}
+
+                                                >
+                                            </VirtualizedSelect>
+            </div>
+        </div>
+        <div className="col-lg-6 col-md-12">
+            <div className="row">
+                <div className="col-6 col-md-3">
+                    <p>Subtotal</p>
+                    <p>Tax</p>
+                    <p className='pt-3'>Tax {taxPercentage}%</p>
+                    <p>Total</p>
+                </div>
+                <div className="col-6 col-md-9">
+                    <p>{calculateSubtotal().toLocaleString('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                    })}</p>
+                    <div className="mb-3">
+                        <input
+                            type="number"
+                            name="tax"
+                            className="form-control"
+                            value={taxPercentage}
+                            onChange={handleTaxChange}
+                            placeholder="Enter Tax Percentage"
+                            id="taxInput"
+                            min="0"
+                        />
+                    </div>
+                    <p>{calculateTaxAmount().toLocaleString('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                    })}</p>
+                    <p>{calculateTotal().toLocaleString('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                    })}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+    <hr />
+    <div className="row pt-3">
+        <div className="col-lg-6 col-md-12"></div>
+        <div className="col-lg-6 col-md-12">
+            <div className="row">
+                <div className="col-6 col-md-3">
+                    <p>Amount due</p>
+                </div>
+                <div className="col-6 col-md-9">
+                    <p>{calculateTotal().toLocaleString('en-IN', {
+                        style: 'currency',
+                        currency: 'INR',
+                    })}</p>
+                </div>
+            </div>
+        </div>
+    </div>
+</div>
+
+
+
+
 
                             <div className='box1 rounded adminborder m-2 mt-5'>
                                 <CKEditor
@@ -670,7 +861,7 @@ const onchange = (event) => {
                 </div>
             </div>
         </div>
-      
+}
     </div>
   )
 }
