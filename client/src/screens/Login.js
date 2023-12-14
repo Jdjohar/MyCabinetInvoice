@@ -11,49 +11,92 @@ export default function Login() {
   const [alertShow, setAlertShow] = useState("");
 
   let navigate = useNavigate();
-  const handleSubmit = async(e) => {
-    e.preventDefault();
-    setloginbtnloader(true);
-    const response = await fetch("https://invoice-n96k.onrender.com/api/login",{
-        method:'POST',
-        headers: {
-            'Content-Type':'application/json'
-        },
-        body:JSON.stringify({email:credentials.email,password:credentials.password})
+//   const handleSubmit = async(e) => {
+//     e.preventDefault();
+//     setloginbtnloader(true);
+//     const response = await fetch("https://invoice-n96k.onrender.com/api/login",{
+//         method:'POST',
+//         headers: {
+//             'Content-Type':'application/json'
+//         },
+//         body:JSON.stringify({email:credentials.email,password:credentials.password})
+//     });
+
+//     const json = await response.json();
+
+//     console.log(json, 'sd');
+
+//     if(!json.Success){
+//         // alert('Enter vaild  Credentails');
+//         setmessage(true);
+//         setAlertShow(json.errors)
+//         setloginbtnloader(false);
+
+//     }
+//     if(json.Success){
+//       localStorage.setItem("authToken", json.authToken)
+//       localStorage.setItem("userid", json.userid)
+//       localStorage.setItem("username", json.username)
+//       localStorage.setItem("userEmail", credentials.email)
+//       localStorage.setItem("isTeamMember", json.isTeamMember)
+//       localStorage.setItem("startTime", json.startTime)
+//       console.log(localStorage.getItem("authToken"), "Data")
+//         // navigate("/userpanel/Userdashboard");
+//         if (json.isTeamMember == true) {
+//           // Redirect to the team member dashboard
+//           navigate('/Teammemberpanel/Teammenberdashboard');
+//         } else if (json.isTeamMember == false){
+//           // Redirect to the user dashboard
+//           navigate('/userpanel/Userdashboard');
+//         }
+//     }
+//     else{
+//       alert("Login with correct details")
+//     }
+// }
+
+const handleSubmit = async (e) => {
+  e.preventDefault();
+  setloginbtnloader(true);
+
+  try {
+    const response = await fetch("https://invoice-n96k.onrender.com/api/login", {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json'
+      },
+      body: JSON.stringify({ email: credentials.email, password: credentials.password })
     });
 
     const json = await response.json();
 
-    console.log(json, 'sd');
+    if (!json.Success) {
+      setmessage(true);
+      setAlertShow("Login failed. Please try again.");
+      // alert("Login failed. Please try again.");
+      setloginbtnloader(false);
+    } else {
+      localStorage.setItem("authToken", json.authToken);
+      localStorage.setItem("userid", json.userid);
+      localStorage.setItem("username", json.username);
+      localStorage.setItem("userEmail", credentials.email);
+      localStorage.setItem("isTeamMember", json.isTeamMember);
+      localStorage.setItem("startTime", json.startTime);
 
-    if(!json.Success){
-        // alert('Enter vaild  Credentails');
-        setmessage(true);
-        setAlertShow(json.errors)
-        setloginbtnloader(false);
+      if (json.isTeamMember) {
+        navigate('/Teammemberpanel/Teammenberdashboard');
+      } else {
+        navigate('/userpanel/Userdashboard');
+      }
+    }
+  } catch (error) {
+    console.error("Login error:", error);
+    alert("Login with correct details")
+    alert("Login failed. Please try again.");
+    setloginbtnloader(false);
+  }
+};
 
-    }
-    if(json.Success){
-      localStorage.setItem("authToken", json.authToken)
-      localStorage.setItem("userid", json.userid)
-      localStorage.setItem("username", json.username)
-      localStorage.setItem("userEmail", credentials.email)
-      localStorage.setItem("isTeamMember", json.isTeamMember)
-      localStorage.setItem("startTime", json.startTime)
-      console.log(localStorage.getItem("authToken"), "Data")
-        // navigate("/userpanel/Userdashboard");
-        if (json.isTeamMember == true) {
-          // Redirect to the team member dashboard
-          navigate('/Teammemberpanel/Teammenberdashboard');
-        } else if (json.isTeamMember == false){
-          // Redirect to the user dashboard
-          navigate('/userpanel/Userdashboard');
-        }
-    }
-    else{
-      alert("Login with correct details")
-    }
-}
 
 const onchange = (event) => {
   setCredentials({...credentials, [event.target.name]:event.target.value})
@@ -94,6 +137,12 @@ const onchange = (event) => {
         :<button type="submit" class="form-control w-75 btn btnblur text-white mb-1">Sign In</button>}
                 </div>
             </div>
+
+            {alertShow && (
+              <>
+                <p className='text-danger text-center fw-bold'>Login with correct details.</p>             
+              </>                      
+              )}
             <div class="form-group mb-3">
                 <div class=" text-center">
                     <p class="checkbox-wrap checkbox-primary mb-0 fw-bold">Don't have an account?

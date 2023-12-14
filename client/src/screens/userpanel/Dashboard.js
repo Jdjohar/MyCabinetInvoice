@@ -223,7 +223,7 @@ const handleViewClick = (invoice) => {
                 </div>
               </div>
             </div>
-            <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
+            <div className='col-12  col-sm-4 col-md-4 col-lg-4'>
               <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2'>
               </div>
             </div>

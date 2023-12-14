@@ -22,8 +22,8 @@ body{
 }
 
 .btnblur{
-    background-color: #121160;
-    color: #fff;
+    background-color: #121160 !important;
+    color: #fff !important;
 }
 
 @media screen and (min-width:0px) and (max-width:576px){

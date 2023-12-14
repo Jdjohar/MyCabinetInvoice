@@ -18,7 +18,7 @@ export default function Createinvoice() {
     const [searchitemResults, setSearchitemResults] = useState([]);
     const [quantityMap, setQuantityMap] = useState({});
     const [discountMap, setDiscountMap] = useState({});
-    const [discount, setDiscount] = useState();
+    const [itemExistsMessage, setItemExistsMessage] = useState('');
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
         name: '', email: ''});
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
@@ -98,9 +98,25 @@ export default function Createinvoice() {
     //     setSearchcustomerResults([...searchcustomerResults,event]);
     // }
 
-    const onChangeitem=(event)=>{
-        setSearchitemResults([...searchitemResults,event]);
-    }
+    // const onChangeitem=(event)=>{
+    //     setSearchitemResults([...searchitemResults,event]);
+    // }
+
+    const onChangeitem = (event) => {
+        const newItemId = event.value;
+        const newItemLabel = event.label;
+    
+        const isItemExists = searchitemResults.some((item) => item.value === newItemId);
+    
+        if (!isItemExists) {
+            setSearchitemResults([...searchitemResults, { value: newItemId, label: newItemLabel }]);
+            setItemExistsMessage(''); // Clear any existing message
+        } else {
+            setItemExistsMessage('This item is already added!');
+        }
+    };
+    
+    
 
     const handleEditorChange = (event, editor) => {
         const data = editor.getData();
@@ -752,8 +768,16 @@ const onchange = (event) => {
                                 <p>{formattedTotalAmount}</p>
                             </td>
                         </tr>
+                        
                     );
+                    
                 })}
+
+                {itemExistsMessage && (
+                    <div className="alert alert-warning" role="alert">
+                        {itemExistsMessage}
+                    </div>
+                )}
             </tbody>
         </table>
     </div>
@@ -775,6 +799,7 @@ const onchange = (event) => {
 
                                                 >
                                             </VirtualizedSelect>
+                                            
             </div>
         </div>
         <div className="col-lg-6 col-md-12">
