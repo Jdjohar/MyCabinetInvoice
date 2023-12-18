@@ -469,7 +469,6 @@ export default function Editinvoice() {
                                                 value={invoiceData.purchaseorder}
                                                 onChange={onchange}
                                                 id="purchaseoder"
-                                                required
                                                 />
                                             </div>
                                         </div>
@@ -502,7 +501,6 @@ export default function Editinvoice() {
                                                 value={new Date(invoiceData.duedate).toISOString().split('T')[0]} 
                                                 onChange={onchange}
                                                 id="duedate"
-                                                required
                                                 />
                                             </div>
                                         </div>
@@ -565,6 +563,7 @@ export default function Editinvoice() {
                                                 id="price"
                                                 required
                                                 readOnly
+                                                disabled
                                             />
                                         </div>
                                     </div>
@@ -653,6 +652,7 @@ export default function Editinvoice() {
                                                         id="price"
                                                         required
                                                         readOnly
+                                                        disabled
                                                     />
                                                 </div>
                                             </div>

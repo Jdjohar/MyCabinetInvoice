@@ -461,7 +461,6 @@ export default function Editestimate() {
                                                 value={estimateData.purchaseorder}
                                                 onChange={onchange}
                                                 id="purchaseoder"
-                                                required
                                                 />
                                             </div>
                                         </div>

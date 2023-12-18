@@ -504,3 +504,10 @@ width: 6%;
 .partiallypaid{
   color: #ffb74d;
 }
+
+.converbtn{
+  background-color: #fff3cd;
+  border-radius: 10px;
+  color: #856404;
+  border: 1px solid #dcc374 !important;
+}

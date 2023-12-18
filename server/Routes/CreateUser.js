@@ -20,6 +20,8 @@ const Customerlist = require('../models/Customerlist');
 const Invoice = require('../models/Invoice');
 const Estimate = require('../models/Estimate');
 const Transactions = require('../models/Transactions');
+const nodemailer = require('nodemailer');
+const crypto = require('crypto');
 
 router.get('/dashboard/:userid', async (req, res) => {
     try {
@@ -374,6 +376,83 @@ router.post('/login', [
     }
   });
 
+// POST route for handling forgot password
+router.post('/forgot-password', async (req, res) => {
+    const { email } = req.body;
+    console.log('Received email:', email);
+    try {
+      const user = await User.findOne({ email });
+      console.log('Retrieved user:', user);
+      if (!user) {
+        return res.status(404).json({ message: 'User not found' });
+      }
+  
+      const resetToken = crypto.randomBytes(20).toString('hex');
+      user.resetPasswordToken = resetToken;
+      user.resetPasswordExpires = Date.now() + 3600000; // Token expiry time (e.g., 1 hour)
+      await user.save();
+  
+      // Nodemailer setup
+      const transporter = nodemailer.createTransport({
+        service: "Gmail",
+      secure: false,
+      auth: {
+          user: "jdwebservices1@gmail.com",
+          pass: "cwoxnbrrxvsjfbmr"
+      },
+      tls:{
+        rejectUnauthorized: false
+      }
+      });
+  
+      const mailOptions = {
+        from: 'your_email@example.com',
+        to: user.email,
+        subject: 'Reset your password',
+        text: `You are receiving this because you (or someone else) have requested to reset your password.\n\n
+              Please click on the following link, or paste this into your browser to complete the process:\n\n
+              ${req.headers.origin}/reset-password/${resetToken}\n\n
+              If you did not request this, please ignore this email and your password will remain unchanged.\n`
+      };
+  
+      await transporter.sendMail(mailOptions);
+  
+      return res.status(200).json({ message: 'Reset password email sent' });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Error sending email' });
+    }
+  });
+
+router.post('/reset-password', async (req, res) => {
+    const { resetPasswordToken, newPassword } = req.body;
+  
+    try {
+      const user = await User.findOne({
+        resetPasswordToken,
+        resetPasswordExpires: { $gt: Date.now() } // Check if the token is still valid
+      });
+  
+      if (!user) {
+        return res.status(400).json({ message: 'Invalid or expired token' });
+      }
+  
+      // Hash the new password
+      const hashedPassword = await bcrypt.hash(newPassword, 10);
+  
+      // Update user's password and clear reset token fields
+      user.password = hashedPassword;
+      user.resetPasswordToken = undefined;
+      user.resetPasswordExpires = undefined;
+      await user.save();
+  
+      return res.status(200).json({ message: 'Password reset successfully' });
+    } catch (error) {
+      console.error(error);
+      return res.status(500).json({ message: 'Error resetting password' });
+    }
+  });  
+
 
 // router.post('/clockin', async (req, res) => {
 
@@ -724,9 +803,65 @@ router.get('/invoicedata/:userid', async (req, res) => {
             console.error(error);
             res.status(500).json({ message: 'Internal server error' });
         }
-    });
+});
 
-    router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
+router.post('/converttoinvoice/:estimateid', async (req, res) => {
+    try {
+        const { estimateid } = req.params;
+        // Find the estimate by ID
+        const estimate = await Estimate.findById(estimateid);
+
+        if (!estimate) {
+            return res.status(404).json({ message: 'Estimate not found' });
+        }
+
+        // Check if the estimate is already converted
+        if (estimate.convertedToInvoice) {
+            return res.status(400).json({ message: 'Estimate already converted to invoice' });
+        }else{
+            estimate.convertedToInvoice = true;
+            const result = await Estimate.findByIdAndUpdate(estimateid, estimate, { new: true });
+
+        // Get the last used invoice_id
+        const lastInvoice = await Invoice.findOne().sort({ invoice_id: -1 });
+        const lastId = lastInvoice ? lastInvoice.invoice_id : 0;
+        const nextId = lastId + 1;
+
+        // Create a new Invoice based on the estimate details
+        const newInvoice = new Invoice({
+            invoice_id: nextId,
+            InvoiceNumber: `Invoice-${nextId}`,
+            customername: estimate.customername,
+            customeremail: estimate.customeremail, 
+            date: estimate.date,
+            duedate: estimate.date, 
+            description: estimate.description, 
+            items: estimate.items, 
+            subtotal: estimate.subtotal, 
+            total: estimate.total,
+            userid: estimate.userid, 
+            information: estimate.information,
+            tax: estimate.tax, 
+            taxpercentage: estimate.taxpercentage, 
+        });
+
+        // Save the new invoice to the database
+        await newInvoice.save();
+
+        // Mark the estimate as converted
+        // estimate.convertedToInvoice = true;
+        // await estimate.save();
+
+        res.status(200).json({ message: 'Estimate converted to invoice successfully', newInvoice });
+    }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Error converting estimate to invoice' });
+    }
+});
+
+
+router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
         try {
             const invoiceid = req.params.invoiceid;
             console.log(invoiceid);

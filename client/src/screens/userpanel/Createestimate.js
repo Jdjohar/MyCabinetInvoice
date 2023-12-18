@@ -421,7 +421,6 @@ const onchange = (event) => {
                                                 className="form-control"
                                                 onChange={onchange}
                                                 id="purchaseoder"
-                                                required
                                                 />
                                             </div>
                                         </div>
@@ -725,6 +724,7 @@ const onchange = (event) => {
                                     value={itemPrice}
                                     id="price"
                                     required
+                                    disabled
                                 />
                             </td>
                             <td className="text-center">

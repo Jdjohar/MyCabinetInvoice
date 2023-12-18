@@ -97,6 +97,9 @@ const handleSubmit = async (e) => {
   }
 };
 
+const handleForgetPassword = () => {
+  navigate('/ForgotPassword');
+}
 
 const onchange = (event) => {
   setCredentials({...credentials, [event.target.name]:event.target.value})
@@ -148,7 +151,7 @@ const onchange = (event) => {
                     <p class="checkbox-wrap checkbox-primary mb-0 fw-bold">Don't have an account?
                     <Link className="text-dark" aria-current="page" to="/signup">Sign up</Link>
                     </p>
-                    <p className='fw-bold'>Forgot Password?</p>
+                    <p className='fw-bold pointer' onClick={handleForgetPassword}>Forgot Password?</p>
                 </div>
             </div>
         </form>

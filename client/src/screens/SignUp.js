@@ -167,7 +167,7 @@ export default function SignUp() {
                     ""}
                 </div>
                 <div class="form-group d-flex justify-content-center mt-3">
-                    <button type="submit" class="form-control w-75 btn btnblur text-white mb-1">Sign In</button>
+                    <button type="submit" class="form-control w-75 btn btnblur text-white mb-1">Sign Up</button>
                 </div>
             </div>
         </form>

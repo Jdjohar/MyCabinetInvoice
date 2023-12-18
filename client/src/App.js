@@ -1,6 +1,8 @@
 import './App.css';
 import Login from './screens/Login';
 import SignUp from './screens/SignUp';
+import ForgotPassword from './screens/ForgotPassword';
+import ResetPassword from './screens/ResetPassword';
 import Userdashboard from './screens/userpanel/Userdashboard';
 import Team from './screens/userpanel/Team';
 import Addteam from './screens/userpanel/Addteam';
@@ -38,6 +40,8 @@ function App() {
           <Routes>
             <Route exact path='/' element={<Login/>} />
             <Route exact path='/signup' element={<SignUp/>} />
+            <Route exact path='/ForgotPassword' element={<ForgotPassword/>} />
+            <Route exact path='/reset-password/:token' element={<ResetPassword/>} />
             <Route exact path='/userpanel/Userdashboard' element={<Userdashboard/>} />
             <Route exact path='/userpanel/Team' element={<Team/>} />
             <Route exact path='/userpanel/Addteam' element={<Addteam/>} />

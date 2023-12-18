@@ -48,6 +48,10 @@ const EstimateSchema = new Schema({
     userid:{
         type: String,
     },
+    convertedToInvoice: {
+        type: Boolean,
+        default: false,
+    },
     createdAt: {
         type: Date,
         default: Date.now,

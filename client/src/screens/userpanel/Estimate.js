@@ -11,6 +11,7 @@ export default function Estimate() {
     const location = useLocation();
     const estimateid = location.state?.estimateid;
     const navigate = useNavigate();
+    const [convertedEstimates, setConvertedEstimates] = useState([]);
 
     useEffect(() => {
         if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
@@ -49,7 +50,33 @@ export default function Estimate() {
     const handleAddClick = () => {
         navigate('/userpanel/Createestimate');
     }
-    
+
+    const handleConvertToInvoice = async (estimateid) => {
+      console.log(estimateid);
+      try {
+          const response = await fetch(`https://invoice-n96k.onrender.com/api/converttoinvoice/${estimateid}`, {
+              method: 'POST',
+          });
+  
+          if (response.ok) {
+              const data = await response.json();
+              console.log('Converted to Invoice:', data);
+              fetchData(); // Update the estimate list after conversion
+              setConvertedEstimates([...convertedEstimates, estimateid]);
+          } else {
+              const errorMessage = await response.json();
+              if (errorMessage.message === 'Estimate already converted to invoice') {
+                  console.log('Estimate already converted to invoice. Cannot convert again.');
+              } else {
+                  console.error('Error converting to invoice:', errorMessage.message);
+                  // Handle error state or display an error message to the user
+              }
+          }
+      } catch (error) {
+          console.error('Error converting to invoice:', error);
+          // Handle error state or display an error message to the user
+      }
+  };
 
   return (
     <div className='bg'>
@@ -100,11 +127,13 @@ export default function Estimate() {
                       <th scope='col'>STATUS </th>
                       <th scope='col'>DATE </th>
                       <th scope='col'>View </th>
+                      <th scope='col'>CONVERT INTO INVOICE </th>
                       <th scope='col'>AMOUNT </th>
                     </tr>
                   </thead>
                   <tbody>
                     {estimates.map((estimate, index) => (
+                      estimate.convertedToInvoice != true && (
                       <tr key={index}>
                         <td>
                           <p className='my-0 fw-bold clrtrxtstatus'>{estimate.customername}</p>
@@ -128,9 +157,13 @@ export default function Estimate() {
                             <i className='fa-solid fa-eye'></i>
                           </a>
                         </td>
+                        <td className='text-center'>
+                          <a role='button' className='btn text-black text-center converbtn' onClick={() => handleConvertToInvoice(estimate._id)} >Convert</a>
+                        </td>
                         <td>&#8377; {estimate.total}</td>
                       </tr>
-                    ))}
+                        )
+                      ))}
                   </tbody>
                 </table>
               </div>
