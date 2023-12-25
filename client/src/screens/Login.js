@@ -14,7 +14,7 @@ export default function Login() {
 //   const handleSubmit = async(e) => {
 //     e.preventDefault();
 //     setloginbtnloader(true);
-//     const response = await fetch("https://invoice-n96k.onrender.com/api/login",{
+//     const response = await fetch("http://localhost:3001/api/login",{
 //         method:'POST',
 //         headers: {
 //             'Content-Type':'application/json'
@@ -60,7 +60,7 @@ const handleSubmit = async (e) => {
   setloginbtnloader(true);
 
   try {
-    const response = await fetch("https://invoice-n96k.onrender.com/api/login", {
+    const response = await fetch("http://localhost:3001/api/login", {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json'

@@ -32,7 +32,7 @@ useEffect(() => {
       const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
       const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
 
-      const response = await fetch(`https://invoice-n96k.onrender.com/api/userEntries/${teamid}`);
+      const response = await fetch(`http://localhost:3001/api/userEntries/${teamid}`);
       const data = await response.json();
 
       // Filter userEntries to include only entries for the current month
