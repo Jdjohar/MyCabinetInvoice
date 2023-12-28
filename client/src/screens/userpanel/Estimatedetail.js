@@ -44,7 +44,7 @@ export default function Estimatedetail() {
     const fetchestimateData = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/getestimatedata/${estimateid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getestimatedata/${estimateid}`);
             const json = await response.json();
             
             setestimateData(json);
@@ -59,7 +59,7 @@ export default function Estimatedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/gettransactiondata/${estimateid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/gettransactiondata/${estimateid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -80,7 +80,7 @@ export default function Estimatedetail() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -246,7 +246,7 @@ const handleEditContent = (estimateData) => {
 
 const handleRemove = async (estimateid) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/delestimatedata/${estimateid}`, {
+      const response = await fetch(`https://invoice-n96k.onrender.com/api/delestimatedata/${estimateid}`, {
         method: 'GET'
       });
   

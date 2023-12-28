@@ -48,7 +48,7 @@ export default function Editestimate() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/geteditestimateData/${estimateid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/geteditestimateData/${estimateid}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -65,7 +65,7 @@ export default function Editestimate() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -100,7 +100,7 @@ export default function Editestimate() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -124,7 +124,7 @@ export default function Editestimate() {
                 tax: calculateTaxAmount(), 
             };
     
-            const response = await fetch(`http://localhost:3001/api/updateestimateData/${estimateid}`, {
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/updateestimateData/${estimateid}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -223,7 +223,7 @@ export default function Editestimate() {
                 return;
             }
     
-            const response = await fetch(`http://localhost:3001/api/delestimateitem/${estimateData._id}/${itemId}`, {
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/delestimateitem/${estimateData._id}/${itemId}`, {
                 method: 'GET'
             });
     

@@ -25,14 +25,14 @@ export default function Invoice() {
     const fetchData = async () => {
         try {
             const userid = localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/invoicedata/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/invoicedata/${userid}`);
             const json = await response.json();
 
             if (Array.isArray(json)) {
                 setinvoices(json);
 
                 const transactionPromises = json.map(async (invoice) => {
-                    const response = await fetch(`http://localhost:3001/api/gettransactiondata/${invoice._id}`);
+                    const response = await fetch(`https://invoice-n96k.onrender.com/api/gettransactiondata/${invoice._id}`);
                     const transactionJson = await response.json();
                     return transactionJson.map(transaction => ({
                         ...transaction,
