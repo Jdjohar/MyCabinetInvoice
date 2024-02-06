@@ -64,7 +64,7 @@ export default function Invoicedetail() {
     const fetchinvoicedata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/getinvoicedata/${invoiceid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getinvoicedata/${invoiceid}`);
             const json = await response.json();
             
             setInvoiceData(json);
@@ -79,7 +79,7 @@ export default function Invoicedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/gettransactiondata/${invoiceid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/gettransactiondata/${invoiceid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -100,7 +100,7 @@ export default function Invoicedetail() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -171,7 +171,7 @@ export default function Invoicedetail() {
 
 
     try {
-      const response = await fetch('http://localhost:3001/api/addpayment', {
+      const response = await fetch('https://invoice-n96k.onrender.com/api/addpayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -369,7 +369,7 @@ const handleEditContent = (invoiceData) => {
 
 // const handleRemove = async (invoiceid) => {
 //     try {
-//       const response = await fetch(`http://localhost:3001/api/removeData/${invoiceid}`, {
+//       const response = await fetch(`https://invoice-n96k.onrender.com/api/removeData/${invoiceid}`, {
 //         method: 'GET',
 //         // Add any required headers or authentication tokens
 //       });
@@ -391,7 +391,7 @@ const handleEditContent = (invoiceData) => {
 
 const handleRemove = async (invoiceid) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/deldata/${invoiceid}`, {
+      const response = await fetch(`https://invoice-n96k.onrender.com/api/deldata/${invoiceid}`, {
         method: 'GET'
       });
   
@@ -449,7 +449,7 @@ const handleFormSubmit = async (event) => {
     event.preventDefault();
     const contentAsPdf = await generatePdfFromHtml();
     try {
-      const response = await fetch('http://localhost:3001/api/send-email', {
+      const response = await fetch('https://invoice-n96k.onrender.com/api/send-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -497,7 +497,7 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
   // const handleFormSubmit = (event) => {
   //   event.preventDefault();
   //   try {
-  //     const response = await fetch('http://localhost:3001/send-email', {
+  //     const response = await fetch('https://invoice-n96k.onrender.com/send-email', {
   //       method: 'POST',
   //       headers: {
   //         'Content-Type': 'application/json',

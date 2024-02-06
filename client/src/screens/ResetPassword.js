@@ -20,7 +20,7 @@ export default function ResetPassword() {
     }
 
     try {
-      const response = await fetch('http://localhost:3001/api/reset-password', {
+      const response = await fetch('https://invoice-n96k.onrender.com/api/reset-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

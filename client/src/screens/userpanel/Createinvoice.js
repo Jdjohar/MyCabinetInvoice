@@ -50,7 +50,7 @@ export default function Createinvoice() {
     const fetchLastInvoiceNumber = async () => {
         try {
             const userid = localStorage.getItem('userid');
-            const response = await fetch(`http://localhost:3001/api/lastinvoicenumber/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/lastinvoicenumber/${userid}`);
             const json = await response.json();
     
             // let nextInvoiceNumber = 1;
@@ -71,7 +71,7 @@ export default function Createinvoice() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -85,7 +85,7 @@ export default function Createinvoice() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -295,7 +295,7 @@ const handleSubmit = async (e) => {
   
   
       // Sending invoice data to the backend API
-      const response = await fetch('http://localhost:3001/api/savecreateinvoice', {
+      const response = await fetch('https://invoice-n96k.onrender.com/api/savecreateinvoice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',

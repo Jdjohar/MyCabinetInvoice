@@ -28,7 +28,7 @@ export default function Additem() {
   const handleSubmit = async (e) => {
     // e.preventDefault();
     let userid = localStorage.getItem('userid');
-    const response = await fetch('http://localhost:3001/api/additem', {
+    const response = await fetch('https://invoice-n96k.onrender.com/api/additem', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
