@@ -20,8 +20,53 @@ const Customerlist = require('../models/Customerlist');
 const Invoice = require('../models/Invoice');
 const Estimate = require('../models/Estimate');
 const Transactions = require('../models/Transactions');
-const nodemailer = require('nodemailer');
 const crypto = require('crypto');
+const bodyParser = require('body-parser');
+const nodemailer = require('nodemailer');
+
+
+router.post('/send-email', async (req, res) => {
+    const { to, bcc, content ,companyName, pdfAttachment } = req.body;
+    
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: "jdwebservices1@gmail.com",
+        pass: "cwoxnbrrxvsjfbmr"
+    },
+  });
+  
+    const mailOptions = {
+      from: 'jdwebservices1@gmail.com',
+      to: to.join(', '),
+      bcc: bcc.join(', '),
+      subject: `Invoice from ${companyName}`,
+      attachments: [
+        {
+          filename: 'invoice.pdf',
+          content: pdfAttachment.split(';base64,')[1], // Extract base64 content
+          encoding: 'base64',
+        }
+      ],
+      html: `<html>
+        <body style="background-color:#c5c1c187; margin-top: 40px;">
+            <section style="font-family:sans-serif; width: 90%; margin: auto; text-align:"center">
+                <p>${content}</p>
+            </section>
+        </body>
+            </html>`,
+    };
+  
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully!');
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      res.status(500).json({ success: false, error: 'Failed to send email.' });
+    }
+});
+
 
 router.get('/dashboard/:userid', async (req, res) => {
     try {
@@ -746,6 +791,21 @@ router.post('/savecreateinvoice', async (req, res) => {
             const { userid, invoiceData } = req.body; // Extracting invoiceData from the request body
             console.log('Received userid:', userid);
 
+            // Check if the invoice number already exists for the given user ID
+        const existingInvoice = await Invoice.findOne({
+            userid: userid,
+            InvoiceNumber: invoiceData.InvoiceNumber
+        });
+
+        if (existingInvoice) {
+            return res.status(400).json({
+                success: false,
+                message: 'Invoice number already exists.',
+                error: 'Invoice number already exists.'
+            });
+        }
+
+
           // Create a new instance of the Invoice model using the extracted data
           const newInvoice = new Invoice({
             ...invoiceData,
@@ -765,13 +825,28 @@ router.post('/savecreateinvoice', async (req, res) => {
           console.error('Error creating invoice:', error);
           res.status(500).json({ success: false, message: 'Failed to save the invoice.' });
         }
-      });
+});
+
 
     // Create a new estimate
 router.post('/savecreateestimate', async (req, res) => {
         try {
             const { userid, estimateData } = req.body; // Extracting estimateData from the request body
             console.log('Received userid:', userid);
+
+                // Check if the invoice number already exists for the given user ID
+        const existingEstimate = await Estimate.findOne({
+            userid: userid,
+            EstimateNumber: estimateData.EstimateNumber
+        });
+
+        if (existingEstimate) {
+            return res.status(400).json({
+                success: false,
+                message: 'Estimate number already exists.',
+                error: 'Estimate number already exists.'
+            });
+        }
 
           // Create a new instance of the Estimate model using the extracted data
           const newEstimate = new Estimate({

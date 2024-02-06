@@ -3,6 +3,10 @@ import {useNavigate,useLocation} from 'react-router-dom'
 import { ColorRing } from  'react-loader-spinner'
 import Usernav from './Usernav';
 import Usernavbar from './Usernavbar';
+// import 'react-multi-email/style.css';
+import { ReactMultiEmail } from 'react-multi-email';
+import 'react-multi-email/dist/style.css'
+import html2pdf from 'html2pdf.js';
 
 export default function Invoicedetail() {
     const [ loading, setloading ] = useState(true);
@@ -21,6 +25,7 @@ export default function Invoicedetail() {
     const [paiddateerror, setpaiddateerror] = useState("");
     const [methoderror, setmethoderror] = useState("");
     const [exceedpaymenterror, setexceedpaymenterror] = useState("");
+    const [showSendModal, setShowSendModal] = useState(false);
     
     const invoiceid = location.state?.invoiceid;
     const [transactionData, setTransactionData] = useState({
@@ -31,6 +36,9 @@ export default function Invoicedetail() {
       });
       const [transactions, setTransactions] = useState([]);
       const [showAlert, setShowAlert] = useState(false);
+      const [emails, setEmails] = useState([]);
+      const [bccEmails, setBccEmails] = useState([]);
+      const [content, setContent] = useState('');
 
 
     useEffect(() => {
@@ -44,12 +52,19 @@ export default function Invoicedetail() {
             fetchtransactiondata();
         }
     }, [invoiceid])
+
+    useEffect(() => {
+      console.log('Customer Email:', invoiceData.customeremail);
+      if (invoiceData.customeremail) {
+        setEmails([invoiceData.customeremail]);
+      }
+    }, [invoiceData.customeremail]);
     let navigate = useNavigate();
 
     const fetchinvoicedata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/getinvoicedata/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/getinvoicedata/${invoiceid}`);
             const json = await response.json();
             
             setInvoiceData(json);
@@ -64,7 +79,7 @@ export default function Invoicedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/gettransactiondata/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/gettransactiondata/${invoiceid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -85,7 +100,7 @@ export default function Invoicedetail() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/getsignupdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -156,7 +171,7 @@ export default function Invoicedetail() {
 
 
     try {
-      const response = await fetch('https://invoice-n96k.onrender.com/api/addpayment', {
+      const response = await fetch('http://localhost:3001/api/addpayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -209,12 +224,6 @@ export default function Invoicedetail() {
       <head>
         <title>Print Invoice</title>
         <style>
-      //   @media print {
-      //    .row {
-      //         background-color: #1a4567 !important;
-      //         print-color-adjust: exact; 
-      //     }
-      // }
       
         .print-page{
           width:80%;
@@ -286,10 +295,6 @@ export default function Invoicedetail() {
           float:left;
           text-align:right
         }
-        // .printcol-2{
-        //   width:25%;
-        //   text-align:right
-        // }
         .invoice-contentcol-8{
           width:50% !important;
           float:left;
@@ -324,6 +329,14 @@ export default function Invoicedetail() {
         .m-right{
           margin-right:100px;
         }
+        
+        /* Adjustments for better PDF rendering */
+        body {
+          font-size: 14px;
+        }
+        .invoice-content {
+          page-break-inside: avoid;
+        }
 
 
         </style>
@@ -356,7 +369,7 @@ const handleEditContent = (invoiceData) => {
 
 // const handleRemove = async (invoiceid) => {
 //     try {
-//       const response = await fetch(`https://invoice-n96k.onrender.com/api/removeData/${invoiceid}`, {
+//       const response = await fetch(`http://localhost:3001/api/removeData/${invoiceid}`, {
 //         method: 'GET',
 //         // Add any required headers or authentication tokens
 //       });
@@ -378,7 +391,7 @@ const handleEditContent = (invoiceData) => {
 
 const handleRemove = async (invoiceid) => {
     try {
-      const response = await fetch(`https://invoice-n96k.onrender.com/api/deldata/${invoiceid}`, {
+      const response = await fetch(`http://localhost:3001/api/deldata/${invoiceid}`, {
         method: 'GET'
       });
   
@@ -394,29 +407,6 @@ const handleRemove = async (invoiceid) => {
       console.error('Error deleting Invoice:', error);
     }
   };
-  
-// const handleRemove = async (invoiceid) => {
-//     try {
-//       // Delete invoice and associated transactions based on the invoice ID
-//       const response = await fetch(`https://invoice-n96k.onrender.com/api/removeInvoiceAndTransactions/${invoiceid}`, {
-//         method: 'GET',
-//         // Add any required headers or authentication tokens
-//       });
-  
-//       if (response.ok) {
-//         console.log('Invoice and transactions deleted successfully!');
-//         //         navigate('/userpanel/Invoice');
-//         // Redirect or perform any other necessary actions after deletion
-//         // ...
-//       } else {
-//         console.error('Failed to delete invoice and transactions.');
-//         const errorData = await response.json(); // If available, log the error response data
-//         console.error('Error response:', errorData);
-//       }
-//     } catch (error) {
-//       console.error('Error deleting invoice and transactions:', error);
-//     }
-//   };
   
 
 const getStatus = () => {
@@ -439,6 +429,96 @@ const getStatus = () => {
     return "Payment Pending";
   }
 };
+
+  // Function to handle changes in email input
+  const handleEmailChange = (newEmails) => {
+    setEmails(newEmails);
+  };
+
+   // Handler function to update the list of "BCC" emails
+  const handleBccEmailsChange = (newEmails) => {
+    setBccEmails(newEmails);
+  };
+  
+
+  const handleContentChange = (event) => {
+    setContent(event.target.value);
+  };
+
+const handleFormSubmit = async (event) => {
+    event.preventDefault();
+    const contentAsPdf = await generatePdfFromHtml();
+    try {
+      const response = await fetch('http://localhost:3001/api/send-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: emails,
+          bcc: bccEmails,
+          content: content,
+          companyName: signupdata.companyname,
+          pdfAttachment: contentAsPdf,
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Email sent successfully!');
+        // Clear form fields or show success message
+      } else {
+        console.error('Failed to send email.');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+  };
+
+  const generatePdfFromHtml = async () => {
+  return new Promise((resolve, reject) => {
+    const content = document.getElementById('invoiceContent').innerHTML;
+const opt = {
+  margin:       1,
+  filename:     'myfile.pdf',
+  html2canvas:  { scale: 3 }, // Increase scale for better resolution
+  jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' },
+  userUnit: 450 / 210 
+};
+
+html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
+  // pdf.setSelectableText(true);
+  const pdfAsDataUri = pdf.output('datauristring', 'pdf');
+  resolve(pdfAsDataUri);
+}).catch(function(error) {
+  reject(error);
+});
+  });
+};
+  // const handleFormSubmit = (event) => {
+  //   event.preventDefault();
+  //   try {
+  //     const response = await fetch('http://localhost:3001/send-email', {
+  //       method: 'POST',
+  //       headers: {
+  //         'Content-Type': 'application/json',
+  //       },
+  //       body: JSON.stringify({
+  //         to: toEmails,
+  //         bcc: bccEmails,
+  //         content: content,
+  //       }),
+  //     });
+
+  //     if (response.ok) {
+  //       console.log('Email sent successfully!');
+  //       // Clear form fields or show success message
+  //     } else {
+  //       console.error('Failed to send email.');
+  //     }
+  //   } catch (error) {
+  //     console.error('Error sending email:', error);
+  //   }
+  // };
 
   return (
     <div className='bg'>
@@ -502,7 +582,7 @@ const getStatus = () => {
                             
                             </div>
                             <div className="col-lg-1">
-                                <button className='btn rounded-pill btn-danger text-white fw-bold' type="submit">Save</button>
+                                <a className='btn rounded-pill btn-danger text-white fw-bold' data-bs-toggle="modal" data-bs-target="#sendEmailModal">Send</a>
                             </div>
                         </div>
                         
@@ -786,6 +866,97 @@ const getStatus = () => {
   </div>
 
 </div>
+
+{/* email model  */}
+<div class="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+                <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form onSubmit={handleFormSubmit}>
+                    <div class="row mb-3">
+                        <label for="to" class="col-sm-2 col-form-label">To</label>
+                        <div class="col-sm-10">
+                            {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                            <ReactMultiEmail
+                              emails={emails}
+                              onChange={handleEmailChange}
+                              getLabel={(
+                                email,
+                                index,
+                                removeEmail
+                              ) => (
+                                <div data-tag="true" key={index}>
+                                  {email}
+                                  <span
+                                    data-tag-handle="true"
+                                    onClick={() => removeEmail(index)}
+                                  >
+                                    ×
+                                  </span>
+                                </div>
+                              )}
+                              placeholder="Add more people..."
+                              style={{
+                                input: { width: '90%' },
+                                emailsContainer: { border: '1px solid #ccc' },
+                                emailInput: { backgroundColor: 'lightblue' },
+                                invalidEmailInput: { backgroundColor: '#f9cfd0' },
+                                container: { marginTop: '20px' },
+                              }}
+                      
+                                    />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
+                        <div class="col-sm-10">
+                        <ReactMultiEmail
+                          emails={bccEmails}
+                          onChange={handleBccEmailsChange}
+                          getLabel={(
+                            email,
+                            index,
+                            removeEmail
+                          ) => (
+                            <div data-tag="true" key={index}>
+                              {email}
+                              <span
+                                data-tag-handle="true"
+                                onClick={() => removeEmail(index)}
+                              >
+                                ×
+                              </span>
+                            </div>
+                          )}
+                          placeholder="Add BCC recipients..."
+                          style={{
+                            input: { width: '90%' },
+                            emailsContainer: { border: '1px solid #ccc' },
+                            emailInput: { backgroundColor: 'lightblue' },
+                            invalidEmailInput: { backgroundColor: '#f9cfd0' },
+                            container: { marginTop: '20px' },
+                          }}
+                        />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}>Thank you for your business.</textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
+
     </div>
   )
 }

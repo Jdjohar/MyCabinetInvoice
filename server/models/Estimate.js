@@ -2,7 +2,10 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const EstimateSchema = new Schema({
-    estimate_id: { type: Number, unique: true },
+    // estimate_id: { type: Number, unique: true },
+    estimate_id: { 
+        type: Number
+    },
     EstimateNumber: { type: String },
     customername: {
         type: String,

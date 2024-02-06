@@ -3,12 +3,16 @@ const app = express()
 const port = 3001
 const mongoDB = require("./db")
 const nodemailer = require('nodemailer');
+const bodyParser = require('body-parser');
 mongoDB();
 
+// Set maximum payload size limit
+app.use(bodyParser.json({ limit: '10mb' }));
+app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 app.use((req,res,next)=>{
-  res.setHeader("Access-Control-Allow-Origin","https://invoice-sandy.vercel.app");
-  // res.setHeader("Access-Control-Allow-Origin","http://localhost:3000");
+  // res.setHeader("Access-Control-Allow-Origin","https://invoice-sandy.vercel.app");
+  res.setHeader("Access-Control-Allow-Origin","http://localhost:3000");
   res.header(
     "Access-Control-Allow-Headers",
     "Origin, X-Requested-With, Content-Type, Accept"

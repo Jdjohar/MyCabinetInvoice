@@ -24,7 +24,7 @@ export default function Estimate() {
     const fetchData = async () => {
         try {
             const userid = localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/estimatedata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/estimatedata/${userid}`);
             const json = await response.json();
 
             if (Array.isArray(json)) {
@@ -54,7 +54,7 @@ export default function Estimate() {
     const handleConvertToInvoice = async (estimateid) => {
       console.log(estimateid);
       try {
-          const response = await fetch(`https://invoice-n96k.onrender.com/api/converttoinvoice/${estimateid}`, {
+          const response = await fetch(`http://localhost:3001/api/converttoinvoice/${estimateid}`, {
               method: 'POST',
           });
   

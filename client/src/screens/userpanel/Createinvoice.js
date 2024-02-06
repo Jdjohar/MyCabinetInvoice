@@ -19,6 +19,8 @@ export default function Createinvoice() {
     const [quantityMap, setQuantityMap] = useState({});
     const [discountMap, setDiscountMap] = useState({});
     const [itemExistsMessage, setItemExistsMessage] = useState('');
+    const [message, setmessage] = useState(false);
+    const [alertShow, setAlertShow] = useState("");
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
         name: '', email: ''});
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
@@ -48,7 +50,7 @@ export default function Createinvoice() {
     const fetchLastInvoiceNumber = async () => {
         try {
             const userid = localStorage.getItem('userid');
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/lastinvoicenumber/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/lastinvoicenumber/${userid}`);
             const json = await response.json();
     
             // let nextInvoiceNumber = 1;
@@ -69,7 +71,7 @@ export default function Createinvoice() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/customers/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -83,7 +85,7 @@ export default function Createinvoice() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/itemdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -122,16 +124,6 @@ export default function Createinvoice() {
         const data = editor.getData();
         setEditorData(data);
     };
-
-    // const onChangeQuantity = (event, itemId) => {
-    //     const newQuantity = event.target.value ? parseInt(event.target.value) : 1;
-    
-    //     // Update quantity for the corresponding item
-    //     setQuantityMap((prevMap) => ({
-    //       ...prevMap,
-    //       [itemId]: newQuantity,
-    //     }));
-    //   };
 
     const onChangeQuantity = (event, itemId) => {
         let newQuantity = event.target.value ? parseInt(event.target.value) : 1;
@@ -303,7 +295,7 @@ const handleSubmit = async (e) => {
   
   
       // Sending invoice data to the backend API
-      const response = await fetch('https://invoice-n96k.onrender.com/api/savecreateinvoice', {
+      const response = await fetch('http://localhost:3001/api/savecreateinvoice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -321,18 +313,70 @@ const handleSubmit = async (e) => {
           console.error('Failed to save the invoice.');
         }
       } else {
+        const responseData = await response.json();
+        setmessage(true);
+        setAlertShow(responseData.error)
         console.error('Failed to save the invoice.');
       }
     } catch (error) {
       console.error('Error creating invoice:', error);
     }
   };
+
+  // Alert Component
+const Alert = ({ message }) => {
+    return (
+      <div className="alert alert-danger" role="alert">
+        {message}
+      </div>
+    //   <div className="alert alert-warning alert-dismissible fade show" role="alert">
+    //   <strong>{alertShow}</strong>
+    //   <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+    // </div>
+    );
+  };
   
   
 const onchange = (event) => {
+    if(event.target.name == "InvoiceNumber")
+    {
+        const parts = (event.target.value).split("-");
+      setInvoiceData({ ...invoiceData, ["invoice_id"]: parts[1],[event.target.name]: event.target.value });
+    }else{
+    // invoice_id
     setInvoiceData({ ...invoiceData, [event.target.name]: event.target.value });
+    }
   };
 
+  const onChangePrice = (event, itemId) => {
+    const newPrice = parseFloat(event.target.value);
+    // Update the item's price in the items array
+    const updatedItems = items.map(item => {
+        if (item._id === itemId) {
+            return {
+                ...item,
+                price: newPrice
+            };
+        }
+        return item;
+    });
+    setitems(updatedItems);
+};
+
+const onChangeDescription = (event, itemId) => {
+    const newDescription = event.target.value;
+    // Update the item's description in the items array
+    const updatedItems = items.map(item => {
+        if (item._id === itemId) {
+            return {
+                ...item,
+                description: newDescription
+            };
+        }
+        return item;
+    });
+    setitems(updatedItems);
+};
 
   return (
     <div className='bg'>
@@ -386,9 +430,9 @@ const onchange = (event) => {
                                         <div className="customerdetail p-3">
                                             <ul>
                                                 <li className='fw-bold fs-4'>{selectedCustomerDetails.name}</li>
-                                                <li>
+                                                {/* <li>
                                                     <a href="" className='text-decoration-none'>Edit</a>
-                                                </li>
+                                                </li> */}
                                             </ul>
                                             <p>{selectedCustomerDetails.email}</p>
                                         </div>
@@ -401,8 +445,10 @@ const onchange = (event) => {
                                                 className="form-control zindex op pl-0"
                                                 placeholder="" 
                                                 onChange={onChangecustomer}
+                                                required
                                                 options={ customers.map((customer,index)=>
                                                     ({label: customer.name, value: customer._id})
+            
                                                 )}
                                             />
                                         </div>
@@ -410,6 +456,14 @@ const onchange = (event) => {
                                 </div>    
                                 <div className="col-lg-7 col-md-6">
                                     <div className="row">
+                                    {message == true ? (
+                                        <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                                        <strong>{alertShow}</strong>
+                                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        </div>
+                                    ) : (
+                                        ""
+                                    )}
                                         <div className="col-lg-6">
                                             <div className="mb-3">
                                                 <label htmlFor="invoicenumbr" className="form-label">
@@ -478,204 +532,6 @@ const onchange = (event) => {
                                 </div>    
                             </div>
 
-                            {/* <div className='box1 rounded adminborder p-4 m-2'>
-                                <div className="row pt-3">
-                                    <div className="col-4">
-                                        <p>ITEM</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>QUANTITY</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>PRICE</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>DISCOUNT</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>AMOUNT</p>
-                                    </div>
-                                </div>
-
-                                <div className="row">
-                                {searchitemResults.map((item) => {
-                                    const selectedItem = items.find((i) => i._id === item.value);
-                                    const itemPrice = selectedItem?.price || 0;
-                                    const itemId = item.value;
-                                    const quantity = quantityMap[itemId] || 1;
-                                    const discount = discountMap[itemId] || 0;
-
-                                    // Calculate total amount based on price and quantity
-                                    // const totalAmount = itemPrice * quantity;
-                                    // const formattedTotalAmount = Number(totalAmount).toLocaleString('en-IN', {
-                                    //     style: 'currency',
-                                    //     currency: 'INR',
-                                    // });
-
-                                    const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
-                                    const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
-                                    style: 'currency',
-                                    currency: 'INR',
-                                    });
-
-                                    return (
-                                        <div className='row' key={item.value}>
-                                            <div className="col-4 ">
-                                                <div className="mb-3 d-flex align-items-baseline justify-content-between">
-                                                    <p>{item.label}</p>
-                                                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
-                                                        <i className="fas fa-trash"></i>
-                                                    </button>
-                                                </div>
-                                            </div>
-                                            <div className="col-2">
-                                                <div className="mb-3">
-                                                <input
-                                                    type="number"
-                                                    name={`quantity-${itemId}`}
-                                                    className="form-control"
-                                                    value={quantity}
-                                                    onChange={(event) => onChangeQuantity(event, itemId)}
-                                                    id={`quantity-${itemId}`}
-                                                    required
-                                                />
-                                                </div>
-                                            </div>
-                                            <div className="col-2">
-                                                <div className="mb-3">
-                                                    <input
-                                                        type="number"
-                                                        name="price"
-                                                        className="form-control"
-                                                        value={itemPrice}
-                                            
-                                                        // onChange={onChangeitem}
-                                                        // placeholder="Due Date"
-                                                        id="price"
-                                                        required
-                                                    />
-                                                </div>
-                                            </div>
-                                            <div className="col-2 text-center">
-                                                <p>₹{discount.toFixed(2)}</p>
-                                            </div>
-                                            <div className="col-2 text-center">
-                                                <p>{formattedTotalAmount}</p>
-                                            </div>
-                                            <div className="col-5">
-                                                <div class="mb-3">
-                                                    <label htmlFor="description" className="form-label">Description</label>
-                                                    <textarea
-                                                        class="form-control"
-                                                        name='description'
-                                                        id={`item-description-${itemId}`}
-                                                        placeholder='Item Description'
-                                                        rows="3"
-                                                        value={selectedItem?.description || ''}
-                                                        // readOnly
-                                                    >
-                                                    </textarea>
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="col-3">
-                                                <div class="mb-3">
-                                                    <label htmlFor="Discount" className="form-label">Discount</label>
-                                                    <input
-                                                        type='number'
-                                                        name={`discount-${itemId}`}
-                                                        className='form-control'
-                                                        value={discount}
-                                                        onChange={(event) => onDiscountChange(event, itemId)}
-                                                        placeholder='Discount'
-                                                        id={`discount-${itemId}`}
-                                                        min="0"
-                                                    />
-                                                </div>
-                                            </div>
-                                        </div>
-        );
-      })}
-                                </div>
-                                <hr />
-
-                                <div className="row pt-3">
-                                    <div className="col-7">
-                                        <div className="search-container forms">
-                                            <p className='fs-20 mb-0'>Select Item</p>
-                                            <VirtualizedSelect
-                                                id="searchitems" 
-                                                name="itemname"
-                                                className="form-control zindex op pl-0"
-                                                placeholder=""
-                                                onChange={onChangeitem}
-                                                options={ items.map((item,index)=>
-                                                    ({label: item.itemname, value: item._id})
-                                                        
-                                                )}
-
-                                                >
-                                            </VirtualizedSelect> 
-                                        </div>
-                                    </div>
-                                    <div className="col-5">
-                                        <div className="row">
-                                            <div className="col-6">
-                                                <p>Subtotal</p>
-                                                <p>Tax</p>
-                                                <p>Tax {taxPercentage}%</p>
-                                                <p>Total</p>
-                                            </div>
-                                            <div className="col-6">
-                                                <p>{calculateSubtotal().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
-                                                })}</p>
-                                                <div className="col-6">
-                                                <div class="mb-3">
-                                                    <input
-                                                        type="number"
-                                                        name="tax"
-                                                        className="form-control"
-                                                        value={taxPercentage}
-                                                        onChange={handleTaxChange}
-                                                        placeholder="Enter Tax Percentage"
-                                                        id="taxInput"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                            </div>
-                                                <p>{calculateTaxAmount().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
-                                                })}</p>
-                                                <p>{calculateTotal().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
-                                                    })}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr />
-                                <div className="row pt-3">
-                                    <div className="col-7"></div>
-                                    <div className="col-5">
-                                        <div className="row">
-                                            <div className="col-6">
-                                                <p>Amount due</p>
-                                            </div>
-                                            <div className="col-6">
-                                                <p>{calculateTotal().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
-                                                    })}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div> */}
-
                             <div className='box1 rounded adminborder p-4 m-2'>
                                 <div className="table-responsive">
                                     <table className="table">
@@ -714,13 +570,22 @@ const onchange = (event) => {
                                 <div className="row">
                                     <div className="col">
                                         <label htmlFor={`item-description-${itemId}`} className="form-label">Description</label>
-                                        <textarea
+                                        {/* <textarea
                                             className="form-control mb-3"
                                             name='description'
                                             id={`item-description-${itemId}`}
                                             placeholder='Item Description'
                                             rows="3"
                                             value={selectedItem?.description || ''}
+                                        ></textarea> */}
+                                        <textarea
+                                            className="form-control"
+                                            name={`description-${itemId}`}
+                                            value={selectedItem?.description || ''}
+                                            onChange={(event) => onChangeDescription(event, itemId)}
+                                            id={`description-${itemId}`}
+                                            rows="3"
+                                            placeholder="Item Description"
                                         ></textarea>
                                     </div>
                                     <div className="col">
@@ -749,7 +614,7 @@ const onchange = (event) => {
                                     required
                                 />
                             </td>
-                            <td>
+                            {/* <td>
                                 <input
                                     type="number"
                                     name="price"
@@ -757,7 +622,17 @@ const onchange = (event) => {
                                     value={itemPrice}
                                     id="price"
                                     required
-                                    disabled
+                                />
+                            </td> */}
+                            <td>
+                                <input
+                                    type="number"
+                                    name={`price-${itemId}`}
+                                    className="form-control"
+                                    value={itemPrice}
+                                    onChange={(event) => onChangePrice(event, itemId)}
+                                    id={`price-${itemId}`}
+                                    required
                                 />
                             </td>
                             <td className="text-center">

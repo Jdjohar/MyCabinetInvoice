@@ -48,7 +48,7 @@ export default function Editestimate() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/geteditestimateData/${estimateid}`);
+            const response = await fetch(`http://localhost:3001/api/geteditestimateData/${estimateid}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -65,7 +65,7 @@ export default function Editestimate() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/customers/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -100,7 +100,7 @@ export default function Editestimate() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/itemdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -124,7 +124,7 @@ export default function Editestimate() {
                 tax: calculateTaxAmount(), 
             };
     
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/updateestimateData/${estimateid}`, {
+            const response = await fetch(`http://localhost:3001/api/updateestimateData/${estimateid}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -223,7 +223,7 @@ export default function Editestimate() {
                 return;
             }
     
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/delestimateitem/${estimateData._id}/${itemId}`, {
+            const response = await fetch(`http://localhost:3001/api/delestimateitem/${estimateData._id}/${itemId}`, {
                 method: 'GET'
             });
     
@@ -373,6 +373,34 @@ export default function Editestimate() {
         setestimateData({ ...estimateData, [name]: value });
     };
 
+    const handlePriceChange = (event, itemId) => {
+        const { value } = event.target;
+        const updatedItems = estimateData.items.map((item) => {
+            if (item.itemId === itemId) {
+                const newPrice = parseFloat(value);
+                const quantity = item.itemquantity || 1;
+                const discount = item.discount || 0;
+                const discountedAmount = calculateDiscountedAmount(newPrice, quantity, discount);
+                return { ...item, price: newPrice, amount: discountedAmount };
+            }
+            return item;
+        });
+        setestimateData({ ...estimateData, items: updatedItems });
+    };
+    
+    const handleDescriptionChange = (event, itemId) => {
+        const { value } = event.target;
+        const updatedItems = estimateData.items.map((item) => {
+            if (item.itemId === itemId) {
+                return { ...item, description: value };
+            }
+            return item;
+        });
+        setestimateData({ ...estimateData, items: updatedItems });
+    };
+    
+    
+
 
   return (
     <div className='bg'>
@@ -407,12 +435,12 @@ export default function Editestimate() {
                         {/* <form> */}
                         <div className='row py-4 px-2 breadcrumbclr'>
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
-                                <p className='fs-35 fw-bold'>Invoice</p>
+                                <p className='fs-35 fw-bold'>Estimate</p>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb mb-0">
                                         <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Invoice</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Edit Invoice</li>
+                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Estimate</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Edit Estimate</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -435,7 +463,7 @@ export default function Editestimate() {
                                         <div className="col-6">
                                             <div className="mb-3">
                                                 <label htmlFor="invoicenumbr" className="form-label">
-                                                    Invoice Number
+                                                Estimate Number
                                                 </label>
                                                 <input
                                                 type="text"
@@ -446,6 +474,7 @@ export default function Editestimate() {
                                                 // placeholder="Invoice Number"
                                                 id="invoicenumbr"
                                                 required
+                                                disabled
                                                 />
                                             </div>
                                         </div>
@@ -532,7 +561,7 @@ export default function Editestimate() {
                                     </div>
                                     <div className="col-2">
                                         <div className="mb-3">
-                                            <input
+                                            {/* <input
                                                 type="number"
                                                 name="price"
                                                 className="form-control"
@@ -540,6 +569,15 @@ export default function Editestimate() {
                                                 id="price"
                                                 required
                                                 readOnly
+                                            /> */}
+                                            <input
+                                                type="number"
+                                                name="price"
+                                                className="form-control"
+                                                value={item.price}
+                                                onChange={(event) => handlePriceChange(event, item.itemId)} // Add onChange handler
+                                                id={`price-${item.itemId}`}
+                                                required
                                             />
                                         </div>
                                     </div>
@@ -549,7 +587,7 @@ export default function Editestimate() {
                                     <div className="col-2">
                                         <p>{item.amount}</p>
                                     </div>
-                                    <div className="col-5">
+                                    {/* <div className="col-5">
                                                 <div class="mb-3">
                                                     <label htmlFor="description" className="form-label">Description</label>
                                                     <textarea
@@ -563,7 +601,21 @@ export default function Editestimate() {
                                                     >
                                                     </textarea>
                                                 </div>
-                                            </div>
+                                    </div> */}
+                                    <div className="col-5">
+                                        <div className="mb-3">
+                                            <label htmlFor={`description-${item.itemId}`} className="form-label">Description</label>
+                                            <textarea
+                                                className="form-control"
+                                                name={`description-${item.itemId}`}
+                                                id={`description-${item.itemId}`}
+                                                placeholder="Item Description"
+                                                value={item.description}
+                                                onChange={(event) => handleDescriptionChange(event, item.itemId)} // Add onChange handler
+                                                rows="3"
+                                            />
+                                        </div>
+                                    </div>
                                             
                                             <div className="col-3">
                                                 <div class="mb-3">

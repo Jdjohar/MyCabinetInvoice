@@ -48,7 +48,7 @@ export default function Editinvoice() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/geteditinvoicedata/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/geteditinvoicedata/${invoiceid}`);
             const json = await response.json();
             
             if (json.Success) {
@@ -65,7 +65,7 @@ export default function Editinvoice() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/customers/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -100,7 +100,7 @@ export default function Editinvoice() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/itemdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -124,7 +124,7 @@ export default function Editinvoice() {
                 tax: calculateTaxAmount(), 
             };
     
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+            const response = await fetch(`http://localhost:3001/api/updateinvoicedata/${invoiceid}`, {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json'
@@ -230,7 +230,7 @@ export default function Editinvoice() {
                 return;
             }
     
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/delinvoiceitem/${invoiceData._id}/${itemId}`, {
+            const response = await fetch(`http://localhost:3001/api/delinvoiceitem/${invoiceData._id}/${itemId}`, {
                 method: 'GET'
             });
     
@@ -381,6 +381,37 @@ export default function Editinvoice() {
         setInvoiceData({ ...invoiceData, [name]: value });
     };
 
+    const handlePriceChange = (event, itemId) => {
+        const { value } = event.target;
+        const newPrice = parseFloat(value) || 0;
+        const updatedItems = invoiceData.items.map((item) => {
+          if (item.itemId === itemId) {
+            const newAmount = newPrice * item.itemquantity;
+            return {
+              ...item,
+              price: newPrice,
+              amount: newAmount,
+            };
+          }
+          return item;
+        });
+        setInvoiceData((prevData) => ({
+          ...prevData,
+          items: updatedItems,
+        }));
+      };
+      
+      const handleDescriptionChange = (event, itemId) => {
+        const { value } = event.target;
+        setInvoiceData((prevData) => ({
+          ...prevData,
+          items: prevData.items.map((item) =>
+            item.itemId === itemId ? { ...item, description: value } : item
+          ),
+        }));
+      };
+      
+
 
   return (
     <div className='bg'>
@@ -454,6 +485,7 @@ export default function Editinvoice() {
                                                 // placeholder="Invoice Number"
                                                 id="invoicenumbr"
                                                 required
+                                                disabled
                                                 />
                                             </div>
                                         </div>
@@ -555,16 +587,23 @@ export default function Editinvoice() {
                                     </div>
                                     <div className="col-2">
                                         <div className="mb-3">
-                                            <input
+                                            {/* <input
                                                 type="number"
                                                 name="price"
                                                 className="form-control"
                                                 value={item.price}
                                                 id="price"
                                                 required
-                                                readOnly
-                                                disabled
-                                            />
+                                            /> */}
+                                            <input
+                                                        type="number"
+                                                        name="price"
+                                                        className="form-control"
+                                                        value={item.price}
+                                                        id={`price-${item.itemId}`}
+                                                        required
+                                                        onChange={(event) => handlePriceChange(event, item.itemId)}
+                                                    />
                                         </div>
                                     </div>
                                     <div className="col-2">
@@ -576,16 +615,24 @@ export default function Editinvoice() {
                                     <div className="col-5">
                                                 <div class="mb-3">
                                                     <label htmlFor="description" className="form-label">Description</label>
-                                                    <textarea
+                                                    {/* <textarea
                                                         class="form-control"
                                                         name='description'
                                                         id='description'
                                                         placeholder='Item Description'
                                                         value={item.description}
                                                         rows="3"
-                                                        readOnly
                                                     >
-                                                    </textarea>
+                                                    </textarea> */}
+                                                    <textarea
+                                                        className="form-control"
+                                                        name="description"
+                                                        id={`description-${item.itemId}`}
+                                                        placeholder="Item Description"
+                                                        rows="3"
+                                                        value={item.description}
+                                                        onChange={(event) => handleDescriptionChange(event, item.itemId)}
+                                                    />
                                                 </div>
                                             </div>
                                             
@@ -644,15 +691,22 @@ export default function Editinvoice() {
                                             </div>
                                             <div className="col-2">
                                                 <div className="mb-3">
-                                                    <input
+                                                    {/* <input
                                                         type="number"
                                                         name="price"
                                                         className="form-control"
                                                         value={itemPrice}
                                                         id="price"
                                                         required
-                                                        readOnly
-                                                        disabled
+                                                    /> */}
+                                                    <input
+                                                        type="number"
+                                                        name="price"
+                                                        className="form-control"
+                                                        value={item.price}
+                                                        id={`price-${item.itemId}`}
+                                                        required
+                                                        onChange={(event) => handlePriceChange(event, item.itemId)}
                                                     />
                                                 </div>
                                             </div>

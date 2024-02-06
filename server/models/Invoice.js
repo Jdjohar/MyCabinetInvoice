@@ -2,8 +2,11 @@ const mongoose = require('mongoose');
 const {Schema} = mongoose;
 
 const InvoiceSchema = new Schema({
-    invoice_id: { type: Number, unique: true },
-    InvoiceNumber: { type: String },
+    // unique_id: { type: Number, unique: true },
+    invoice_id: { type: Number },
+    InvoiceNumber: { 
+        type: String 
+    },
     customername: {
         type: String,
     },
