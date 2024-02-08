@@ -3,6 +3,7 @@ import Usernavbar from './Usernavbar';
 import { useNavigate,useLocation } from 'react-router-dom';
 import Usernav from './Usernav';
 import { ColorRing } from  'react-loader-spinner'
+import CurrencySign from '../../components/CurrencySign ';
 // import Nav from './Nav';
 
 export default function Invoice() {
@@ -182,7 +183,7 @@ export default function Invoice() {
                             <i className='fa-solid fa-eye'></i>
                           </a>
                         </td>
-                        <td>&#8377; {invoice.total}</td>
+                        <td><CurrencySign />{invoice.total}</td>
                       </tr>
                     ))}
                   </tbody>

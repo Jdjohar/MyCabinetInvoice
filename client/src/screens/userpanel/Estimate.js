@@ -3,6 +3,7 @@ import Usernavbar from './Usernavbar';
 import { useNavigate,useLocation } from 'react-router-dom';
 import Usernav from './Usernav';
 import { ColorRing } from  'react-loader-spinner'
+import CurrencySign from '../../components/CurrencySign ';
 
 export default function Estimate() {
     const [ loading, setloading ] = useState(true);
@@ -160,7 +161,7 @@ export default function Estimate() {
                         <td className='text-center'>
                           <a role='button' className='btn text-black text-center converbtn' onClick={() => handleConvertToInvoice(estimate._id)} >Convert</a>
                         </td>
-                        <td>&#8377; {estimate.total}</td>
+                        <td><CurrencySign />{estimate.total}</td>
                       </tr>
                         )
                       ))}

@@ -20,6 +20,7 @@ export default function Dashboard() {
     const [startTime, setStartTime] = useState(null);
     const [totalTime, setTotalTime] = useState(0);
     const [userEntries, setUserEntries] = useState([]);
+    const userid = localStorage.getItem('userid');
     const currentDate = new Date(); // Get the current date
   
     const currentMonth = format(currentDate, 'MMMM');
@@ -200,7 +201,9 @@ const handleNextPage = () => {
   }
 };
 
-
+const GoToHistory = () => {
+  navigate('/Teammemberpanel/History', { state: { userid } });
+};
 
   return (
     <div>
@@ -259,9 +262,14 @@ const handleNextPage = () => {
             </div>
           </div>
 
-          <div className="row my-3">
-            <div className="text">
-              <p>This Month</p>
+          <div className="row my-4">
+            <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
+              <p className="h5 fw-bold">Current Month</p>
+            </div>
+            <div className="col-lg-3 col-md-4 col-sm-4 col-5 text-right d-flex justify-content-end">
+              <button className="btn rounded-pill btnclr text-white fw-bold mb-2" onClick={GoToHistory}>
+                History
+              </button>
             </div>
 
             <div className="row px-0 table-responsive box1 rounded adminborder text-center">

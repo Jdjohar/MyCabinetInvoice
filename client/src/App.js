@@ -24,6 +24,7 @@ import Createestimate from './screens/userpanel/Createestimate';
 import Estimatedetail from './screens/userpanel/Estimatedetail';
 import Editestimate from './screens/userpanel/Editestimate';
 import Estimate from './screens/userpanel/Estimate';
+import Teamhistory from './screens/Teammemberpanel/Teamhistory';
 // import { InvoiceProvider } from './components/InvoiceContext';
 import {
   BrowserRouter as Router,
@@ -63,6 +64,7 @@ function App() {
             <Route exact path='/userpanel/Estimate' element={<Estimate/>} />
             <Route exact path='/Timeschemahistory' element={<Timeschemahistory/>} />
             <Route exact path='/Teammemberpanel/Teammenberdashboard' element={<Teammenberdashboard/>} />
+            <Route exact path='/Teammemberpanel/History' element={<Teamhistory/>} />
           </Routes>
         </div>
       </Router>

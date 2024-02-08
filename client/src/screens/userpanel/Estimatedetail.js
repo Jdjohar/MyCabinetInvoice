@@ -3,6 +3,10 @@ import {useNavigate,useLocation} from 'react-router-dom'
 import { ColorRing } from  'react-loader-spinner'
 import Usernav from './Usernav';
 import Usernavbar from './Usernavbar';
+import { ReactMultiEmail } from 'react-multi-email';
+import 'react-multi-email/dist/style.css'
+import html2pdf from 'html2pdf.js';
+import CurrencySign from '../../components/CurrencySign ';
 
 export default function Estimatedetail() {
     const [ loading, setloading ] = useState(true);
@@ -26,6 +30,11 @@ export default function Estimatedetail() {
       });
       const [transactions, setTransactions] = useState([]);
       const [showAlert, setShowAlert] = useState(false);
+      const [emails, setEmails] = useState([]);
+      const [bccEmails, setBccEmails] = useState([]);
+      const [content, setContent] = useState('Thank you for your business.');
+      const [showModal, setShowModal] = useState(false);
+      const [showEmailAlert, setShowEmailAlert] = useState(false);
 
 
     useEffect(() => {
@@ -39,6 +48,13 @@ export default function Estimatedetail() {
             fetchtransactiondata();
         }
     }, [estimateid])
+
+    useEffect(() => {
+      console.log('Customer Email:', estimateData.customeremail);
+      if (estimateData.customeremail) {
+        setEmails([estimateData.customeremail]);
+      }
+    }, [estimateData.customeremail]);
     let navigate = useNavigate();
 
     const fetchestimateData = async () => {
@@ -263,6 +279,81 @@ const handleRemove = async (estimateid) => {
     }
   };
 
+    // Function to handle changes in email input
+    const handleEmailChange = (newEmails) => {
+      setEmails(newEmails);
+    };
+  
+     // Handler function to update the list of "BCC" emails
+    const handleBccEmailsChange = (newEmails) => {
+      setBccEmails(newEmails);
+    };
+
+    const handleContentChange = (event) => {
+      setContent(event.target.value);
+    };
+  
+  const handleFormSubmit = async (event) => {
+      event.preventDefault();
+      const contentAsPdf = await generatePdfFromHtml();
+      try {
+        const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
+        const response = await fetch('https://invoice-n96k.onrender.com/api/send-estimate-email', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            to: emails,
+            bcc: bccEmails,
+            content: finalContent,
+            companyName: signupdata.companyname,
+            customdate: formatCustomDate(estimateData.date),
+            // duedate: formatCustomDate(estimateData.duedate),
+            EstimateNumber: estimateData.EstimateNumber,
+            currencyType: signupdata.CurrencyType,
+            amountdue: estimateData.amountdue,
+            amountdue1: estimateData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0),
+            pdfAttachment: contentAsPdf,
+          }),
+        });
+  
+        if (response.ok) {
+          console.log('Email sent successfully!');
+          // setShowModal(false);
+          setShowEmailAlert(true);
+        } else {
+          console.error('Failed to send email.');
+        }
+      } catch (error) {
+        console.error('Error sending email:', error);
+      }
+  };
+
+  const handleAlertClose = () => {
+    setShowEmailAlert(false); // Close the alert
+  };
+  
+    const generatePdfFromHtml = async () => {
+    return new Promise((resolve, reject) => {
+      const content = document.getElementById('invoiceContent').innerHTML;
+  const opt = {
+    filename:     'myfile.pdf',
+    html2canvas:  { scale: 3 }, // Increase scale for better resolution
+    jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' },
+    userUnit: 450 / 210 
+  };
+  
+  html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
+    // pdf.setSelectableText(true);
+    const pdfAsDataUri = pdf.output('datauristring', 'pdf');
+    resolve(pdfAsDataUri);
+  }).catch(function(error) {
+    reject(error);
+  });
+    });
+  };
+
   return (
     <div className='bg'>
     {
@@ -325,7 +416,7 @@ const handleRemove = async (estimateid) => {
                             
                             </div>
                             <div className="col-lg-1">
-                                <button className='btn rounded-pill btn-danger text-white fw-bold' type="submit">Save</button>
+                              <a className='btn rounded-pill btn-danger text-white fw-bold' data-bs-toggle="modal" data-bs-target="#sendEmailModal">Send</a>
                             </div>
                         </div>
                         
@@ -341,7 +432,10 @@ const handleRemove = async (estimateid) => {
                                         <div>
                                         You cannot edit a document that has already been partially paid. Please create a new document.
                                         </div>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" onClick={()=>{
+                                            // setmessage(false);
+                                            setShowAlert("");
+                                          }}></button>
 
                                       </div>
                                 </div>
@@ -419,10 +513,10 @@ const handleRemove = async (estimateid) => {
                                                   <p>{item.itemquantity}</p>
                                               </div>
                                               <div className='col-lg-2 col-md-2 col-sm-2 d-sm-block d-md-block d-lg-block d-none invoice-contentcol-2'>
-                                                  <p>&#8377; {item.price}</p>
+                                                  <p><CurrencySign />{item.price}</p>
                                               </div>
                                               <div className='col-lg-2 col-md-2 col-sm-2 col-5 invoice-contentcol-2'>
-                                                  <p> &#8377; {item.amount}</p>
+                                                  <p><CurrencySign />{item.amount}</p>
                                               </div>
                                               <div className="col-lg-6 col-md-6 col-sm-2 col-4 invoice-contentcol-12">
                                                 <p className='my-0 decwidth'>{item.description}</p>
@@ -439,7 +533,7 @@ const handleRemove = async (estimateid) => {
                                                 <p className='mb-2'>Subtotal</p>
                                             </div>
                                             <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
-                                                <p className='mb-2'>&#8377; {estimateData.subtotal}</p>
+                                                <p className='mb-2'><CurrencySign />{estimateData.subtotal}</p>
                                             </div>
                                           </div><hr />
                                             <div className='row'>
@@ -452,7 +546,7 @@ const handleRemove = async (estimateid) => {
                                                   <div className="mt-2 detailbg p-2 padding">
                                                       <p className='text-left'>Grand Total</p>
                                                       <p className='fs-5 text-end text-right'>
-                                                          &#8377; {estimateData.total}
+                                                          <CurrencySign />{estimateData.total}
                                                       </p>
                                                   </div>
                                               </div>
@@ -461,13 +555,23 @@ const handleRemove = async (estimateid) => {
                             </div>
 
                             <div className="col-12 col-sm-12 col-md-12 col-lg-4">
+                                <div className='mb-2'>
+                                  {showEmailAlert && (
+                                      <div className="alert alert-success row" role="alert">
+                                        <div className="col-11">
+                                          <p className='mb-0'>Email sent successfully!</p>
+                                        </div>
+                                        <button type="button" className="btn-close" aria-label="Close" onClick={handleAlertClose}></button>
+                                      </div>
+                                    )}
+                                </div>
                                 <div className='box1 rounded adminborder px-4 py-4'>
                                     <div className="row">
                                             <div className="col-6">
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6 text-end">
-                                                <p>&#8377; {estimateData.total}</p>
+                                                <p><CurrencySign />{estimateData.total}</p>
                                                
                                             </div>
 
@@ -484,6 +588,96 @@ const handleRemove = async (estimateid) => {
             </div>
         </div>
 }
+
+{/* email model  */}
+<div class="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+                <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
+                <form onSubmit={handleFormSubmit}>
+                    <div class="row mb-3">
+                        <label for="to" class="col-sm-2 col-form-label">To</label>
+                        <div class="col-sm-10">
+                            {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                            <ReactMultiEmail
+                              emails={emails}
+                              onChange={handleEmailChange}
+                              getLabel={(
+                                email,
+                                index,
+                                removeEmail
+                              ) => (
+                                <div data-tag="true" key={index}>
+                                  {email}
+                                  <span
+                                    data-tag-handle="true"
+                                    onClick={() => removeEmail(index)}
+                                  >
+                                    ×
+                                  </span>
+                                </div>
+                              )}
+                              placeholder="Add more people..."
+                              style={{
+                                input: { width: '90%' },
+                                emailsContainer: { border: '1px solid #ccc' },
+                                emailInput: { backgroundColor: 'lightblue' },
+                                invalidEmailInput: { backgroundColor: '#f9cfd0' },
+                                container: { marginTop: '20px' },
+                              }}
+                      
+                                    />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
+                        <div class="col-sm-10">
+                        <ReactMultiEmail
+                          emails={bccEmails}
+                          onChange={handleBccEmailsChange}
+                          getLabel={(
+                            email,
+                            index,
+                            removeEmail
+                          ) => (
+                            <div data-tag="true" key={index}>
+                              {email}
+                              <span
+                                data-tag-handle="true"
+                                onClick={() => removeEmail(index)}
+                              >
+                                ×
+                              </span>
+                            </div>
+                          )}
+                          placeholder="Add BCC recipients..."
+                          style={{
+                            input: { width: '90%' },
+                            emailsContainer: { border: '1px solid #ccc' },
+                            emailInput: { backgroundColor: 'lightblue' },
+                            invalidEmailInput: { backgroundColor: '#f9cfd0' },
+                            container: { marginTop: '20px' },
+                          }}
+                        />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                        <button type="submit" class="btn btn-primary">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div>
     </div>
   )
 }

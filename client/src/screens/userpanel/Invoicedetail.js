@@ -7,11 +7,13 @@ import Usernavbar from './Usernavbar';
 import { ReactMultiEmail } from 'react-multi-email';
 import 'react-multi-email/dist/style.css'
 import html2pdf from 'html2pdf.js';
+import CurrencySign from '../../components/CurrencySign ';
 
 export default function Invoicedetail() {
     const [ loading, setloading ] = useState(true);
     const [signupdata, setsignupdata] = useState([]);
     const modalRef = useRef(null);
+    const modalRefemail = useRef(null);
     const [items, setitems] = useState([]);
     const location = useLocation();
     const [selectedinvoices, setselectedinvoices] = useState(null);
@@ -25,7 +27,6 @@ export default function Invoicedetail() {
     const [paiddateerror, setpaiddateerror] = useState("");
     const [methoderror, setmethoderror] = useState("");
     const [exceedpaymenterror, setexceedpaymenterror] = useState("");
-    const [showSendModal, setShowSendModal] = useState(false);
     
     const invoiceid = location.state?.invoiceid;
     const [transactionData, setTransactionData] = useState({
@@ -38,7 +39,9 @@ export default function Invoicedetail() {
       const [showAlert, setShowAlert] = useState(false);
       const [emails, setEmails] = useState([]);
       const [bccEmails, setBccEmails] = useState([]);
-      const [content, setContent] = useState('');
+      const [content, setContent] = useState('Thank you for your business.');
+      const [showModal, setShowModal] = useState(false);
+      const [showEmailAlert, setShowEmailAlert] = useState(false);
 
 
     useEffect(() => {
@@ -105,6 +108,7 @@ export default function Invoicedetail() {
             
             // if (Array.isArray(json)) {
                 setsignupdata(json);
+                console.log(signupdata);
             // }
         } catch (error) {
             console.error('Error fetching data:', error);
@@ -449,7 +453,8 @@ const handleFormSubmit = async (event) => {
     event.preventDefault();
     const contentAsPdf = await generatePdfFromHtml();
     try {
-      const response = await fetch('https://invoice-n96k.onrender.com/api/send-email', {
+      const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
+      const response = await fetch('https://invoice-n96k.onrender.com/api/send-invoice-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -457,28 +462,38 @@ const handleFormSubmit = async (event) => {
         body: JSON.stringify({
           to: emails,
           bcc: bccEmails,
-          content: content,
+          content: finalContent,
           companyName: signupdata.companyname,
+          customdate: formatCustomDate(invoiceData.date),
+          duedate: formatCustomDate(invoiceData.duedate),
+          InvoiceNumber: invoiceData.InvoiceNumber,
+          amountdue: invoiceData.amountdue,
+          currencyType: signupdata.CurrencyType,
+          amountdue1: invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0),
           pdfAttachment: contentAsPdf,
         }),
       });
 
       if (response.ok) {
         console.log('Email sent successfully!');
-        // Clear form fields or show success message
+        // setShowModal(false);
+        setShowEmailAlert(true);
       } else {
         console.error('Failed to send email.');
       }
     } catch (error) {
       console.error('Error sending email:', error);
     }
-  };
+};
+
+const handleAlertClose = () => {
+  setShowEmailAlert(false); // Close the alert
+};
 
   const generatePdfFromHtml = async () => {
   return new Promise((resolve, reject) => {
     const content = document.getElementById('invoiceContent').innerHTML;
 const opt = {
-  margin:       1,
   filename:     'myfile.pdf',
   html2canvas:  { scale: 3 }, // Increase scale for better resolution
   jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' },
@@ -598,7 +613,10 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                                         <div>
                                         You cannot edit a document that has already been partially paid. Please create a new document.
                                         </div>
-                                        <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                        <button type="button" class="btn-close" onClick={()=>{
+                                            // setmessage(false);
+                                            setShowAlert("");
+                                          }}></button>
 
                                       </div>
                                 </div>
@@ -679,10 +697,10 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                                                   <p>{item.itemquantity}</p>
                                               </div>
                                               <div className='col-lg-2 col-md-2 col-sm-2 d-sm-block d-md-block d-lg-block d-none invoice-contentcol-2'>
-                                                  <p>&#8377; {item.price}</p>
+                                                  <p><CurrencySign />{item.price}</p>
                                               </div>
                                               <div className='col-lg-2 col-md-2 col-sm-2 col-5 invoice-contentcol-2'>
-                                                  <p> &#8377; {item.amount}</p>
+                                                  <p> <CurrencySign />{item.amount}</p>
                                               </div>
                                               <div className="col-lg-6 col-md-6 col-sm-2 col-4 invoice-contentcol-12">
                                                 <p className='my-0 decwidth'>{item.description}</p>
@@ -700,8 +718,8 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                                                 <p className=''>Total</p>
                                             </div>
                                             <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
-                                                <p className='mb-2'>&#8377; {invoiceData.subtotal}</p>
-                                                <p className=''>&#8377; {invoiceData.total}</p>
+                                                <p className='mb-2'><CurrencySign />{invoiceData.subtotal}</p>
+                                                <p className=''><CurrencySign />{invoiceData.total}</p>
                                             </div>
                                           </div><hr />
                                             {transactions.map((transaction) => (
@@ -712,7 +730,7 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                                                     <p className='mb-2'>Paid on {formatCustomDate(transaction.paiddate)}</p>
                                                 </div>
                                                 <div className="col-lg-3 col-sm-3 col-md-3 col-4 invoice-contentcol-2">
-                                                    <p>&#8377; {transaction.paidamount}</p>
+                                                    <p><CurrencySign />{transaction.paidamount}</p>
                                                 </div>
                                             </div>
                                             ))}
@@ -728,7 +746,7 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                                                       <p className='fs-5 text-end text-right'>
                                                         {console.log(invoiceData.amountdue, "Due Amount")}
                                                         {console.log(transactions.reduce((total, payment) => total + payment.paidamount, 0), "transactions")}
-                                                          &#8377; {invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
+                                                        <CurrencySign />{invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
                                                       </p>
                                                   </div>
                                               </div>
@@ -738,6 +756,16 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                             </div>
 
                             <div className="col-12 col-sm-12 col-md-12 col-lg-4">
+                              <div className='mb-2'>
+                                  {showEmailAlert && (
+                                      <div className="alert alert-success row" role="alert">
+                                        <div className="col-11">
+                                          <p className='mb-0'>Email sent successfully!</p>
+                                        </div>
+                                        <button type="button" className="btn-close" aria-label="Close" onClick={handleAlertClose}></button>
+                                      </div>
+                                    )}
+                                </div>
                                 <div className='box1 rounded adminborder px-4 py-5'>
                                     <div className="row">
                                             <div className="col-6">
@@ -745,11 +773,11 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                                                 <p>Paid</p>
                                             </div>
                                             <div className="col-6 text-end">
-                                                <p>&#8377; {invoiceData.total}</p>
+                                                <p><CurrencySign/>{invoiceData.total}</p>
                                                 {console.log(transactions)}
                                                 
                                                 
-                                                <p>&#8377; {transactions.reduce((total, payment) => total + payment.paidamount, 0)}</p>
+                                                <p><CurrencySign/>{transactions.reduce((total, payment) => total + payment.paidamount, 0)}</p>
                                                
                                             </div>
 
@@ -763,6 +791,15 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
 
                                     </div>
                                 </div>
+                                {showEmailAlert && (
+                                  <div className="alert alert-success row" role="alert">
+                                    <div className="col-11">
+                                      <p className='mb-0'>Email sent successfully!</p>
+                                    </div>
+                                    {/* Email sent successfully! */}
+                                    <button type="button" className="btn-close" aria-label="Close" onClick={handleAlertClose}></button>
+                                  </div>
+                                )}
                             </div>
                             
                         </div>
@@ -853,7 +890,7 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                     <p className='mb-0'>{transaction.note}</p>
                 </div>
                 <div className="col-4">
-                    <p className='mb-0'>&#8377; {transaction.paidamount}</p>
+                    <p className='mb-0'><CurrencySign />{transaction.paidamount}</p>
                 </div>
             </div><hr />
             </>
@@ -945,7 +982,7 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                     </div>
                     <div class="mb-3">
                         <label for="content" class="form-label">Content</label>
-                        <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}>Thank you for your business.</textarea>
+                        <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>

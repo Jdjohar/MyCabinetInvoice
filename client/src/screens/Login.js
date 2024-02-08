@@ -82,6 +82,7 @@ const handleSubmit = async (e) => {
       localStorage.setItem("userEmail", credentials.email);
       localStorage.setItem("isTeamMember", json.isTeamMember);
       localStorage.setItem("startTime", json.startTime);
+      localStorage.setItem("currencyType", json.CurrencyType);
 
       if (json.isTeamMember) {
         navigate('/Teammemberpanel/Teammenberdashboard');

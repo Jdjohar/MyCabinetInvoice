@@ -24,9 +24,32 @@ const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 
+const getCurrencySign = (currencyType) => {
+    switch (currencyType) {
+      case 'AUD':
+        return '$';
+      case 'CAD':
+        return 'C$';
+      case 'INR':
+      default:
+        return '₹';
+    }
+  };
 
-router.post('/send-email', async (req, res) => {
-    const { to, bcc, content ,companyName, pdfAttachment } = req.body;
+router.post('/send-invoice-email', async (req, res) => {
+    const {
+            to, 
+            bcc, 
+            content ,
+            companyName, 
+            pdfAttachment,
+            customdate,
+            duedate,
+            InvoiceNumber,
+            amountdue,
+            currencyType,
+            amountdue1
+        } = req.body;
     
 const transporter = nodemailer.createTransport({
     service: 'gmail',
@@ -35,6 +58,8 @@ const transporter = nodemailer.createTransport({
         pass: "cwoxnbrrxvsjfbmr"
     },
   });
+
+  const currencySign = getCurrencySign(currencyType);
   
     const mailOptions = {
       from: 'jdwebservices1@gmail.com',
@@ -43,15 +68,137 @@ const transporter = nodemailer.createTransport({
       subject: `Invoice from ${companyName}`,
       attachments: [
         {
-          filename: 'invoice.pdf',
+          filename: `Invoice #${InvoiceNumber}.pdf`,
           content: pdfAttachment.split(';base64,')[1], // Extract base64 content
           encoding: 'base64',
         }
       ],
       html: `<html>
-        <body style="background-color:#c5c1c187; margin-top: 40px;">
-            <section style="font-family:sans-serif; width: 90%; margin: auto; text-align:"center">
-                <p>${content}</p>
+        <body style="background-color:#c5c1c187; margin-top: 40px; padding:20px 0px;">
+             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#fff; padding: 15px 30px; margin-top: 40px;">
+                <div style="padding: 10px 0px;  text-align: center; font-weight: 500; color: #999999">
+                    <p style="margin-bottom:0px">${customdate}</p>
+                    <p style="margin-top: 0px;">Invoice #${InvoiceNumber}</p>
+                </div>
+                <div>
+                    <h1 style="margin-bottom:0px; font-size: 35px; color:#222">Invoice from ${companyName}</h1>
+                    <h1 style="margin: 0px; font-size: 35px; color:#222">${currencySign}${amountdue1}</h1>
+                    <p style="margin-top: 0px; color:#222">Due: ${duedate}</p>
+                </div>
+                <div style="background-color:#f5f4f4; padding: 1px 20px; margin: 30px 0px 10px;">
+                    <p style="color:#222">${content}</p>
+                </div>
+                <div style="margin: 20px 0px 10px;">
+                    <p style="color:#222">This email contains a unique link just for you. Please do not share this email or link or others will have access to your document.</p>
+                </div>
+            </section>
+            <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
+                <div>
+                    <p style="font-size: 15px; color:#222">Make your invoice</p>
+                    <h1 style="font-size: 35px; margin-bottom: 0; margin-top: 0; color:#222">INVOICE</h1>
+                </div>
+                <div>
+                    <ul style="text-align: center;display: inline-flex;list-style:none;padding-left:0px">
+                        <li>
+                            <a href="">
+                                <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico" alt="facebook icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="">
+                                <img src="https://static.cdninstagram.com/rsrc.php/y4/r/QaBlI0OZiks.ico" alt="instagram icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </body>
+            </html>`,
+    };
+  
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully!');
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      res.status(500).json({ success: false, error: 'Failed to send email.' });
+    }
+});
+
+router.post('/send-estimate-email', async (req, res) => {
+    const {
+            to, 
+            bcc, 
+            content ,
+            companyName, 
+            pdfAttachment,
+            customdate,
+            EstimateNumber,
+            amountdue,
+            currencyType,
+            amountdue1
+        } = req.body;
+    
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: "jdwebservices1@gmail.com",
+        pass: "cwoxnbrrxvsjfbmr"
+    },
+  });
+
+  const currencySign = getCurrencySign(currencyType);
+  
+    const mailOptions = {
+      from: 'jdwebservices1@gmail.com',
+      to: to.join(', '),
+      bcc: bcc.join(', '),
+      subject: `Estimate from ${companyName}`,
+      attachments: [
+        {
+          filename: `Estimate #${EstimateNumber}.pdf`,
+          content: pdfAttachment.split(';base64,')[1], // Extract base64 content
+          encoding: 'base64',
+        }
+      ],
+      html: `<html>
+        <body style="background-color:#c5c1c187; margin-top: 40px; padding:20px 0px;">
+             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#fff; padding: 15px 30px; margin-top: 40px;">
+                <div style="padding: 10px 0px;  text-align: center; font-weight: 500; color: #999999">
+                    <p style="margin-bottom:0px">${customdate}</p>
+                    <p style="margin-top: 0px;">Estimate #${EstimateNumber}</p>
+                </div>
+                <div>
+                    <h1 style="margin-bottom:0px; font-size: 35px; color:#222">Estimate from ${companyName}</h1>
+                    <h1 style="margin: 0px; font-size: 35px; color:#222">${currencySign}${amountdue1}</h1>
+                </div>
+                <div style="background-color:#f5f4f4; padding: 1px 20px; margin: 30px 0px 10px;">
+                    <p style="color:#222">${content}</p>
+                </div>
+                <div style="margin: 20px 0px 10px;">
+                    <p style="color:#222">This email contains a unique link just for you. Please do not share this email or link or others will have access to your document.</p>
+                </div>
+            </section>
+            <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
+                <div>
+                    <p style="font-size: 15px; color:#222">Make your Estimate</p>
+                    <h1 style="font-size: 35px; margin-bottom: 0; margin-top: 0; color:#222">INVOICE</h1>
+                </div>
+                <div>
+                    <ul style="text-align: center;display: inline-flex;list-style:none;padding-left:0px">
+                        <li>
+                            <a href="">
+                                <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico" alt="facebook icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="">
+                                <img src="https://static.cdninstagram.com/rsrc.php/y4/r/QaBlI0OZiks.ico" alt="instagram icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
             </section>
         </body>
             </html>`,
@@ -100,14 +247,22 @@ router.post("/createuser", [
     try {
         const email = req.body.email;
         const existingUser = await User.findOne({ email });
+        const existingTeamMember = await Team.findOne({ email });
 
-        if (existingUser) {
-            console.log('Email already registered:', email);
-            return res.status(400).json({
-                success: false,
-                message: "This Email ID is already registered!"
+        if (existingUser || existingTeamMember) {
+            return res.status(400).json({ 
+                success: false, 
+                message: "User with this email already exists." 
             });
-        } else {
+        }
+        // if (existingUser) {
+        //     console.log('Email already registered:', email);
+        //     return res.status(400).json({
+        //         success: false,
+        //         message: "This Email ID is already registered!"
+        //     });
+        // } 
+        else {
             const salt = await bcrypt.genSalt(10);
             const secPassword = await bcrypt.hash(req.body.password, salt);
 
@@ -121,6 +276,8 @@ router.post("/createuser", [
                 email: req.body.email,
                 address: req.body.address,
             });
+
+            sendWelcomeEmail(req.body.email, req.body.FirstName, true);
 
             return res.json({
                 success: true,
@@ -391,7 +548,7 @@ router.post('/login', [
           const mostRecentClockEntry = await Timeschema.findOne({ endTime: null, userid:user._id }).sort({ startTime: -1 });
           const mostRecentClockEntrystartTime = mostRecentClockEntry != null ? mostRecentClockEntry.startTime : "";
           const authToken = jwt.sign(data, jwrsecret);
-          return res.json({ Success: true, authToken, userid: user._id, username: user.FirstName, startTime:mostRecentClockEntrystartTime, isTeamMember: false, });
+          return res.json({ Success: true, authToken, userid: user._id, username: user.FirstName, CurrencyType: user.CurrencyType, startTime:mostRecentClockEntrystartTime, isTeamMember: false, });
         }
       }
   
@@ -419,7 +576,88 @@ router.post('/login', [
       console.log(error);
       res.json({ Success: false });
     }
-  });
+});
+
+// Function to send a welcome email
+function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
+    if (!isFirstTimeLogin) {
+        console.log('Not sending welcome email as it is not the first time login.');
+        return; // Do not send email if it's not the first time login
+    }
+
+    const subject = 'Welcome to Our Platform!';
+    const message = `<html xmlns:v="urn:schemas-microsoft-com:vml">
+        <head></head>
+        <body style="background-color:#c5c1c187; margin-top: 40px;">
+            <section style="font-family:sans-serif; width: 60%; margin: auto;">
+                <header style="background-color: #fff; padding: 20px; border: 1px solid #faf8f8;">
+                    <div style="width: 100%; margin: auto; display: flex; align-items: center;">
+                        <div style="width: 40%;">
+                            <img src="welcome.jpg" alt="welcome image">
+                        </div>
+                        <div style="width: 60%;">
+                            <h2>INVOICE</h2>
+                        </div>
+                        <div style="clear:both ;"></div>
+                    </div>
+
+                    <div>
+                        <h2>🌟 Welcome</h2>
+                        <p>Hi ${name},</p>
+                        <p>Thank you for choosing Invoice! We're thrilled to have you on board. Get ready to embark on a delightful journey of culinary exploration with us.</p>
+                        <p>Savor the experience,</p>
+                        <p>The Invoice Team</p>
+                    </div>
+                </header>
+                <footer style="background-color:#f5f5f587; border: 1px solid #f5f5f587; padding: 20px; color: #888; text-align: center;">
+                    <div>
+                        <p>&copy; 2024 Invoice. All rights reserved.</p>
+                        <p>Contact us: info@invoice.com | Phone: (555) 123-4567</p>
+                        <h4>Available On</h4>
+                        <div>
+                            <ul style="text-align: center;display: inline-flex;list-style:none;padding-left:0px">
+                                <li>
+                                    <a href="">
+                                        <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico" alt="facebook icon" style="margin: 0px 5px;">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="">
+                                        <img src="https://static.cdninstagram.com/rsrc.php/y4/r/QaBlI0OZiks.ico" alt="instagram icon" style="margin: 0px 5px;">
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+        </body>
+    </html>`;
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: "jdwebservices1@gmail.com",
+            pass: "cwoxnbrrxvsjfbmr"
+        },
+    });
+
+    const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: userEmail,
+        subject: subject,
+        html: message,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Error sending email:', error);
+        } else {
+            console.log('Email sent:', info.response);
+        }
+    });
+}
+
 
 // POST route for handling forgot password
 router.post('/forgot-password', async (req, res) => {
@@ -1662,12 +1900,13 @@ router.post("/addteammember", [
     try {
         const email = req.body.email;
         const existingTeamMember = await Team.findOne({ email });
+        const existingUser = await User.findOne({ email: email });
 
-        if (existingTeamMember) {
+        if (existingUser ||existingTeamMember) {
             console.log('Email already registered:', email);
             return res.status(400).json({
                 success: false,
-                message: "This Email ID is already registered as a team member!"
+                message: "This Email ID is already registered!"
             });
         } else {
             const salt = await bcrypt.genSalt(10);
@@ -1680,6 +1919,8 @@ router.post("/addteammember", [
                 email: req.body.email,
                 number: req.body.number,
             });
+            const companyName = await getCompanyName(req.body.userid);
+            sendTeamWelcomeEmail(req.body.email, req.body.name, true, companyName);
 
             return res.json({
                 success: true,
@@ -1691,6 +1932,97 @@ router.post("/addteammember", [
         return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
 });
+
+async function getCompanyName(userId) {
+    try {
+        const user = await User.findById(userId);
+        if (!user) {
+            throw new Error('User not found');
+        }
+        return user.companyname;
+    } catch (error) {
+        console.log(error);
+        return "Company"; // Default company name if fetching fails
+    }
+}
+
+// Function to send a welcome email
+function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
+    if (!isFirstTimeLogin) {
+        console.log('Not sending welcome email as it is not the first time login.');
+        return; // Do not send email if it's not the first time login
+    }
+
+    const subject = `Welcome to ${companyName} Team!!`;
+    const message = `<html xmlns:v="urn:schemas-microsoft-com:vml">
+        <head></head>
+        <body style="background-color:#c5c1c187; margin-top: 40px;">
+            <section style="font-family:sans-serif; width: 60%; margin: auto;">
+                <header style="background-color: #fff; padding: 20px; border: 1px solid #faf8f8;">
+                    <div style="width: 100%; margin: auto; display: flex; align-items: center;">
+                        <div style="width: 40%;">
+                            <img src="welcome.jpg" alt="welcome image">
+                        </div>
+                        <div style="width: 60%;">
+                            <h2>INVOICE</h2>
+                        </div>
+                        <div style="clear:both ;"></div>
+                    </div>
+
+                    <div>
+                        <p>Dear ${name},</p>
+                        <p>I am delighted to extend a warm welcome to you as the newest member of the ${companyName} family! We are thrilled to have you on board and look forward to the positive contributions you will make to our team.</p>
+                        <p>We are excited to work alongside you and support your professional growth and development.</p>
+                    </div>
+                </header>
+                <footer style="background-color:#f5f5f587; border: 1px solid #f5f5f587; padding: 20px; color: #888; text-align: center;">
+                    <div>
+                        <p>&copy; 2024 Invoice. All rights reserved.</p>
+                        <p>Contact us: info@invoice.com | Phone: (555) 123-4567</p>
+                        <h4>Available On</h4>
+                        <div>
+                            <ul style="text-align: center;display: inline-flex;list-style:none;padding-left:0px">
+                                <li>
+                                    <a href="">
+                                        <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico" alt="facebook icon" style="margin: 0px 5px;">
+                                    </a>
+                                </li>
+                                <li>
+                                    <a href="">
+                                        <img src="https://static.cdninstagram.com/rsrc.php/y4/r/QaBlI0OZiks.ico" alt="instagram icon" style="margin: 0px 5px;">
+                                    </a>
+                                </li>
+                            </ul>
+                        </div>
+                    </div>
+                </footer>
+            </section>
+        </body>
+    </html>`;
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: "jdwebservices1@gmail.com",
+            pass: "cwoxnbrrxvsjfbmr"
+        },
+    });
+
+    const mailOptions = {
+        from: 'your-email@gmail.com',
+        to: userEmail,
+        subject: subject,
+        html: message,
+    };
+
+    transporter.sendMail(mailOptions, (error, info) => {
+        if (error) {
+            console.log('Error sending email:', error);
+        } else {
+            console.log('Email sent:', info.response);
+        }
+    });
+}
 
     router.get('/teammemberdata/:userid', async (req, res) => {
         try {

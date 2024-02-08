@@ -52,8 +52,8 @@ useEffect(() => {
   };
 
 const GoToHistory = () => {
-    navigate('/Timeschemahistory', { state: { teamid } });
-  };
+  navigate('/Timeschemahistory', { state: { teamid } });
+};
 
   // Handle page change
   const handlePageChange = (pageNumber) => {

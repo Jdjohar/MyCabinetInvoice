@@ -59,12 +59,19 @@ export default function SignUp() {
 
         else{
             alert("This Email id already Registered")
+            setmessage(true)
+            setalertshow(json.message)
         }
       }
     
-      const onchange = (event) => {
-        setcredentails({ ...credentails, [event.target.name]: event.target.value })
-      }
+    //   const onchange = (event) => {
+    //     setcredentails({ ...credentails, [event.target.name]: event.target.value })
+    //   }
+        const onchange = (event) => {
+    const { name, value } = event.target;
+    setcredentails({ ...credentails, [name]: value });
+    localStorage.setItem("currencyType", value); // Store currency type in local storage
+    };
   return (
     <div className='container py-4'>
         <h1 className='text-center mb-5 fw-bold'>IN<span className='clrblue'>VOICE</span></h1>
@@ -159,7 +166,11 @@ export default function SignUp() {
                     {message == true ? 
                         <div class="alert alert-warning alert-dismissible fade show" role="alert">
                         <strong>{alertshow}</strong> 
-                          <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                          <button type="button" class="btn-close" onClick={()=>{
+                            setmessage(false);
+                            setalertshow("");
+                          }}></button>
+                          {/* <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> */}
 
                         </div>
                         : 

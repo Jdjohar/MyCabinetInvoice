@@ -9,6 +9,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import VirtualizedSelect from 'react-virtualized-select';
 import 'react-virtualized-select/styles.css';
 import 'react-virtualized/styles.css'
+import CurrencySign from '../../components/CurrencySign ';
 
 export default function Editinvoice() {
     
@@ -607,10 +608,10 @@ export default function Editinvoice() {
                                         </div>
                                     </div>
                                     <div className="col-2">
-                                        <p>{item.discount}</p>
+                                        <p><CurrencySign />{item.discount}</p>
                                     </div>
                                     <div className="col-2">
-                                        <p>{item.amount}</p>
+                                        <p><CurrencySign />{item.amount}</p>
                                     </div>
                                     <div className="col-5">
                                                 <div class="mb-3">
@@ -662,8 +663,8 @@ export default function Editinvoice() {
                                     const discount = discountMap[itemId] || 0;
                                     const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
                                     const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
-                                    style: 'currency',
-                                    currency: 'INR',
+                                    // style: 'currency',
+                                    // currency: 'INR',
                                     });
 
                                     return (
@@ -711,10 +712,10 @@ export default function Editinvoice() {
                                                 </div>
                                             </div>
                                             <div className="col-2 text-center">
-                                                <p>₹{discount.toFixed(2)}</p>
+                                                <p><CurrencySign />{discount.toFixed(2)}</p>
                                             </div>
                                             <div className="col-2 text-center">
-                                                <p>{formattedTotalAmount}</p>
+                                                <p><CurrencySign />{formattedTotalAmount}</p>
                                             </div>
                                             <div className="col-5">
                                                 <div class="mb-3">
@@ -781,9 +782,9 @@ export default function Editinvoice() {
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6">
-                                                <p>{calculateSubtotal().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
+                                                <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
+                                                    // style: 'currency',
+                                                    // currency: 'INR',
                                                 })}</p>
                                                 <div className="col-6">
                                                 <div class="mb-3">
@@ -799,13 +800,13 @@ export default function Editinvoice() {
                                                     />
                                                 </div>
                                             </div>
-                                                <p>{calculateTaxAmount().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
+                                                <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
+                                                    // style: 'currency',
+                                                    // currency: 'INR',
                                                 })}</p>
-                                                <p>{calculateTotal().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
+                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                    // style: 'currency',
+                                                    // currency: 'INR',
                                                     })}</p>
                                             </div>
                                         </div>
@@ -820,9 +821,9 @@ export default function Editinvoice() {
                                                 <p>Amount due</p>
                                             </div>
                                             <div className="col-6">
-                                                <p>{calculateTotal().toLocaleString('en-IN', {
-                                                    style: 'currency',
-                                                    currency: 'INR',
+                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                    // style: 'currency',
+                                                    // currency: 'INR',
                                                     })}</p>
                                             </div>
                                         </div>

@@ -63,7 +63,9 @@ export default function Addteam() {
     } 
 
     else{
-        alert("This Team Email already exist")
+        alert("This Email already exist")
+        setMessage(true)
+        setAlertShow(json.message)
     }
   };
 
@@ -190,6 +192,21 @@ export default function Addteam() {
                               required
                             />
                           </div>
+                        </div>
+                        <div className="col-12">
+                          {message == true ? 
+                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <strong>{alertShow}</strong> 
+                              <button type="button" class="btn-close" onClick={()=>{
+                                setMessage(false);
+                                setAlertShow("");
+                              }}></button>
+                              {/* <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> */}
+
+                            </div>
+                            : 
+
+                          ""}
                         </div>
                       </div>
                     </div>

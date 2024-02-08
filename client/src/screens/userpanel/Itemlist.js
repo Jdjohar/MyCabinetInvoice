@@ -3,6 +3,7 @@ import Usernavbar from './Usernavbar';
 import { useNavigate } from 'react-router-dom';
 import Usernav from './Usernav';
 import { ColorRing } from  'react-loader-spinner'
+import CurrencySign from '../../components/CurrencySign ';
 // import Nav from './Nav';
 
 export default function Itemlist() {
@@ -128,7 +129,7 @@ export default function Itemlist() {
                                             <tr key={index}>
                                                 <th scope="row">{index + 1}</th>
                                                 <td>{item.itemname}</td>
-                                                <td>{item.price}</td>
+                                                <td><CurrencySign />{item.price}</td>
                                                 <td>{formatDate(item.createdAt)}</td>
                                                 <td>
                                                     <div className="d-flex">

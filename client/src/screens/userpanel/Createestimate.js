@@ -9,6 +9,7 @@ import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import VirtualizedSelect from 'react-virtualized-select';
 import 'react-virtualized-select/styles.css';
 import 'react-virtualized/styles.css'
+import CurrencySign from '../../components/CurrencySign ';
 
 export default function Createestimate() {
     const [ loading, setloading ] = useState(true);
@@ -530,8 +531,8 @@ const onChangeDescription = (event, itemId) => {
 
                     const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
                     const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
-                        style: 'currency',
-                        currency: 'INR',
+                        // style: 'currency',
+                        // currency: 'INR',
                     });
 
                     return (
@@ -610,10 +611,10 @@ const onChangeDescription = (event, itemId) => {
                                 />
                             </td>
                             <td className="text-center">
-                                <p>₹{discount.toFixed(2)}</p>
+                                <p><CurrencySign />{discount.toFixed(2)}</p>
                             </td>
                             <td className="text-center">
-                                <p>{formattedTotalAmount}</p>
+                                <p><CurrencySign />{formattedTotalAmount}</p>
                             </td>
                         </tr>
                     );
@@ -650,9 +651,9 @@ const onChangeDescription = (event, itemId) => {
                     <p>Total</p>
                 </div>
                 <div className="col-6 col-md-9">
-                    <p>{calculateSubtotal().toLocaleString('en-IN', {
-                        style: 'currency',
-                        currency: 'INR',
+                    <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
+                        // style: 'currency',
+                        // currency: 'INR',
                     })}</p>
                     <div className="mb-3">
                         <input
@@ -666,13 +667,13 @@ const onChangeDescription = (event, itemId) => {
                             min="0"
                         />
                     </div>
-                    <p>{calculateTaxAmount().toLocaleString('en-IN', {
-                        style: 'currency',
-                        currency: 'INR',
+                    <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
+                        // style: 'currency',
+                        // currency: 'INR',
                     })}</p>
-                    <p>{calculateTotal().toLocaleString('en-IN', {
-                        style: 'currency',
-                        currency: 'INR',
+                    <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                        // style: 'currency',
+                        // currency: 'INR',
                     })}</p>
                 </div>
             </div>
@@ -687,9 +688,9 @@ const onChangeDescription = (event, itemId) => {
                     <p>Amount due</p>
                 </div>
                 <div className="col-6 col-md-9">
-                    <p>{calculateTotal().toLocaleString('en-IN', {
-                        style: 'currency',
-                        currency: 'INR',
+                    <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                        // style: 'currency',
+                        // currency: 'INR',
                     })}</p>
                 </div>
             </div>

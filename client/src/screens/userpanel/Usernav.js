@@ -16,6 +16,7 @@ export default function Usernav() {
     localStorage.removeItem('userEmail');
     localStorage.removeItem('isTeamMember');
     localStorage.removeItem('startTime');
+    localStorage.removeItem('currencyType');
     navigate('/');
   };
   useEffect(()=>{
