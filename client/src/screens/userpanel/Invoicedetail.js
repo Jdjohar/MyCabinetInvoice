@@ -8,6 +8,7 @@ import { ReactMultiEmail } from 'react-multi-email';
 import 'react-multi-email/dist/style.css'
 import html2pdf from 'html2pdf.js';
 import CurrencySign from '../../components/CurrencySign ';
+import { PDFViewer,pdf, PDFDownloadLink, Document,Image, Page, Text, Font, View, StyleSheet } from '@react-pdf/renderer';
 
 export default function Invoicedetail() {
     const [ loading, setloading ] = useState(true);
@@ -27,7 +28,6 @@ export default function Invoicedetail() {
     const [paiddateerror, setpaiddateerror] = useState("");
     const [methoderror, setmethoderror] = useState("");
     const [exceedpaymenterror, setexceedpaymenterror] = useState("");
-    
     const invoiceid = location.state?.invoiceid;
     const [transactionData, setTransactionData] = useState({
         paidamount: '',
@@ -42,6 +42,80 @@ export default function Invoicedetail() {
       const [content, setContent] = useState('Thank you for your business.');
       const [showModal, setShowModal] = useState(false);
       const [showEmailAlert, setShowEmailAlert] = useState(false);
+      const [pdfExportVisible, setPdfExportVisible] = useState(false);
+      const styles = StyleSheet.create({
+        page: {
+          flexDirection: 'row',
+          backgroundColor: '#E4E4E4'
+        },
+        section: {
+          margin: 10,
+          padding: 10,
+          flexGrow: 1
+        },
+        header: {
+          marginBottom: 10,
+          flexDirection: 'row',
+          justifyContent: 'space-between'
+        },
+        bgheader: {
+          marginBottom: 10,
+          flexDirection: 'row',
+          justifyContent: 'space-between',
+          backgroundColor: "#f7f7f7"
+        },
+        fsize:{
+          fontSize:"14px"
+        },
+        bgbottom: {
+          marginBottom: 10,
+          borderBottom:"1px solid #00000014"
+        },
+        invoiceHeader: {
+          fontSize: 14,
+          fontWeight: 'bold'
+        },
+        companyInfo: {
+          width: '50%'
+        },
+        customerInfo: {
+          width: '50%',
+          textAlign: 'right'
+        },
+        Info: {
+          width: '25%',
+          textAlign: 'right'
+        },
+        Info1: {
+          width: '30%',
+        },
+        div40: {
+          width: '40%',
+        },
+        div20: {
+          width: '20%',
+        },
+        itemRow: {
+          flexDirection: 'row',
+          justifyContent: 'space-between'
+        },
+        itemCell: {
+          width: '25%'
+        },
+        totalRow: {
+          flexDirection: 'row',
+          justifyContent: 'flex-end',
+        },
+        totalCell: {
+          width: '25%',
+          textAlign: 'right'
+        },
+        bgcolor: {
+          width: '40%',
+          padding:20,
+          backgroundColor: "#f7f7f7"
+        }
+      });
 
 
     useEffect(() => {
@@ -490,7 +564,7 @@ const handleAlertClose = () => {
   setShowEmailAlert(false); // Close the alert
 };
 
-  const generatePdfFromHtml = async () => {
+const generatePdfFromHtml = async () => {
   return new Promise((resolve, reject) => {
     const content = document.getElementById('invoiceContent').innerHTML;
 const opt = {
@@ -509,31 +583,161 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
 });
   });
 };
-  // const handleFormSubmit = (event) => {
-  //   event.preventDefault();
-  //   try {
-  //     const response = await fetch('https://invoice-n96k.onrender.com/send-email', {
-  //       method: 'POST',
-  //       headers: {
-  //         'Content-Type': 'application/json',
-  //       },
-  //       body: JSON.stringify({
-  //         to: toEmails,
-  //         bcc: bccEmails,
-  //         content: content,
-  //       }),
-  //     });
 
-  //     if (response.ok) {
-  //       console.log('Email sent successfully!');
-  //       // Clear form fields or show success message
-  //     } else {
-  //       console.error('Failed to send email.');
-  //     }
-  //   } catch (error) {
-  //     console.error('Error sending email:', error);
-  //   }
-  // };
+const convertToPdf = () => {
+  const content = document.getElementById('invoiceContent').innerHTML;
+  
+  const opt = {
+      filename: 'invoice.pdf',
+      html2canvas: { scale: 3 }, // Increase scale for better resolution
+      jsPDF: { unit: 'in', format: 'A4', orientation: 'portrait' },
+      userUnit: 450 / 210
+  };
+
+  html2pdf().from(content).set(opt).save(); // Convert to PDF and save automatically
+};
+
+// const generatePDF = async () => {
+//   try {
+//     setPdfExportVisible(true);
+//     const timestamp = Date.now();
+//     const pdfContent = (
+//       <Document>
+//         <Page size="A4">
+//           <View style={{fontSize:"14px"}}>
+//             {/* Header */}
+//             <View style={{...styles.header,padding: 20}}>
+//               <View style={styles.companyInfo}>
+//                 <Text style={styles.invoiceHeader}>{signupdata.companyname}</Text>
+//               </View>
+//               <View style={styles.customerInfo}>
+//                 <Text style={styles.invoiceHeader}>Invoice</Text>
+//                 <Text>{signupdata.email}</Text>
+//                 <Text>{signupdata.address}</Text>
+//               </View>
+//             </View>
+
+//             <View style={{...styles.bgheader}}>
+//               <View style={{...styles.header,padding: 20}}>
+//                 <View style={styles.companyInfo}>
+//                     <Text>BILL TO</Text>
+//                     <Text style={{paddingTop:"10px"}}>{invoiceData.customername}</Text>
+//                     <Text>{invoiceData.customeremail}</Text>
+//                 </View>
+//                 <View style={styles.Info}>
+//                   <Text>Invoice #</Text>
+//                   <Text style={{paddingTop:"10px"}}>Date</Text>
+//                   <Text>Due date</Text>
+//                 </View>
+//                 <View style={styles.Info}>
+//                   <Text>{invoiceData.InvoiceNumber}</Text>
+//                   <Text style={{paddingTop:"10px"}}>{formatCustomDate(invoiceData.date)}</Text>
+//                   <Text>{formatCustomDate(invoiceData.duedate)}</Text>
+//                 </View>
+//               </View>
+//             </View>
+
+//             <View style={{...styles.bgbottom, fontSize:"14px"}}>
+//               <View style={{...styles.header,padding: 20}}>
+//                   <View style={styles.div40}>
+//                     <Text>ITEM</Text>
+//                   </View>
+//                   <View style={styles.div20}>
+//                     <Text>QUANTITY</Text>
+//                   </View>
+//                   <View style={styles.div20}>
+//                     <Text>PRICE</Text>
+//                   </View>
+//                   <View style={styles.div20}>
+//                     <Text>AMOUNT</Text>
+//                   </View>
+//               </View>
+//             </View>
+//             {/* Item list */}
+//             <View style={styles.bgbottom}>
+//               {items.map(item => (
+//                 <View style={{padding: 20}} key={item._id}>
+//                   <View style={{...styles.header}}>
+//                     <View style={styles.div40}>
+//                       <Text style={styles.itemCell}>{item.itemname}</Text>
+//                       <Text style={styles.itemCell}>{item.description}</Text>
+//                     </View>
+//                     <View style={styles.div20}>
+//                       <Text style={styles.itemCell}>{item.itemquantity}</Text>
+//                     </View>
+//                     <View style={styles.div20}>
+//                       <Text style={styles.itemCell}>{item.price}</Text>
+//                     </View>
+//                     <View style={styles.div20}>
+//                       <Text style={styles.itemCell}>{item.amount}</Text>
+//                     </View>
+//                   </View>
+//                 </View>
+//               ))}
+//             </View>
+//             {/* Total */}
+//             <View style={styles.bgbottom}>
+//               <View style={{...styles.totalRow,padding: 20}}>
+//                 <View style={styles.div40}></View>
+//                 <View style={styles.Info1}>
+//                   <Text>Subtotal</Text>
+//                   <Text>Total</Text>
+//                 </View>
+//                 <View style={styles.Info1}>
+//                   <Text>{invoiceData.subtotal}</Text>
+//                   <Text>{invoiceData.total}</Text>
+//                 </View>
+//                 {/* <View style={styles.Info}></View> */}
+//               </View>
+//             </View>
+//             {/* Transactions */}
+//             {transactions.map(transaction => (
+//               <View style={{...styles.itemRow}} key={transaction._id}>
+//                 {/* <View style={styles.customerInfo}></View> */}
+//                 <View style={styles.customerInfo}>
+//                   <Text>Paid on {transaction.paiddate}</Text>
+//                 </View>
+//                 <View style={styles.Info1}>
+//                   <Text><CurrencySign />{transaction.paidamount}</Text>
+//                 </View>
+//               </View>
+//             ))}
+//             {/* Amount Due */}
+//             <View style={{...styles.totalRow, padding:20}}>
+//               <View style={{...styles.Info1}}></View>
+//               <View style={{...styles.div20}}></View>
+//               <View style={{...styles.bgcolor}}>
+//                 <Text>Amount Due</Text>
+//                 <Text>
+//                 <CurrencySign />{invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
+//                 </Text>
+//               </View>
+//             </View>
+//           </View>
+//         </Page>
+//       </Document>
+//     );
+
+//     // Generate PDF blob
+//     const blob = await pdf(pdfContent).toBlob();
+//     const fileName = `invoice-${timestamp}.pdf`;
+//     const url = URL.createObjectURL(blob);
+
+//     // Create a link element to download the PDF
+//     const a = document.createElement('a');
+//     a.href = url;
+//     a.download = fileName;
+//     a.click();
+
+//     // Cleanup
+//     URL.revokeObjectURL(url);
+//     setPdfExportVisible(false);
+//   } catch (error) {
+//     console.error('Error generating PDF:', error);
+//     setPdfExportVisible(false);
+//   }
+// };
+
 
   return (
     <div className='bg'>
@@ -590,6 +794,7 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                                     
 
                                         <li><a className="dropdown-item" onClick={handlePrintContent}>Print</a></li>
+                                        <li><a className="dropdown-item" onClick={convertToPdf}>Pdf</a></li>
                                         <li><a className="dropdown-item" onClick={ () => handleEditContent(invoiceData)}>Edit</a></li>
                                         <li><a className="dropdown-item" onClick={() => handleRemove(invoiceData._id)}>Remove</a></li>
                                     </ul>
@@ -791,15 +996,14 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
 
                                     </div>
                                 </div>
-                                {showEmailAlert && (
+                                {/* {showEmailAlert && (
                                   <div className="alert alert-success row" role="alert">
                                     <div className="col-11">
                                       <p className='mb-0'>Email sent successfully!</p>
                                     </div>
-                                    {/* Email sent successfully! */}
                                     <button type="button" className="btn-close" aria-label="Close" onClick={handleAlertClose}></button>
                                   </div>
-                                )}
+                                )} */}
                             </div>
                             
                         </div>
@@ -986,7 +1190,7 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
                     </div>
                     <div class="modal-footer">
                         <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                        <button type="submit" class="btn btn-primary">Send</button>
+                        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Send</button>
                     </div>
                 </form>
             </div>
