@@ -13,6 +13,7 @@ import { PDFViewer,pdf, PDFDownloadLink, Document,Image, Page, Text, Font, View,
 export default function Invoicedetail() {
     const [ loading, setloading ] = useState(true);
     const [signupdata, setsignupdata] = useState([]);
+    const [showSendEmailModal, setShowSendEmailModal] = useState(false);
     const modalRef = useRef(null);
     const modalRefemail = useRef(null);
     const [items, setitems] = useState([]);
@@ -29,6 +30,8 @@ export default function Invoicedetail() {
     const [methoderror, setmethoderror] = useState("");
     const [exceedpaymenterror, setexceedpaymenterror] = useState("");
     const invoiceid = location.state?.invoiceid;
+    const [duedepositDate, setDueDepositDate] = useState('')
+    const [savedDepositData, setsavedDepositData] = useState('')
     const [transactionData, setTransactionData] = useState({
         paidamount: '',
         paiddate: '',
@@ -42,6 +45,8 @@ export default function Invoicedetail() {
       const [content, setContent] = useState('Thank you for your business.');
       const [showModal, setShowModal] = useState(false);
       const [showEmailAlert, setShowEmailAlert] = useState(false);
+      const [depositpercentage, setdepositPercentage] = useState('');
+      const [amount, setAmount] = useState('');
       const [pdfExportVisible, setPdfExportVisible] = useState(false);
       const styles = StyleSheet.create({
         page: {
@@ -126,6 +131,7 @@ export default function Invoicedetail() {
         fetchsignupdata();
         if (invoiceid) {
             fetchinvoicedata();
+            fetchdepositdata();
             fetchtransactiondata();
         }
     }, [invoiceid])
@@ -136,7 +142,260 @@ export default function Invoicedetail() {
         setEmails([invoiceData.customeremail]);
       }
     }, [invoiceData.customeremail]);
+
+    // useEffect(() => {
+    //   const storedAmount = localStorage.getItem('amount');
+    //   if (storedAmount) {
+    //     setAmount(storedAmount);
+    //   }
+    // }, []);
+  
+    // useEffect(() => {
+    //   localStorage.setItem('amount', amount);
+    // }, [amount]);
+
     let navigate = useNavigate();
+
+    const roundOff = (amount) => {
+      return parseFloat(amount).toFixed(2);
+    };
+
+    const handlePercentageChange = (event) => {
+      setdepositPercentage(event.target.value);
+      calculateAmount(event.target.value);
+    };
+  
+    const calculateAmount = (depositpercentage) => {
+      let totalAmount = invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0);
+      let calculatedAmount = (totalAmount * depositpercentage) / 100;
+      setAmount(calculatedAmount.toFixed(2));
+    };
+
+    
+    const handleDateChange = (event) => {
+      setDueDepositDate(event.target.value);
+    };
+
+    const handleMarkDeposit = async () => {
+            const userid =  localStorage.getItem("userid");
+      // Add logic to save the deposit in the database
+    const depositAmount = parseFloat(savedDepositData.depositamount);
+    if (depositAmount > 0) {
+      const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
+      const newPaidAmount = totalPaidAmount + depositAmount;
+
+      // Add the deposit transaction to the transactions array
+      const newTransaction = {
+        paidamount: newPaidAmount,
+        paiddate: new Date().toISOString(), // Assuming current date as the paid date
+        method: 'Deposit', // Assuming the deposit is made directly to the system
+        note: 'Deposit', // Note for the deposit transaction
+      };
+
+      try {
+        const response = await fetch('https://invoice-n96k.onrender.com/api/addpayment', {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+          },
+          body: JSON.stringify({
+            paidamount: depositAmount,
+            paiddate: new Date().toISOString(),
+            method: "deposit",
+            note:"Deposit",
+            userid: userid,
+            invoiceid: invoiceid,
+            depositid: savedDepositData._id,
+          }),
+        });
+  
+        if (response.ok) {
+          const responseData = await response.json();
+          if (responseData.success) {
+            setsavedDepositData('');
+            console.log('Payment added successfully!');
+            // Fetch updated transaction data after payment addition
+          await fetchtransactiondata();
+  
+          // Calculate total paid amount from transactions
+          const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
+  
+          // Update amount due by subtracting totalPaidAmount from total invoice amount
+          const updatedAmountDue = invoiceData.total - totalPaidAmount;
+          setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
+          // Close the modal after adding payment
+          document.getElementById('closebutton').click();
+          if (modalRef.current) {
+              modalRef.current.hide();
+            }
+          } else {
+            console.error('Failed to add payment.');
+          }
+        } else {
+          console.error('Failed to add payment.');
+        }
+      } catch (error) {
+        console.error('Error adding payment:', error);
+      }
+
+      // Update the trans actions array with the new transaction
+      // const updatedTransactions = [...transactions, newTransaction];
+
+      // Update the transactions in the database with the new transaction
+      // Add your logic here to update the transactions in the database
+
+      // Update the state with the new transactions
+      // setTransactions(updatedTransactions);
+
+      // Close the modal
+      setShowModal(false);
+    }
+    };
+    
+    const handleSave = async () => {
+      const userid = localStorage.getItem("userid");
+      
+      try {
+        if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
+          // If savedDepositData exists and has an ID, update the existing record
+          const response = await fetch(`https://invoice-n96k.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "depositamount": amount, 
+              "duedepositdate": duedepositDate,
+              "depositpercentage": depositpercentage,
+              "method": 'Pending',
+              "userid": userid,
+              "invoiceid": invoiceid, 
+            }),
+          });
+      
+          const data = await response.json();
+      
+          if (data.Success) {
+            console.log('Deposit updated successfully:', data.deposit);
+            const savedDepositResponse = await fetch(`https://invoice-n96k.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositDatad = await savedDepositResponse.json();
+            setsavedDepositData(savedDepositDatad.deposit);
+            // You may update the state here if required
+          } else {
+            console.error('Failed to update deposit:', data.error);
+          }
+        } else {
+          // If savedDepositData is empty or does not have an ID, add a new record
+          const response = await fetch('https://invoice-n96k.onrender.com/api/deposit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "depositamount": amount, 
+              "duedepositdate": duedepositDate,
+              "depositpercentage": depositpercentage,
+              "method": 'Pending',
+              "userid": userid,
+              "invoiceid": invoiceid, 
+            }),
+          });
+      
+          const data = await response.json();
+      
+          if (data.success) {
+            const savedDepositResponse = await fetch(`https://invoice-n96k.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositDatad = await savedDepositResponse.json();
+            setsavedDepositData(savedDepositDatad.deposit);
+            console.log('New deposit added successfully:', data.deposit);
+            // You may update the state here if required
+          } else {
+            console.error('Failed to add new deposit:', data.error);
+          }
+        }
+      } catch (error) {
+        console.error('Error saving deposit:', error);
+      }
+    };
+
+    const handleSaveAndSend = async () => {
+      const userid = localStorage.getItem("userid");
+      
+      try {
+        if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
+          // If savedDepositData exists and has an ID, update the existing record
+          const response = await fetch(`https://invoice-n96k.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "depositamount": amount, 
+              "duedepositdate": duedepositDate,
+              "depositpercentage": depositpercentage,
+              "method": 'Pending',
+              "userid": userid,
+              "invoiceid": invoiceid, 
+            }),
+          });
+      
+          const data = await response.json();
+      
+          if (data.Success) {
+            console.log('Deposit updated successfully:', data.deposit);
+            const savedDepositResponse = await fetch(`https://invoice-n96k.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositDatad = await savedDepositResponse.json();
+            setsavedDepositData(savedDepositDatad.deposit);
+            setShowSendEmailModal(true);
+            // You may update the state here if required
+          } else {
+            console.error('Failed to update deposit:', data.error);
+          }
+        } else {
+          // If savedDepositData is empty or does not have an ID, add a new record
+          const response = await fetch('https://invoice-n96k.onrender.com/api/deposit', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+            },
+            body: JSON.stringify({
+              "depositamount": amount, 
+              "duedepositdate": duedepositDate,
+              "depositpercentage": depositpercentage,
+              "method": 'Pending',
+              "userid": userid,
+              "invoiceid": invoiceid, 
+            }),
+          });
+      
+          const data = await response.json();
+      
+          if (data.success) {
+            const savedDepositResponse = await fetch(`https://invoice-n96k.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositDatad = await savedDepositResponse.json();
+            setsavedDepositData(savedDepositDatad.deposit);
+            console.log('New deposit added successfully:', data.deposit);
+            setShowSendEmailModal(true);
+      //       You may update the state here if required
+          } else {
+            console.error('Failed to add new deposit:', data.error);
+          }
+        }
+      } catch (error) {
+        console.error('Error saving deposit:', error);
+      }
+    };
+
+    const handleEditModal = () => {
+
+      const getEditData = savedDepositData;
+      console.log(getEditData,"getEditData");
+      setShowModal(true);
+      setdepositPercentage(getEditData.depositpercentage)
+      setAmount(getEditData.depositamount)
+      setDueDepositDate(getEditData.duedepositdate)
+    };
+  
 
     const fetchinvoicedata = async () => {
         try {
@@ -148,6 +407,18 @@ export default function Invoicedetail() {
             if (Array.isArray(json.items)) {
                 setitems(json.items);
             }
+        } catch (error) {
+            console.error('Error fetching data:', error);
+        }
+    }
+
+    const fetchdepositdata = async () => {
+        try {
+          const userid =  localStorage.getItem("userid");
+            const response = await fetch(`https://invoice-n96k.onrender.com/api/getdepositdata/${userid}/${invoiceid}`);
+            const json = await response.json();
+            
+            setsavedDepositData(json);
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -246,8 +517,6 @@ export default function Invoicedetail() {
   } else {
     setexceedpaymenterror("");
   }
-
-
     try {
       const response = await fetch('https://invoice-n96k.onrender.com/api/addpayment', {
         method: 'POST',
@@ -551,6 +820,43 @@ const handleFormSubmit = async (event) => {
       if (response.ok) {
         console.log('Email sent successfully!');
         // setShowModal(false);
+        setShowEmailAlert(true);
+      } else {
+        console.error('Failed to send email.');
+      }
+    } catch (error) {
+      console.error('Error sending email:', error);
+    }
+};
+
+const handleDepositFormSubmit = async (event) => {
+    event.preventDefault();
+    const contentAsPdf = await generatePdfFromHtml();
+    try {
+      const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
+      const response = await fetch('https://invoice-n96k.onrender.com/api/send-deposit-email', {
+        method: 'POST',
+        headers: {
+          'Content-Type': 'application/json',
+        },
+        body: JSON.stringify({
+          to: emails,
+          bcc: bccEmails,
+          content: finalContent,
+          companyName: signupdata.companyname,
+          customdate: formatCustomDate(invoiceData.date),
+          duedate: formatCustomDate(savedDepositData.duedepositDate),
+          depositamount:savedDepositData.depositamount,
+          InvoiceNumber: invoiceData.InvoiceNumber,
+          currencyType: signupdata.CurrencyType,
+          pdfAttachment: contentAsPdf,
+        }),
+      });
+
+      if (response.ok) {
+        console.log('Email sent successfully!');
+        // setShowModal(false);
+        setShowSendEmailModal(false)
         setShowEmailAlert(true);
       } else {
         console.error('Failed to send email.');
@@ -932,7 +1238,7 @@ const convertToPdf = () => {
                                             
                                                 <div className="col-lg-6 col-sm-6 col-md-6  col-2 invoice-contentcol-2">.</div>
                                                 <div className="col-lg-3 col-sm-3 col-md-3 col-6 invoice-contentcol-8">
-                                                    <p className='mb-2'>Paid on {formatCustomDate(transaction.paiddate)}</p>
+                                                    <p className='mb-2'>{transaction.method == "deposit" ? "Deposit" : "Paid"} on {formatCustomDate(transaction.paiddate)}</p>
                                                 </div>
                                                 <div className="col-lg-3 col-sm-3 col-md-3 col-4 invoice-contentcol-2">
                                                     <p><CurrencySign />{transaction.paidamount}</p>
@@ -951,7 +1257,7 @@ const convertToPdf = () => {
                                                       <p className='fs-5 text-end text-right'>
                                                         {console.log(invoiceData.amountdue, "Due Amount")}
                                                         {console.log(transactions.reduce((total, payment) => total + payment.paidamount, 0), "transactions")}
-                                                        <CurrencySign />{invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
+                                                        <CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}
                                                       </p>
                                                   </div>
                                               </div>
@@ -982,11 +1288,27 @@ const convertToPdf = () => {
                                                 {console.log(transactions)}
                                                 
                                                 
-                                                <p><CurrencySign/>{transactions.reduce((total, payment) => total + payment.paidamount, 0)}</p>
+                                                <p><CurrencySign/>{roundOff(transactions.reduce((total, payment) => total + payment.paidamount, 0))}</p>
                                                
                                             </div>
 
                                             {/* <!-- Button trigger modal --> */}
+                                            {!transactions.find(transaction => {
+                                                  return transaction.method === "deposit";
+                                                }) ? savedDepositData == "" || parseFloat(savedDepositData.depositamount) === 0 ? (
+                                                <a className='greenclr pointer mb-3' data-bs-toggle="modal" data-bs-target="#exampleModaldeposit">
+                                                  Request a deposit
+                                                </a>
+                                              ) : (
+                                                <p>
+                                                  Request a deposit (<CurrencySign />{savedDepositData.depositamount})
+                                                  <a className='greenclr pointer mb-3 text-decoration-none ms-2' data-bs-toggle="modal" data-bs-target="#exampleModaldeposit" onClick={handleEditModal}>Edit</a><br />
+                                                  <a className='text-danger pointer mb-3 text-decoration-none' onClick={handleMarkDeposit}>Mark Deposit</a>
+                                                </p>
+                                              ) : null}
+                                              {/* <a className='greenclr pointer mb-3' data-bs-toggle="modal" data-bs-target="#exampleModaldeposit">
+                                                  Request a deposit
+                                              </a> */}
                                             <a className='greenclr pointer mb-3' data-bs-toggle="modal" data-bs-target="#exampleModal1">
                                              View Transactions 
                                             </a>
@@ -996,19 +1318,8 @@ const convertToPdf = () => {
 
                                     </div>
                                 </div>
-                                {/* {showEmailAlert && (
-                                  <div className="alert alert-success row" role="alert">
-                                    <div className="col-11">
-                                      <p className='mb-0'>Email sent successfully!</p>
-                                    </div>
-                                    <button type="button" className="btn-close" aria-label="Close" onClick={handleAlertClose}></button>
-                                  </div>
-                                )} */}
                             </div>
-                            
                         </div>
-                        
-
                         </form>
                     </div>
                 </div>
@@ -1198,6 +1509,164 @@ const convertToPdf = () => {
     </div>
 </div>
 
+{/* deposit modal  */}
+<form action="">
+  <div class="modal fade" id="exampleModaldeposit" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header p-4">
+          <h1 class="modal-title fs-3 fw-bold" id="exampleModalLabel">Request a deposit</h1>
+          <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body p-4">
+          <input type="hidden" id="deposit_uniqueid" value="uniqueid_here"/>
+
+          <div class="mb-3 row">
+            <div className="col-6 fw-bold fs-5">
+              <p>Total amount</p>
+            </div>
+            <div className="col-6 text-end fw-bold fs-5">
+              <p>
+                <CurrencySign />
+                {roundOff(
+                  invoiceData.total -
+                  transactions.reduce((total, payment) => total + payment.paidamount, 0) -
+                  amount
+                )}
+              </p>            
+            </div>
+          </div>
+          <div class="mb-3 row">
+            <div className="col-5">
+              <label for="number" class="form-label">Percentage</label>
+              <div className='input-group mb-4'>
+              <input type="number" className="form-control" id="depositpercentage" value={depositpercentage} onChange={handlePercentageChange} min="0" />
+                <span class="input-group-text">%</span>
+              </div>
+            </div>
+            <div className="col-2 fw-bold fs-5">
+              <p className='pt-3 fs-2 ps-5'>=</p>
+            </div>
+            <div className="col-5">
+              <label for="text" class="form-label">Amount</label>
+              <div className='input-group mb-4'>
+              <input type="text" className="form-control" id="amount" value={amount} readOnly />
+                <span class="input-group-text"><CurrencySign /></span>
+              </div>
+            </div>
+            <div className="col-5">
+                <label for="date" class="form-label" id='duedepositdate'>Due Date</label>
+                <input type="date" class="form-control" value={duedepositDate} onChange={handleDateChange} />
+            </div>
+          </div>
+        </div>
+        <div class="modal-footer p-4">
+          <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
+          <a className='greenclr ms-2 text-decoration-none pointer' data-bs-dismiss="modal" onClick={handleSave}>Save</a>
+          {(depositpercentage === '' || parseInt(depositpercentage) < 1) ? (
+            <button className='py-2 px-3 text-decoration-none bg-tertiary text-dark fw-bold rounded' disabled>Save & Send</button>
+          ) : (
+            <a href="" className='py-2 px-3 text-decoration-none pointer bg-success text-white fw-bold rounded' data-bs-dismiss="modal" id='' onClick={handleSaveAndSend}>Save & Send</a>
+          )}
+          {/* <a href="" className='py-2 px-3 text-decoration-none pointer bg-success text-white fw-bold rounded'>Save & Send</a> */}
+        </div>
+      </div>
+    </div>
+  </div>
+</form>
+
+{/* Email modal-2 */}
+{showSendEmailModal ?
+  <div class="modal fade show" id="sendEmailModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog" style={{display: "block"}}>
+{/* <div class="modal fade" id="sendEmailModal2" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true"> */}
+    <div class="modal-dialog modal-lg">
+        <div class="modal-content">
+            <div class="modal-header">
+                <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+                <button type="button" class="btn-close" onClick={ ()=> setShowSendEmailModal(false)}></button>
+            </div>
+            <div class="modal-body">
+                <form onSubmit={handleDepositFormSubmit}>
+                    <div class="row mb-3">
+                        <label for="to" class="col-sm-2 col-form-label">To</label>
+                        <div class="col-sm-10">
+                            {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                            <ReactMultiEmail
+                              emails={emails}
+                              onChange={handleEmailChange}
+                              getLabel={(
+                                email,
+                                index,
+                                removeEmail
+                              ) => (
+                                <div data-tag="true" key={index}>
+                                  {email}
+                                  <span
+                                    data-tag-handle="true"
+                                    onClick={() => removeEmail(index)}
+                                  >
+                                    ×
+                                  </span>
+                                </div>
+                              )}
+                              placeholder="Add more people..."
+                              style={{
+                                input: { width: '90%' },
+                                emailsContainer: { border: '1px solid #ccc' },
+                                emailInput: { backgroundColor: 'lightblue' },
+                                invalidEmailInput: { backgroundColor: '#f9cfd0' },
+                                container: { marginTop: '20px' },
+                              }}
+                      
+                                    />
+                        </div>
+                    </div>
+                    <div class="row mb-3">
+                        <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
+                        <div class="col-sm-10">
+                        <ReactMultiEmail
+                          emails={bccEmails}
+                          onChange={handleBccEmailsChange}
+                          getLabel={(
+                            email,
+                            index,
+                            removeEmail
+                          ) => (
+                            <div data-tag="true" key={index}>
+                              {email}
+                              <span
+                                data-tag-handle="true"
+                                onClick={() => removeEmail(index)}
+                              >
+                                ×
+                              </span>
+                            </div>
+                          )}
+                          placeholder="Add BCC recipients..."
+                          style={{
+                            input: { width: '90%' },
+                            emailsContainer: { border: '1px solid #ccc' },
+                            emailInput: { backgroundColor: 'lightblue' },
+                            invalidEmailInput: { backgroundColor: '#f9cfd0' },
+                            container: { marginTop: '20px' },
+                          }}
+                        />
+                        </div>
+                    </div>
+                    <div class="mb-3">
+                        <label for="content" class="form-label">Content</label>
+                        <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
+                    </div>
+                    <div class="modal-footer">
+                        <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onClick={ ()=> setShowSendEmailModal(false)}>Close</button>
+                        <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Send</button>
+                    </div>
+                </form>
+            </div>
+        </div>
+    </div>
+</div> : null
+}
     </div>
   )
 }

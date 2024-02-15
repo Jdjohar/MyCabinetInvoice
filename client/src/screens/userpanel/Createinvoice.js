@@ -569,7 +569,7 @@ const onChangeDescription = (event, itemId) => {
                                     </button>
                                 </div>
                                 <div className="row">
-                                    <div className="col">
+                                    <div className="col-8">
                                         <label htmlFor={`item-description-${itemId}`} className="form-label">Description</label>
                                         {/* <textarea
                                             className="form-control mb-3"
@@ -589,7 +589,7 @@ const onChangeDescription = (event, itemId) => {
                                             placeholder="Item Description"
                                         ></textarea>
                                     </div>
-                                    <div className="col">
+                                    <div className="col-4">
                                         <label htmlFor={`discount-${itemId}`} className="form-label">Discount</label>
                                         <input
                                             type='number'
@@ -738,7 +738,8 @@ const onChangeDescription = (event, itemId) => {
 
 
 
-                            <div className='box1 rounded adminborder m-2 mt-5'>
+                            <label htmlFor="" className='fs-4 ms-2 mt-5'>Note</label>
+                            <div className='box1 rounded adminborder m-2'>
                                 <CKEditor
                                     editor={ ClassicEditor }
                                     data={editorData}

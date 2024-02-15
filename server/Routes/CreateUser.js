@@ -20,6 +20,7 @@ const Customerlist = require('../models/Customerlist');
 const Invoice = require('../models/Invoice');
 const Estimate = require('../models/Estimate');
 const Transactions = require('../models/Transactions');
+const Deposit = require('../models/Deposit');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
@@ -83,6 +84,95 @@ const transporter = nodemailer.createTransport({
                 <div>
                     <h1 style="margin-bottom:0px; font-size: 35px; color:#222">Invoice from ${companyName}</h1>
                     <h1 style="margin: 0px; font-size: 35px; color:#222">${currencySign}${amountdue1}</h1>
+                    <p style="margin-top: 0px; color:#222">Due: ${duedate}</p>
+                </div>
+                <div style="background-color:#f5f4f4; padding: 1px 20px; margin: 30px 0px 10px;">
+                    <p style="color:#222">${content}</p>
+                </div>
+                <div style="margin: 20px 0px 10px;">
+                    <p style="color:#222">This email contains a unique link just for you. Please do not share this email or link or others will have access to your document.</p>
+                </div>
+            </section>
+            <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
+                <div>
+                    <p style="font-size: 15px; color:#222">Make your invoice</p>
+                    <h1 style="font-size: 35px; margin-bottom: 0; margin-top: 0; color:#222">INVOICE</h1>
+                </div>
+                <div>
+                    <ul style="text-align: center;display: inline-flex;list-style:none;padding-left:0px">
+                        <li>
+                            <a href="">
+                                <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico" alt="facebook icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="">
+                                <img src="https://static.cdninstagram.com/rsrc.php/y4/r/QaBlI0OZiks.ico" alt="instagram icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </body>
+            </html>`,
+    };
+  
+    try {
+      await transporter.sendMail(mailOptions);
+      console.log('Email sent successfully!');
+      res.status(200).json({ success: true });
+    } catch (error) {
+      console.error('Error sending email:', error);
+      res.status(500).json({ success: false, error: 'Failed to send email.' });
+    }
+});
+
+router.post('/send-deposit-email', async (req, res) => {
+    const {
+            to, 
+            bcc, 
+            content ,
+            companyName, 
+            pdfAttachment,
+            customdate,
+            duedate,
+            depositamount,
+            InvoiceNumber,
+            currencyType,
+        } = req.body;
+    
+const transporter = nodemailer.createTransport({
+    service: 'gmail',
+    auth: {
+        user: "jdwebservices1@gmail.com",
+        pass: "cwoxnbrrxvsjfbmr"
+    },
+  });
+
+  const currencySign = getCurrencySign(currencyType);
+  
+    const mailOptions = {
+      from: 'jdwebservices1@gmail.com',
+      to: to.join(', '),
+      bcc: bcc.join(', '),
+      subject: `Invoice from ${companyName}`,
+      attachments: [
+        {
+          filename: `Invoice #${InvoiceNumber}.pdf`,
+          content: pdfAttachment.split(';base64,')[1], // Extract base64 content
+          encoding: 'base64',
+        }
+      ],
+      html: `<html>
+        <body style="background-color:#c5c1c187; margin-top: 40px; padding:20px 0px;">
+             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#fff; padding: 15px 30px; margin-top: 40px;">
+                <div style="padding: 10px 0px;  text-align: center; font-weight: 500; color: #999999">
+                    <p style="margin-bottom:0px">${customdate}</p>
+                    <p style="margin-top: 0px;">Invoice #${InvoiceNumber}</p>
+                </div>
+                <div>
+                    <h1 style="margin-bottom:0px; font-size: 35px; color:#222">Invoice from ${companyName}</h1>
+                    <h1 style="margin: 0px; font-size: 35px; color:#222">${currencySign}${depositamount}</h1>
                     <p style="margin-top: 0px; color:#222">Due: ${duedate}</p>
                 </div>
                 <div style="background-color:#f5f4f4; padding: 1px 20px; margin: 30px 0px 10px;">
@@ -1589,7 +1679,7 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
     // Route to add payment for an invoice
 router.post('/addpayment', async (req, res) => {
     try {
-        const { paidamount, paiddate, method, note, userid, invoiceid } = req.body;
+        const { paidamount, paiddate, method, note, userid, invoiceid, depositid } = req.body;
 
         // Create a new transaction
         const newTransaction = new Transactions({
@@ -1603,6 +1693,12 @@ router.post('/addpayment', async (req, res) => {
 
         // Save the transaction to the database
         const savedTransaction = await newTransaction.save();
+        if(depositid != null || depositid != undefined){
+    
+            // Find the deposit by id
+            const depositToUpdate = await Deposit.findByIdAndDelete(depositid);
+        
+        }
 
         res.status(201).json({
             success: true,
@@ -1614,6 +1710,102 @@ router.post('/addpayment', async (req, res) => {
         res.status(500).json({ success: false, message: 'Failed to add payment.' });
     }
 });
+
+router.post('/deposit', async (req, res) => {
+    try {
+        const { depositamount, duedepositdate,depositpercentage, method, userid, invoiceid } = req.body;
+
+        // Create a new transaction
+        const newDeposit = new Deposit({
+            depositamount,
+            duedepositdate,
+            depositpercentage,
+            method,
+            userid,
+            invoiceid,
+        });
+
+        // Save the transaction to the database
+        const savedDeposit = await newDeposit.save();
+
+        res.status(201).json({
+            success: true,
+            message: 'Deposit added successfully!',
+            deposit: savedDeposit,
+        });
+    } catch (error) {
+        console.error('Error adding payment:', error);
+        res.status(500).json({ success: false, message: 'Failed to add payment.' });
+    }
+});
+
+router.post('/updatedeposit/:id', async (req, res) => {
+    try {
+        const depositId = req.params.id;
+        const { depositamount, duedepositdate, depositpercentage } =req.body;
+        const updatedepositdata = {
+            depositamount,
+            duedepositdate,
+            depositpercentage,
+        }
+
+        // Find the deposit by id
+        const depositToUpdate = await Deposit.findByIdAndUpdate(depositId, updatedepositdata, { new: true });
+    
+        if (depositToUpdate) {
+            res.json({
+                Success: true,
+                message: "Depositdata updated successfully",
+                deposit: depositToUpdate.length > 0 ? depositToUpdate[depositToUpdate.length-1]:depositToUpdate,
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: "Depositdata not found"
+            });
+        }
+    } catch (error) {
+        console.error("Error updating Depositdata:", error);
+        res.status(500).json({
+            Success: false,
+            message: "Failed to update Depositdata"
+        });
+    }
+});
+
+
+router.get('/deposit/:id', async (req, res) => {
+    try {
+        const depositId = req.params.id;
+
+        // Find the deposit by its unique ID
+        const deposit = await Deposit.findById(depositId);
+
+        if (!deposit) {
+            // If the deposit is not found, send a 404 response
+            res.status(404).json({ success: false, message: 'Deposit not found.' });
+        } else {
+            // If the deposit is found, send success response with the deposit data
+            res.status(200).json({ success: true, deposit });
+        }
+    } catch (error) {
+        console.error('Error retrieving deposit:', error);
+        res.status(500).json({ success: false, message: 'Failed to retrieve deposit.' });
+    }
+});
+
+router.get('/getdepositdata/:userid/:invoiceid', async (req, res) => {
+    try {
+    const userid = req.params.userid;
+    const invoiceid = req.params.invoiceid;
+    const depositdetail = await Deposit.find({userid: userid, invoiceid : invoiceid});
+    res.json(depositdetail.length > 0 ? depositdetail[depositdetail.length-1] : depositdetail);
+    } catch (error) {
+    console.error('Error fetching signupdetail:', error);
+    res.status(500).json({ message: 'Internal server error' });
+    }
+    });
+
 
     // Fetch signupdata from a signup
     router.get('/getsignupdata/:userid', async (req, res) => {

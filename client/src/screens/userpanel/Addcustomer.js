@@ -199,7 +199,7 @@ export default function Addcustomer() {
                               Phone Number
                             </label>
                             <input
-                              type="number"
+                              type="text"
                               name="number"
                               className="form-control"
                               onChange={onchange}
@@ -330,14 +330,14 @@ export default function Addcustomer() {
                         <div className="col-12 col-sm-6 col-lg-6">
                           <div className="mb-3">
                             <label htmlFor="post" className="form-label">
-                            Post
+                            Post Code
                             </label>
                             <input
                               type="text"
                               name="post"
                               onChange={onchange}
                               className="form-control"
-                              placeholder="post"
+                              placeholder="Post Code"
                               id="post"
                               required
                             />
@@ -350,7 +350,7 @@ export default function Addcustomer() {
                 <div className="row pt-4 pe-2">
                   <div className="col-3 me-auto"></div>
                   <div className="col-4 col-sm-2">
-                    <button className="btn btnclr text-white">Next</button>
+                    <button className="btn btnclr text-white">Add</button>
                   </div>
                 </div>
               </div>
