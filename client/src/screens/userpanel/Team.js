@@ -9,6 +9,7 @@ export default function Team() {
 
     const [teammembers, setTeammembers] = useState([]);
     const [selectedteammembers, setselectedteammembers] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const [ loading, setloading ] = useState(true);
     
     const navigate = useNavigate();
@@ -76,6 +77,11 @@ export default function Team() {
         }
     };
 
+     // Filtering function
+     const filteredTeamMembers = teammembers.filter(team =>
+        team.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
   return (
     <div className='bg'>
         <div className='container-fluid'>
@@ -121,6 +127,18 @@ export default function Team() {
                             </div>
                         </div><hr />
 
+                        <div className='row my-2'>
+                            <div className="col-lg-3 col-md-6 col-sm-6 col-12">
+                                <input
+                                    type="text"
+                                    className="form-control mb-2"
+                                    placeholder="Search by name"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
                         <div className="row px-2 table-responsive">
                             <table class="table table-bordered">
                                 <thead>
@@ -134,6 +152,31 @@ export default function Team() {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                            {filteredTeamMembers.map((team, index) => (
+                                                <tr key={index}>
+                                                    <th scope="row">{index + 1}</th>
+                                                    <td>{team.name}</td>
+                                                    <td>{team.email}</td>
+                                                    <td>{team.number}</td>
+                                                    <td className='text-center'>
+                                                        <a role="button" className='text-black text-center' onClick={() => handleTimeViewClick(team)}>
+                                                            <i className="fa-solid fa-eye"></i>
+                                                        </a>
+                                                    </td>
+                                                    <td>
+                                                        <div className="d-flex">
+                                                            <a role='button' className="btn btn-success btn-sm me-2 text-white" onClick={() => handleEditClick(team)}>
+                                                                <i className="fa-solid fa-pen"></i>
+                                                            </a>
+                                                            <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(team._id)}>
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                {/* <tbody>
                                         {teammembers.map((team, index) => (
                                             <tr key={index}>
                                                 <th scope="row">{index + 1}</th>
@@ -157,7 +200,7 @@ export default function Team() {
                                                 </td>
                                             </tr>
                                         ))}
-                                    </tbody>
+                                </tbody> */}
                             </table>
                         </div>
                     </div>

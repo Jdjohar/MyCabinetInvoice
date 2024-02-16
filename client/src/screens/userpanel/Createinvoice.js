@@ -1,4 +1,4 @@
-import React,{useState,useEffect} from 'react'
+import React,{useState,useEffect,useRef} from 'react'
 import { format } from 'date-fns';
 import {useNavigate} from 'react-router-dom'
 import { ColorRing } from  'react-loader-spinner'
@@ -13,6 +13,7 @@ import CurrencySign from '../../components/CurrencySign ';
 
 export default function Createinvoice() {
     const [ loading, setloading ] = useState(true);
+    const modalRef = useRef(null);
     const [customers, setcustomers] = useState([]);
     const [items, setitems] = useState([]);
     const [searchcustomerResults, setSearchcustomerResults] = useState([]);
@@ -25,6 +26,8 @@ export default function Createinvoice() {
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
         name: '', email: ''});
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
+    const [editedName, setEditedName] = useState('');
+    const [editedEmail, setEditedEmail] = useState('');
     const [taxPercentage, setTaxPercentage] = useState(0);
     const [invoiceData, setInvoiceData] = useState({
         customername: '',itemname: '',customeremail: '',invoice_id: '', InvoiceNumber:'',purchaseorder: '',
@@ -161,6 +164,28 @@ export default function Createinvoice() {
         }
 
         setSearchcustomerResults([...searchcustomerResults, event]);
+    };
+
+    const handleNameChange = (event) => {
+        const selectedName = event.target.value;
+        const selectedCustomer = customers.find(customer => customer.name === selectedName);
+        if (selectedCustomer) {
+            setEditedName(selectedName);
+            setEditedEmail(selectedCustomer.email);
+        }
+    };
+
+    const handleEditCustomer = () => {
+        const updatedCustomerDetails = {
+            name: editedName,
+            email: editedEmail,
+        };
+        
+        setSelectedCustomerDetails({
+            name: editedName,
+            email: editedEmail
+        });
+        console.log("Updated customer details:", updatedCustomerDetails);
     };
     
     const calculateDiscountedAmount = (price, quantity, discount) => {
@@ -431,9 +456,9 @@ const onChangeDescription = (event, itemId) => {
                                         <div className="customerdetail p-3">
                                             <ul>
                                                 <li className='fw-bold fs-4'>{selectedCustomerDetails.name}</li>
-                                                {/* <li>
-                                                    <a href="" className='text-decoration-none'>Edit</a>
-                                                </li> */}
+                                                <li>
+                                                    <a href="" className='text-decoration-none'  data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</a>
+                                                </li>
                                             </ul>
                                             <p>{selectedCustomerDetails.email}</p>
                                         </div>
@@ -454,6 +479,7 @@ const onChangeDescription = (event, itemId) => {
                                             />
                                         </div>
                                     )}
+                                    
                                 </div>    
                                 <div className="col-lg-7 col-md-6">
                                     <div className="row">
@@ -763,7 +789,79 @@ const onChangeDescription = (event, itemId) => {
                 </div>
             </div>
         </div>
+
+
+        
 }
+
+{/* <form action="">
+  <div class="modal fade" id="exampleModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+    <div class="modal-dialog modal-lg">
+      <div class="modal-content">
+        <div class="modal-header">
+          <h1 class="modal-title fs-5" id="exampleModalLabel">Mark paid</h1>
+          <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+        </div>
+        <div class="modal-body">
+            <div class="mb-3">
+            <div className="search-container forms">
+                                            <p className='fs-20 mb-0'>Select Customers</p>
+                                            <VirtualizedSelect
+                                                id="searchitems" 
+                                                name="customername"
+                                                className="form-control zindex op pl-0"
+                                                placeholder="" 
+                                                onChange={onChangecustomer}
+                                                required
+                                                options={ customers.map((customer,index)=>
+                                                    ({label: customer.name, value: customer._id})
+            
+                                                )}
+                                            />
+                </div>
+            </div>
+        </div>
+        <div class="modal-footer">
+          <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
+          <a className='greenclr ms-2 text-decoration-none pointer' >Edit Customer</a>
+        </div>
+      </div>
+    </div>
+  </div>
+</form> */}
+
+<form action="">
+            <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                <div className="modal-dialog modal-lg">
+                    <div className="modal-content">
+                        <div className="modal-header">
+                            <h1 className="modal-title fs-5" id="exampleModalLabel">Edit Customer</h1>
+                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                        </div>
+                        <div className="modal-body">
+                            <div className="mb-3">
+                                <label htmlFor="customerName" className="form-label">Name</label>
+                                <select className="form-control" id="customerName" value={editedName} onChange={handleNameChange}>
+                                    <option value="" disabled>Select Name</option>
+                                    {customers.map(customer => (
+                                        <option key={customer._id} value={customer.name}>{customer.name}</option>
+                                    ))}
+                                </select>
+                            </div>
+                            <div className="mb-3">
+                                <label htmlFor="customerEmail" className="form-label">Email</label>
+                                <input type="email" className="form-control" id="customerEmail" value={editedEmail} onChange={(e) => setEditedEmail(e.target.value)} />
+                            </div>
+                        </div>
+                        <div className="modal-footer">
+                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                            <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={handleEditCustomer}>Save changes</button>
+                        </div>
+                    </div>
+                </div>
+            </div>
+        </form>
+
     </div>
   )
 }

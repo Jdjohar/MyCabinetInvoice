@@ -11,6 +11,7 @@ export default function Customerlist() {
     const [ loading, setloading ] = useState(true);
     const [customers, setcustomers] = useState([]);
     const [selectedcustomers, setselectedcustomers] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -75,6 +76,11 @@ export default function Customerlist() {
         }
     };
 
+    // Filtering function
+    const filteredCustomers = customers.filter(customer =>
+        customer.name.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
   return (
     <div className='bg'>
     {
@@ -119,6 +125,18 @@ export default function Customerlist() {
                             </div>
                         </div><hr />
 
+                        <div className='row my-2'>
+                            <div className="col-lg-3 col-md-6 col-sm-6 col-12">
+                                <input
+                                    type="text"
+                                    className="form-control mb-2"
+                                    placeholder="Search by name"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
                         <div className="row px-2 table-responsive">
                             <table class="table table-bordered">
                                 <thead>
@@ -132,6 +150,27 @@ export default function Customerlist() {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                {filteredCustomers.map((customer, index) => (
+                                    <tr key={index}>
+                                        <th scope="row">{index + 1}</th>
+                                        <td>{customer.name}</td>
+                                        <td>{customer.email}</td>
+                                        <td>{formatDate(customer.createdAt)}</td>
+                                        <td>{customer.number}</td>
+                                        <td>
+                                            <div className="d-flex">
+                                                <a role='button' className="btn btn-success btn-sm me-2 text-white" onClick={() => handleEditClick(customer)}>
+                                                    <i className="fa-solid fa-pen"></i>
+                                                </a>
+                                                <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(customer._id)}>
+                                                    <i className="fas fa-trash"></i>
+                                                </button>
+                                            </div>
+                                        </td>
+                                    </tr>
+                                ))}
+                            </tbody>
+                                {/* <tbody>
                                         {customers.map((customer, index) => (
                                             <tr key={index}>
                                                 <th scope="row">{index + 1}</th>
@@ -151,7 +190,7 @@ export default function Customerlist() {
                                                 </td>
                                             </tr>
                                         ))}
-                                    </tbody>
+                                    </tbody> */}
                             </table>
                         </div>
                     </div>

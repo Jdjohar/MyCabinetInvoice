@@ -10,6 +10,7 @@ export default function Itemlist() {
     const [ loading, setloading ] = useState(true);
     const [items, setitems] = useState([]);
     const [selecteditems, setselecteditems] = useState(null);
+    const [searchQuery, setSearchQuery] = useState('');
     const navigate = useNavigate();
 
     useEffect(() => {
@@ -69,6 +70,11 @@ export default function Itemlist() {
         }
     };
 
+    // Filtering function
+    const filteredItems = items.filter(item =>
+        item.itemname.toLowerCase().includes(searchQuery.toLowerCase())
+    );
+
   return (
     <div className='bg'>
     {
@@ -113,6 +119,18 @@ export default function Itemlist() {
                             </div>
                         </div><hr />
 
+                        <div className='row my-2'>
+                            <div className="col-lg-3 col-md-6 col-sm-6 col-12">
+                                <input
+                                    type="text"
+                                    className="form-control mb-2"
+                                    placeholder="Search by name"
+                                    value={searchQuery}
+                                    onChange={(e) => setSearchQuery(e.target.value)}
+                                />
+                            </div>
+                        </div>
+
                         <div className="row px-2 table-responsive">
                             <table class="table table-bordered">
                                 <thead>
@@ -125,6 +143,26 @@ export default function Itemlist() {
                                     </tr>
                                 </thead>
                                 <tbody>
+                                            {filteredItems.map((item, index) => (
+                                                <tr key={index}>
+                                                    <th scope="row">{index + 1}</th>
+                                                    <td>{item.itemname}</td>
+                                                    <td><CurrencySign />{item.price}</td>
+                                                    <td>{formatDate(item.createdAt)}</td>
+                                                    <td>
+                                                        <div className="d-flex">
+                                                            <a role='button' className="btn btn-success btn-sm me-2 text-white" onClick={() => handleEditClick(item)}>
+                                                                <i className="fa-solid fa-pen"></i>
+                                                            </a>
+                                                            <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item._id)}>
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </td>
+                                                </tr>
+                                            ))}
+                                        </tbody>
+                                {/* <tbody>
                                         {items.map((item, index) => (
                                             <tr key={index}>
                                                 <th scope="row">{index + 1}</th>
@@ -143,7 +181,7 @@ export default function Itemlist() {
                                                 </td>
                                             </tr>
                                         ))}
-                                    </tbody>
+                                </tbody> */}
                             </table>
                         </div>
                     </div>
