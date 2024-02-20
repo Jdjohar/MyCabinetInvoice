@@ -114,7 +114,7 @@ export default function Estimatedetail() {
     return date.toLocaleDateString('en-US', options);
   };
 
-  const handlePrintContent = () => {
+  const handlePrintContent = async () => {
   const content = document.getElementById('invoiceContent').innerHTML;
   const printWindow = window.open('', '_blank');
   printWindow.document.open();
@@ -226,6 +226,10 @@ export default function Estimatedetail() {
           text-align:right;
         }
 
+        .right{
+          text-align:right;
+        }
+
         .padding{
           padding:20px
         }
@@ -239,6 +243,9 @@ export default function Estimatedetail() {
           margin-right:100px;
         }
 
+        .logoimage{
+          width:25%;
+        }
 
         </style>
       </head>
@@ -250,8 +257,12 @@ export default function Estimatedetail() {
     </html>
   `);
   printWindow.document.close();
+  await timeout(1000);
   printWindow.print();
 };
+function timeout(delay) {
+  return new Promise( res => setTimeout(res, delay) );
+}
 
 const handleEditContent = (estimateData) => {
         setselectedinvoices(estimateData);
@@ -450,10 +461,14 @@ const handleRemove = async (estimateid) => {
                                 <div className='box1 rounded adminborder mb-5 pb-5'>
                                     <div className='row pt-30 py-5 px-3'>
                                         <div className="col-6">
+                                          {signupdata.companyImageUrl !== "" ?
+                                            <img src={`https://invoice-n96k.onrender.com/${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
+                                          }
+                                            {/* <p className='h4 fw-bold'>{signupdata.companyname}</p> */}
                                         </div>    
                                         <div className="col-6">
-                                            <div className="row text-end">
+                                            <div className="row text-end right">
                                                 <p className='h4 fw-bold'>Estimate</p>
                                                 <p className='fw-bold'>{signupdata.address}</p>
                                                 <p className='fw-bold'>{signupdata.email}</p>
@@ -473,10 +488,12 @@ const handleRemove = async (estimateid) => {
                                               <div className='col-6  fw-bold'>
                                                   <p className='pt-3'>Invoice #</p>
                                                   <p className='my-0'>Date</p>
+                                                  <p className='pt-3'>Job</p>
                                               </div>
                                               <div className='col-6'>
                                               <p className='pt-3'>{estimateData.EstimateNumber}</p>
                                               <p className='my-0'>{formatCustomDate(estimateData.date)}</p>
+                                              <p className='pt-3'>{estimateData.job}</p>
 
                                               </div>
                                               

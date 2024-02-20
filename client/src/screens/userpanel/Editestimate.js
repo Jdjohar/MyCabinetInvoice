@@ -239,9 +239,6 @@ export default function Editestimate() {
         }
     };
     
-    
-    
-
     const calculateDiscountedAmount = (price, quantity, discount) => {
         const totalAmount = price * quantity;
         const discountedAmount = totalAmount - Math.max(discount, 0); // Ensure discount is not negative
@@ -507,6 +504,23 @@ export default function Editestimate() {
                                                 onChange={onchange}
                                                 // placeholder="Date"
                                                 id="Date"
+                                                required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-6">
+                                            <div className="mb-3">
+                                                <label htmlFor="job" className="form-label">
+                                                Job
+                                                </label>
+                                                <input
+                                                type="text"
+                                                name="job"
+                                                className="form-control"
+                                                value={estimateData.job} 
+                                                onChange={onchange}
+                                                // placeholder="Date"
+                                                id="job"
                                                 required
                                                 />
                                             </div>

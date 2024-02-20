@@ -4,6 +4,7 @@ const port = 3001
 const mongoDB = require("./db")
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
+var path = require('path');
 mongoDB();
 
 // Set maximum payload size limit
@@ -21,6 +22,7 @@ app.use((req,res,next)=>{
 })
 
 
+app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
 
 app.get('/', (req, res) => {
   res.send('Hello World!')

@@ -30,7 +30,7 @@ export default function Createestimate() {
     const [taxPercentage, setTaxPercentage] = useState(0);
     const [estimateData, setestimateData] = useState({
         customername: '',itemname: '',customeremail: '',estimate_id: '', EstimateNumber:'',purchaseorder: '',
-        date: '',description: '',itemquantity: '', price: '',discount: '',
+        job: '',date: '',description: '',itemquantity: '', price: '',discount: '',
         amount: '',tax: '',taxpercentage:'',subtotal: '',total: '',amountdue: '',information: '',
     });
     const [editorData, setEditorData] = useState("<p></p>");
@@ -301,6 +301,7 @@ const handleSubmit = async (e) => {
         estimate_id: estimateData.estimate_id, 
         EstimateNumber: estimateData.EstimateNumber, 
         purchaseorder: estimateData.purchaseorder,
+        job: estimateData.job,
         information: editorData, 
         date: estimateData.date,
         items: estimateItems, 
@@ -525,6 +526,23 @@ const onChangeDescription = (event, itemId) => {
                                                 onChange={onchange}
                                                 // placeholder="Date"
                                                 id="Date"
+                                                required
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6">
+                                            <div className="mb-3">
+                                                <label htmlFor="Job" className="form-label">
+                                                Job
+                                                </label>
+                                                <input
+                                                type="text"
+                                                name="job"
+                                                className="form-control"
+                                                value={estimateData.job} 
+                                                onChange={onchange}
+                                                // placeholder="Date"
+                                                id="job"
                                                 required
                                                 />
                                             </div>

@@ -26,6 +26,9 @@ const UserSchema = new Schema({
       address: {
         type: String,
       },
+      companyImageUrl: {
+          type: String // Store the file path of the profile image
+      },
       resetPasswordToken: String,
 });
 

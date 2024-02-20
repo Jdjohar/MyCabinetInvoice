@@ -139,6 +139,7 @@ export default function Estimate() {
                         <td>
                           <p className='my-0 fw-bold clrtrxtstatus'>{estimate.customername}</p>
                           <p className='my-0'>{estimate.EstimateNumber}</p>
+                          <p className='my-0'>{estimate.job}</p>
                         </td>
                         <td>
                           <span className='clrtrxtstatus'>

@@ -87,6 +87,11 @@ export default function Usernavbar() {
                         <i class="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
                       </Link>
                     </li>
+                    <li>
+                      <Link to="/userpanel/Editprofile" className='nav-link scrollto icones text-black' >
+                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Profile</span>
+                      </Link>
+                    </li>
                     
                       <li>
                         <a onClick={handleLogout} className=" pointer nav-link scrollto icones text-black">

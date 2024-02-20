@@ -12,14 +12,29 @@ export default function SignUp() {
         LastName: "", 
         email: "",
         password: "",
-        address: "" 
+        address: "",
+        companyImageUrl: null
     })
+    
+  const [addedCompanyPhotos, setCompanyAddedPhotos] = useState([]);
     const [message, setmessage] = useState(false);
     const [alertshow, setalertshow] = useState('');
     let navigate = useNavigate();
 
     const handleSubmit = async (e) => {
         e.preventDefault();
+
+        // Get cover image
+        const companyFormData = new FormData();
+        companyFormData.append('companyImage', addedCompanyPhotos);
+
+        const companyUploadResponse = await fetch("https://invoice-n96k.onrender.com/api/upload-image", {
+        method: 'POST',
+        body: companyFormData,
+        });
+        const uploadedCompanyImage = await companyUploadResponse.json();
+        console.log('Uploaded company image:', uploadedCompanyImage);
+        const companyImageUrl = uploadedCompanyImage.companyImageUrl || '';
     
         const response = await fetch("https://invoice-n96k.onrender.com/api/createuser", {
           method: 'POST',
@@ -34,7 +49,8 @@ export default function SignUp() {
             CurrencyType: credentails.CurrencyType, 
             FirstName: credentails.FirstName, 
             LastName: credentails.LastName, 
-            address: credentails.address 
+            address: credentails.address ,
+            companyImageUrl: companyImageUrl,
         })
         });
     
@@ -72,6 +88,12 @@ export default function SignUp() {
     setcredentails({ ...credentails, [name]: value });
     localStorage.setItem("currencyType", value); // Store currency type in local storage
     };
+
+    const handleImageChange = (e) => {
+        const file = e.target.files[0];
+        setcredentails({ ...credentails, companyLogoImage: file });
+    };
+
   return (
     <div className='container py-4'>
         <h1 className='text-center mb-5 fw-bold'>IN<span className='clrblue'>VOICE</span></h1>
@@ -82,6 +104,12 @@ export default function SignUp() {
                 <p className='h4 fw-bold'>Sign Up</p>
 
                 <div className="row">
+                    <div className="col-12 col-md-6 col-sm-6 col-lg-6">
+                        <div className='mb-3'>
+                        <label className='form-label'>Choose Company Image</label>
+                        <input type="file" onChange={(e) => setCompanyAddedPhotos(e.target.files[0])}/>
+                        </div>
+                    </div>
                     <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                         <div class="form-group pt-3">
                             <label class="label py-2" for="company_name">Company name</label>

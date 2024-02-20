@@ -562,7 +562,7 @@ export default function Invoicedetail() {
     }
   };
 
-  const handlePrintContent = () => {
+  const handlePrintContent = async () => {
   const content = document.getElementById('invoiceContent').innerHTML;
   const printWindow = window.open('', '_blank');
   printWindow.document.open();
@@ -648,6 +648,10 @@ export default function Invoicedetail() {
           text-align:center;
         }
 
+        .logoimage{
+          width:25%;
+        }
+
         .detailbg{
           background-color: #f0f3f4 !important;
         }
@@ -661,6 +665,10 @@ export default function Invoicedetail() {
         }
 
         .text-right{
+          text-align:right;
+        }
+
+        .right{
           text-align:right;
         }
 
@@ -695,9 +703,20 @@ export default function Invoicedetail() {
       </body>
     </html>
   `);
+
+   // Loop through all images and set their src attribute to ensure they are accessible
+  //  const images = content.getElementsByTagName('img');
+  //  for (let i = 0; i < images.length; i++) {
+  //    const imageUrl = images[i].getAttribute('src');
+  //    images[i].setAttribute('src', `https://invoice-n96k.onrender.com/${signupdata.companyImageUrl}`); // Assuming your images are served from this URL
+  //  }
   printWindow.document.close();
+  await timeout(1000);
   printWindow.print();
 };
+function timeout(delay) {
+  return new Promise( res => setTimeout(res, delay) );
+}
 
 const handleEditContent = (invoiceData) => {
     const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
@@ -1142,10 +1161,14 @@ const convertToPdf = () => {
                                 <div className='box1 rounded adminborder mb-5 pb-5'>
                                     <div className='row pt-30 py-5 px-3'>
                                         <div className="col-6">
+                                          {signupdata.companyImageUrl !== "" ?
+                                            <img src={`https://invoice-n96k.onrender.com/${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
+                                          }
+                                            {/* <p className='h4 fw-bold'>{signupdata.companyname}</p> */}
                                         </div>    
                                         <div className="col-6">
-                                            <div className="row text-end">
+                                            <div className="row text-end right">
                                                 <p className='h4 fw-bold'>Invoice</p>
                                                 <p className='fw-bold'>{signupdata.address}</p>
                                                 <p className='fw-bold'>{signupdata.email}</p>

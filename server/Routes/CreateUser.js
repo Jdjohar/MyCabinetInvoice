@@ -24,6 +24,8 @@ const Deposit = require('../models/Deposit');
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
+const multer = require('multer');
+const path = require('path');
 
 const getCurrencySign = (currencyType) => {
     switch (currencyType) {
@@ -319,6 +321,26 @@ router.get('/dashboard/:userid', async (req, res) => {
     }
 });
 
+const storage = multer.diskStorage({
+    destination: function (req, file, cb) {
+        cb(null, 'uploads/') // Save files to the 'uploads' directory
+    },
+    filename: function (req, file, cb) {
+        cb(null, file.fieldname + '-' + Date.now() + path.extname(file.originalname))
+    }
+});
+const upload = multer({ storage: storage });
+
+router.post('/upload-image', upload.single('companyImage'), (req, res) => {
+    try {
+      const companyImageUrl = req.file.path; 
+      res.json({ Success: true, companyImageUrl });
+    } catch (error) {
+      console.error('Error uploading company image:', error);
+      res.status(500).json({ Success: false, error: 'Failed to upload company image' });
+    }
+  });
+
 router.post("/createuser", [
     body('email').isEmail(),
     body('companyname').isLength(),
@@ -365,6 +387,7 @@ router.post("/createuser", [
                 password: secPassword,
                 email: req.body.email,
                 address: req.body.address,
+                companyImageUrl: req.body.companyImageUrl,
             });
 
             sendWelcomeEmail(req.body.email, req.body.FirstName, true);
@@ -1885,6 +1908,38 @@ router.get('/customers/:userid', async (req, res) => {
             res.status(500).json({
                 Success: false,
                 message: "Failed to update Customerdata"
+            });
+        }
+    });
+    
+    router.post('/updatesignupdatadata/:userid', upload.single('companyImageUrl'), async (req, res) => {
+        try {
+            const userid = req.params.userid; // Fix here
+            const updatedsignupdata = req.body;
+            
+            if (req.file) {
+                updatedsignupdata.companyImageUrl = req.file.path;
+            }
+        
+            const result = await User.findByIdAndUpdate(userid, updatedsignupdata, { new: true });
+        
+            if (result) {
+                res.json({
+                    Success: true,
+                    message: "Signupdata updated successfully",
+                    signupdata: result
+                });
+            } else {
+                res.status(404).json({
+                    Success: false,
+                    message: "Signupdata not found"
+                });
+            }
+        } catch (error) {
+            console.error("Error updating Signupdata:", error);
+            res.status(500).json({
+                Success: false,
+                message: "Failed to update Signupdata"
             });
         }
     });
