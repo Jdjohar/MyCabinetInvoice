@@ -11,6 +11,12 @@ export default function Login() {
   const [alertShow, setAlertShow] = useState("");
 
   let navigate = useNavigate();
+
+  useEffect(()=> {
+    if(localStorage.getItem('authToken')){
+      navigate("/userpanel/Userdashboard");
+    }
+  })
 //   const handleSubmit = async(e) => {
 //     e.preventDefault();
 //     setloginbtnloader(true);
