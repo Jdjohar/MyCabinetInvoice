@@ -6,7 +6,7 @@ export default function ForgotPassword() {
 
   const handleResetPassword = async () => {
     try {
-      const response = await fetch('https://invoice-n96k.onrender.com/api/forgot-password', {
+      const response = await fetch('https://mycabinet.onrender.comapi/forgot-password', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json'

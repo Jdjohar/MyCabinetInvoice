@@ -40,7 +40,7 @@ export default function Team() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/teammemberdata/${userid}`);
+            const response = await fetch(`https://mycabinet.onrender.comapi/teammemberdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -61,7 +61,7 @@ export default function Team() {
 
     const handleDeleteClick = async (teamid) => {
         try {
-            const response = await fetch(`https://invoice-n96k.onrender.com/api/delteammember/${teamid}`, {
+            const response = await fetch(`https://mycabinet.onrender.comapi/delteammember/${teamid}`, {
                 method: 'GET'
             });
     
