@@ -28,7 +28,7 @@ export default function SignUp() {
         const companyFormData = new FormData();
         companyFormData.append('companyImage', addedCompanyPhotos);
 
-        const companyUploadResponse = await fetch("https://mycabinet.onrender.comapi/upload-image", {
+        const companyUploadResponse = await fetch("https://mycabinet.onrender.com/api/upload-image", {
         method: 'POST',
         body: companyFormData,
         });
@@ -36,7 +36,7 @@ export default function SignUp() {
         console.log('Uploaded company image:', uploadedCompanyImage);
         const companyImageUrl = uploadedCompanyImage.companyImageUrl || '';
     
-        const response = await fetch("https://mycabinet.onrender.comapi/createuser", {
+        const response = await fetch("https://mycabinet.onrender.com/api/createuser", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'

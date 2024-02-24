@@ -20,7 +20,7 @@ export default function Editprofile() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.comapi/getsignupdata/${userid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -49,7 +49,7 @@ export default function Editprofile() {
                 formData.append(key, value);
             });
 
-            const response = await fetch(`https://mycabinet.onrender.comapi/updatesignupdatadata/${userid}`, {
+            const response = await fetch(`https://mycabinet.onrender.com/api/updatesignupdatadata/${userid}`, {
                 method: 'POST',
                 body: formData,
             });
@@ -72,7 +72,7 @@ export default function Editprofile() {
     //         const updatedsignupdata = {
     //             ...signupdata
     //         };
-    //         const response = await fetch(`https://mycabinet.onrender.comapi/updatesignupdatadata/${userid}`, {
+    //         const response = await fetch(`https://mycabinet.onrender.com/api/updatesignupdatadata/${userid}`, {
     //             method: 'POST',
     //             headers: {
     //                 'Content-Type': 'application/json'
@@ -118,7 +118,7 @@ export default function Editprofile() {
                                             <div class="form-group pt-3">
                                                 <label class="label py-2" for="company_image">Choose Company Image</label><br />
                                                 <input type="file" name="companyImageUrl" onChange={handleInputChange} /> 
-                                                <img src={`https://mycabinet.onrender.com${signupdata.companyImageUrl}`} className='w-25'  alt=""  />
+                                                <img src={`https://mycabinet.onrender.com/${signupdata.companyImageUrl}`} className='w-25'  alt=""  />
                                            </div>
                                         </div>
 

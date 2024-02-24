@@ -193,7 +193,7 @@ export default function Invoicedetail() {
       };
 
       try {
-        const response = await fetch('https://mycabinet.onrender.comapi/addpayment', {
+        const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -258,7 +258,7 @@ export default function Invoicedetail() {
       try {
         if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
           // If savedDepositData exists and has an ID, update the existing record
-          const response = await fetch(`https://mycabinet.onrender.comapi/updatedeposit/${savedDepositData._id}`, {
+          const response = await fetch(`https://mycabinet.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -277,7 +277,7 @@ export default function Invoicedetail() {
       
           if (data.Success) {
             console.log('Deposit updated successfully:', data.deposit);
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.comapi/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             // You may update the state here if required
@@ -286,7 +286,7 @@ export default function Invoicedetail() {
           }
         } else {
           // If savedDepositData is empty or does not have an ID, add a new record
-          const response = await fetch('https://mycabinet.onrender.comapi/deposit', {
+          const response = await fetch('https://mycabinet.onrender.com/api/deposit', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -304,7 +304,7 @@ export default function Invoicedetail() {
           const data = await response.json();
       
           if (data.success) {
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.comapi/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             console.log('New deposit added successfully:', data.deposit);
@@ -324,7 +324,7 @@ export default function Invoicedetail() {
       try {
         if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
           // If savedDepositData exists and has an ID, update the existing record
-          const response = await fetch(`https://mycabinet.onrender.comapi/updatedeposit/${savedDepositData._id}`, {
+          const response = await fetch(`https://mycabinet.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -343,7 +343,7 @@ export default function Invoicedetail() {
       
           if (data.Success) {
             console.log('Deposit updated successfully:', data.deposit);
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.comapi/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             setShowSendEmailModal(true);
@@ -353,7 +353,7 @@ export default function Invoicedetail() {
           }
         } else {
           // If savedDepositData is empty or does not have an ID, add a new record
-          const response = await fetch('https://mycabinet.onrender.comapi/deposit', {
+          const response = await fetch('https://mycabinet.onrender.com/api/deposit', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -371,7 +371,7 @@ export default function Invoicedetail() {
           const data = await response.json();
       
           if (data.success) {
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.comapi/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             console.log('New deposit added successfully:', data.deposit);
@@ -400,7 +400,7 @@ export default function Invoicedetail() {
     const fetchinvoicedata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.comapi/getinvoicedata/${invoiceid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/getinvoicedata/${invoiceid}`);
             const json = await response.json();
             
             setInvoiceData(json);
@@ -415,7 +415,7 @@ export default function Invoicedetail() {
     const fetchdepositdata = async () => {
         try {
           const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.comapi/getdepositdata/${userid}/${invoiceid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/getdepositdata/${userid}/${invoiceid}`);
             const json = await response.json();
             
             setsavedDepositData(json);
@@ -427,7 +427,7 @@ export default function Invoicedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.comapi/gettransactiondata/${invoiceid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoiceid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -448,7 +448,7 @@ export default function Invoicedetail() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.comapi/getsignupdata/${userid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -518,7 +518,7 @@ export default function Invoicedetail() {
     setexceedpaymenterror("");
   }
     try {
-      const response = await fetch('https://mycabinet.onrender.comapi/addpayment', {
+      const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -708,7 +708,7 @@ export default function Invoicedetail() {
   //  const images = content.getElementsByTagName('img');
   //  for (let i = 0; i < images.length; i++) {
   //    const imageUrl = images[i].getAttribute('src');
-  //    images[i].setAttribute('src', `https://mycabinet.onrender.com${signupdata.companyImageUrl}`); // Assuming your images are served from this URL
+  //    images[i].setAttribute('src', `https://mycabinet.onrender.com/${signupdata.companyImageUrl}`); // Assuming your images are served from this URL
   //  }
   printWindow.document.close();
   await timeout(1000);
@@ -735,7 +735,7 @@ const handleEditContent = (invoiceData) => {
 
 // const handleRemove = async (invoiceid) => {
 //     try {
-//       const response = await fetch(`https://mycabinet.onrender.comapi/removeData/${invoiceid}`, {
+//       const response = await fetch(`https://mycabinet.onrender.com/api/removeData/${invoiceid}`, {
 //         method: 'GET',
 //         // Add any required headers or authentication tokens
 //       });
@@ -757,7 +757,7 @@ const handleEditContent = (invoiceData) => {
 
 const handleRemove = async (invoiceid) => {
     try {
-      const response = await fetch(`https://mycabinet.onrender.comapi/deldata/${invoiceid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/deldata/${invoiceid}`, {
         method: 'GET'
       });
   
@@ -816,7 +816,7 @@ const handleFormSubmit = async (event) => {
     const contentAsPdf = await generatePdfFromHtml();
     try {
       const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
-      const response = await fetch('https://mycabinet.onrender.comapi/send-invoice-email', {
+      const response = await fetch('https://mycabinet.onrender.com/api/send-invoice-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -853,7 +853,7 @@ const handleDepositFormSubmit = async (event) => {
     const contentAsPdf = await generatePdfFromHtml();
     try {
       const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
-      const response = await fetch('https://mycabinet.onrender.comapi/send-deposit-email', {
+      const response = await fetch('https://mycabinet.onrender.com/api/send-deposit-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1162,7 +1162,7 @@ const convertToPdf = () => {
                                     <div className='row pt-30 py-5 px-3'>
                                         <div className="col-6">
                                           {signupdata.companyImageUrl !== "" ?
-                                            <img src={`https://mycabinet.onrender.com${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
+                                            <img src={`https://mycabinet.onrender.com/${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
                                           }
                                             {/* <p className='h4 fw-bold'>{signupdata.companyname}</p> */}
