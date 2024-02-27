@@ -60,7 +60,7 @@ export default function Estimatedetail() {
     const fetchestimateData = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/getestimatedata/${estimateid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/getestimatedata/${estimateid}`);
             const json = await response.json();
             
             setestimateData(json);
@@ -75,7 +75,7 @@ export default function Estimatedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/gettransactiondata/${estimateid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${estimateid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -96,7 +96,7 @@ export default function Estimatedetail() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
+            const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -273,7 +273,7 @@ const handleEditContent = (estimateData) => {
 
 const handleRemove = async (estimateid) => {
     try {
-      const response = await fetch(`http://localhost:3001/api/delestimatedata/${estimateid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/delestimatedata/${estimateid}`, {
         method: 'GET'
       });
   
@@ -309,7 +309,7 @@ const handleRemove = async (estimateid) => {
       const contentAsPdf = await generatePdfFromHtml();
       try {
         const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
-        const response = await fetch('http://localhost:3001/api/send-estimate-email', {
+        const response = await fetch('https://mycabinet.onrender.com/api/send-estimate-email', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -462,7 +462,7 @@ const handleRemove = async (estimateid) => {
                                     <div className='row pt-30 py-5 px-3'>
                                         <div className="col-6">
                                           {signupdata.companyImageUrl !== "" ?
-                                            <img src={`http://localhost:3001/${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
+                                            <img src={`https://mycabinet.onrender.com/${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
                                           }
                                             {/* <p className='h4 fw-bold'>{signupdata.companyname}</p> */}
