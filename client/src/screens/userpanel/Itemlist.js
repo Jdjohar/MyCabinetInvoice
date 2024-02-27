@@ -28,7 +28,7 @@ export default function Itemlist() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -54,7 +54,7 @@ export default function Itemlist() {
 
     const handleDeleteClick = async (itemId) => {
         try {
-            const response = await fetch(`https://mycabinet.onrender.com/api/delitem/${itemId}`, {
+            const response = await fetch(`http://localhost:3001/api/delitem/${itemId}`, {
                 method: 'GET'
             });
     

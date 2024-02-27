@@ -17,10 +17,61 @@ export default function Editprofile() {
         fetchsignupdata();
     },[])
 
+    const imageupload = async () => {
+
+        const data = new FormData();
+      
+        if (!imageFile) {
+          alert("No image selected.")
+          throw new Error("No image selected.");
+        }
+      // Check the file type
+      const allowedTypes = ["image/png", "image/jpeg"];
+      if (!allowedTypes.includes(imageFile.type)) {
+        alert("Invalid file type. Please select a PNG or JPG file.")
+        throw new Error("Invalid file type. Please select a PNG or JPG file.");
+      }
+      
+      // Check the file size (in bytes)
+      const maxSizeMB = 2; // Set the maximum file size in megabytes
+      const maxSizeBytes = maxSizeMB * 1024 * 1024;
+      if (imageFile.size > maxSizeBytes) {
+        alert(`File size exceeds the maximum limit of ${maxSizeMB} MB.`)
+        throw new Error(`File size exceeds the maximum limit of ${maxSizeMB} MB.`);
+      }
+      
+      data.append("file", imageFile);
+        data.append("upload_preset", "employeeApp");
+        data.append("cloud_name", "dxwge5g8f");
+      
+        try {
+          const cloudinaryResponse = await fetch(
+            "https://api.cloudinary.com/v1_1/dxwge5g8f/image/upload",
+            {
+              method: "post",
+              body: data,
+            }
+          );
+      
+          if (!cloudinaryResponse.ok) {
+            console.error("Error uploading image to Cloudinary:", cloudinaryResponse.statusText);
+            return;
+          }
+      
+          const cloudinaryData = await cloudinaryResponse.json();
+          console.log("Cloudinary URL:", cloudinaryData.url);
+      
+          return cloudinaryData.url;
+        } catch (error) {
+          console.error("Error uploading image to Cloudinary:", error.message);
+          return null;
+        }
+      };
+      
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -35,6 +86,7 @@ export default function Editprofile() {
         const { name, value, files } = event.target;
         if (files) {
             setImageFile(files[0]);
+            console.log(files[0], "");
         } else {
             setsignupdata({ ...signupdata, [name]: value });
         }
@@ -43,19 +95,25 @@ export default function Editprofile() {
     const handleSaveClick = async () => {
         try {
             const userid = localStorage.getItem("userid");
+            const imgurl = await imageupload();
+    
             const formData = new FormData();
-            formData.append("companyImageUrl", imageFile);
+            formData.append("companyImageUrl", imgurl);
+    
+            // Append other form data properties
             Object.entries(signupdata).forEach(([key, value]) => {
-                formData.append(key, value);
+                if (key !== "companyImageUrl") {
+                    formData.append(key, value);
+                }
             });
-
-            const response = await fetch(`https://mycabinet.onrender.com/api/updatesignupdatadata/${userid}`, {
+    
+            const response = await fetch(`http://localhost:3001/api/updatesignupdatadata/${userid}`, {
                 method: 'POST',
                 body: formData,
             });
-
+    
             const json = await response.json();
-
+    
             if (json.Success) {
                 navigate('/userpanel/Customerlist');
             } else {
@@ -65,14 +123,14 @@ export default function Editprofile() {
             console.error('Error updating Signupdata:', error);
         }
     };
-
+    
     // const handleSaveClick = async () => {
     //     try {
     //         const userid =  localStorage.getItem("userid");
     //         const updatedsignupdata = {
     //             ...signupdata
     //         };
-    //         const response = await fetch(`https://mycabinet.onrender.com/api/updatesignupdatadata/${userid}`, {
+    //         const response = await fetch(`http://localhost:3001/api/updatesignupdatadata/${userid}`, {
     //             method: 'POST',
     //             headers: {
     //                 'Content-Type': 'application/json'
@@ -112,13 +170,14 @@ export default function Editprofile() {
                             <form>
                                 <div className=' p-5 pb-4 mt-3'>
                                     <p className='h4 fw-bold'>Edit Profile</p>
+                                    {console.log(signupdata, "signupdata")}
 
                                     <div className="row">
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                                             <div class="form-group pt-3">
                                                 <label class="label py-2" for="company_image">Choose Company Image</label><br />
                                                 <input type="file" name="companyImageUrl" onChange={handleInputChange} /> 
-                                                <img src={`https://mycabinet.onrender.com/${signupdata.companyImageUrl}`} className='w-25'  alt=""  />
+                                                <img src={signupdata.companyImageUrl} className='w-25'  alt=""  />
                                            </div>
                                         </div>
 

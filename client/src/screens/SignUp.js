@@ -21,22 +21,79 @@ export default function SignUp() {
     const [alertshow, setalertshow] = useState('');
     let navigate = useNavigate();
 
+    const imageupload = async () => {
+
+        const data = new FormData();
+      
+        if (!addedCompanyPhotos) {
+          alert("No image selected.")
+          throw new Error("No image selected.");
+        }
+      // Check the file type
+      const allowedTypes = ["image/png", "image/jpeg"];
+      if (!allowedTypes.includes(addedCompanyPhotos.type)) {
+        alert("Invalid file type. Please select a PNG or JPG file.")
+        throw new Error("Invalid file type. Please select a PNG or JPG file.");
+      }
+      
+      // Check the file size (in bytes)
+      const maxSizeMB = 2; // Set the maximum file size in megabytes
+      const maxSizeBytes = maxSizeMB * 1024 * 1024;
+      if (addedCompanyPhotos.size > maxSizeBytes) {
+        alert(`File size exceeds the maximum limit of ${maxSizeMB} MB.`)
+        throw new Error(`File size exceeds the maximum limit of ${maxSizeMB} MB.`);
+      }
+      
+      data.append("file", addedCompanyPhotos);
+        data.append("upload_preset", "employeeApp");
+        data.append("cloud_name", "dxwge5g8f");
+      
+        try {
+          const cloudinaryResponse = await fetch(
+            "https://api.cloudinary.com/v1_1/dxwge5g8f/image/upload",
+            {
+              method: "post",
+              body: data,
+            }
+          );
+      
+          if (!cloudinaryResponse.ok) {
+            console.error("Error uploading image to Cloudinary:", cloudinaryResponse.statusText);
+            return;
+          }
+      
+          const cloudinaryData = await cloudinaryResponse.json();
+          console.log("Cloudinary URL:", cloudinaryData.url);
+      
+          return cloudinaryData.url;
+        } catch (error) {
+          console.error("Error uploading image to Cloudinary:", error.message);
+          return null;
+        }
+      };
+      
+
     const handleSubmit = async (e) => {
         e.preventDefault();
-
         // Get cover image
         const companyFormData = new FormData();
-        companyFormData.append('companyImage', addedCompanyPhotos);
+        const imgurl = await imageupload();
+        console.log("imgurl: ", imgurl);
+        
+        
+        companyFormData.append('companyImage', imgurl);
+        console.log("imgurl: ", companyFormData);
 
-        const companyUploadResponse = await fetch("https://mycabinet.onrender.com/api/upload-image", {
-        method: 'POST',
-        body: companyFormData,
-        });
-        const uploadedCompanyImage = await companyUploadResponse.json();
-        console.log('Uploaded company image:', uploadedCompanyImage);
-        const companyImageUrl = uploadedCompanyImage.companyImageUrl || '';
+
+        // const companyUploadResponse = await fetch("http://localhost:3001/api/upload-image", {
+        // method: 'POST',
+        // body: companyFormData,
+        // });
+        // const uploadedCompanyImage = await companyUploadResponse.json();
+        // console.log('Uploaded company image:', uploadedCompanyImage);
+        // const companyImageUrl = uploadedCompanyImage.companyImageUrl || '';
     
-        const response = await fetch("https://mycabinet.onrender.com/api/createuser", {
+        const response = await fetch("http://localhost:3001/api/createuser", {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json'
@@ -50,7 +107,7 @@ export default function SignUp() {
             FirstName: credentails.FirstName, 
             LastName: credentails.LastName, 
             address: credentails.address ,
-            companyImageUrl: companyImageUrl,
+            companyImageUrl: imgurl,
         })
         });
     
@@ -107,7 +164,11 @@ export default function SignUp() {
                     <div className="col-12 col-md-6 col-sm-6 col-lg-6">
                         <div className='mb-3'>
                         <label className='form-label'>Choose Company Image</label>
-                        <input type="file" onChange={(e) => setCompanyAddedPhotos(e.target.files[0])}/>
+                        <input 
+                        type="file" 
+                        onChange={(e) => setCompanyAddedPhotos(e.target.files[0])}
+                        
+                        />
                         </div>
                     </div>
                     <div className="col-12 col-sm-12 col-md-6 col-lg-6">

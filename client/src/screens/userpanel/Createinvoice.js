@@ -28,7 +28,7 @@ export default function Createinvoice() {
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
     const [editedName, setEditedName] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
-    const [taxPercentage, setTaxPercentage] = useState(0);
+    const [taxPercentage, setTaxPercentage] = useState(10);
     const [invoiceData, setInvoiceData] = useState({
         customername: '',itemname: '',customeremail: '',invoice_id: '', InvoiceNumber:'',purchaseorder: '',
         date: '',duedate: '',description: '',itemquantity: '', price: '',discount: '',
@@ -54,7 +54,7 @@ export default function Createinvoice() {
     const fetchLastInvoiceNumber = async () => {
         try {
             const userid = localStorage.getItem('userid');
-            const response = await fetch(`https://mycabinet.onrender.com/api/lastinvoicenumber/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/lastinvoicenumber/${userid}`);
             const json = await response.json();
     
             // let nextInvoiceNumber = 1;
@@ -75,7 +75,7 @@ export default function Createinvoice() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/customers/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -89,7 +89,7 @@ export default function Createinvoice() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/itemdata/${userid}`);
             const json = await response.json();
             
             if (Array.isArray(json)) {
@@ -321,7 +321,7 @@ const handleSubmit = async (e) => {
   
   
       // Sending invoice data to the backend API
-      const response = await fetch('https://mycabinet.onrender.com/api/savecreateinvoice', {
+      const response = await fetch('http://localhost:3001/api/savecreateinvoice', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -707,7 +707,7 @@ const onChangeDescription = (event, itemId) => {
             <div className="row">
                 <div className="col-6 col-md-3">
                     <p>Subtotal</p>
-                    <p>Tax</p>
+                    <p>Gst</p>
                     <p className='pt-3'>Tax {taxPercentage}%</p>
                     <p>Total</p>
                 </div>

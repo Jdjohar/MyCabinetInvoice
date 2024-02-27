@@ -45,7 +45,7 @@ export default function Addcustomer() {
   const handleSubmit = async (e) => {
     e.preventDefault();
     let userid = localStorage.getItem('userid');
-    const response = await fetch('https://mycabinet.onrender.com/api/addcustomer', {
+    const response = await fetch('http://localhost:3001/api/addcustomer', {
       method: 'POST',
       headers: {
         'Content-Type': 'application/json',
@@ -222,7 +222,7 @@ export default function Addcustomer() {
                               onChange={onchange}
                               placeholder="Information"
                               id="information"
-                              required
+                              
                             />
                           </div>
                         </div>
@@ -239,7 +239,7 @@ export default function Addcustomer() {
                               className="form-control"
                               placeholder="Address 1"
                               id="Address1"
-                              required
+                              
                             />
                           </div>
                         </div>
@@ -256,7 +256,7 @@ export default function Addcustomer() {
                               className="form-control"
                               placeholder="Address 2"
                               id="Address2"
-                              required
+                              
                             />
                           </div>
                         </div>
@@ -339,7 +339,7 @@ export default function Addcustomer() {
                               className="form-control"
                               placeholder="Post Code"
                               id="post"
-                              required
+                           
                             />
                           </div>
                         </div>

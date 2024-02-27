@@ -143,17 +143,6 @@ export default function Invoicedetail() {
       }
     }, [invoiceData.customeremail]);
 
-    // useEffect(() => {
-    //   const storedAmount = localStorage.getItem('amount');
-    //   if (storedAmount) {
-    //     setAmount(storedAmount);
-    //   }
-    // }, []);
-  
-    // useEffect(() => {
-    //   localStorage.setItem('amount', amount);
-    // }, [amount]);
-
     let navigate = useNavigate();
 
     const roundOff = (amount) => {
@@ -193,7 +182,7 @@ export default function Invoicedetail() {
       };
 
       try {
-        const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
+        const response = await fetch('http://localhost:3001/api/addpayment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -238,14 +227,6 @@ export default function Invoicedetail() {
         console.error('Error adding payment:', error);
       }
 
-      // Update the trans actions array with the new transaction
-      // const updatedTransactions = [...transactions, newTransaction];
-
-      // Update the transactions in the database with the new transaction
-      // Add your logic here to update the transactions in the database
-
-      // Update the state with the new transactions
-      // setTransactions(updatedTransactions);
 
       // Close the modal
       setShowModal(false);
@@ -258,7 +239,7 @@ export default function Invoicedetail() {
       try {
         if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
           // If savedDepositData exists and has an ID, update the existing record
-          const response = await fetch(`https://mycabinet.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
+          const response = await fetch(`http://localhost:3001/api/updatedeposit/${savedDepositData._id}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -277,7 +258,7 @@ export default function Invoicedetail() {
       
           if (data.Success) {
             console.log('Deposit updated successfully:', data.deposit);
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             // You may update the state here if required
@@ -286,7 +267,7 @@ export default function Invoicedetail() {
           }
         } else {
           // If savedDepositData is empty or does not have an ID, add a new record
-          const response = await fetch('https://mycabinet.onrender.com/api/deposit', {
+          const response = await fetch('http://localhost:3001/api/deposit', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -304,7 +285,7 @@ export default function Invoicedetail() {
           const data = await response.json();
       
           if (data.success) {
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             console.log('New deposit added successfully:', data.deposit);
@@ -324,7 +305,7 @@ export default function Invoicedetail() {
       try {
         if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
           // If savedDepositData exists and has an ID, update the existing record
-          const response = await fetch(`https://mycabinet.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
+          const response = await fetch(`http://localhost:3001/api/updatedeposit/${savedDepositData._id}`, {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -343,7 +324,7 @@ export default function Invoicedetail() {
       
           if (data.Success) {
             console.log('Deposit updated successfully:', data.deposit);
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             setShowSendEmailModal(true);
@@ -353,7 +334,7 @@ export default function Invoicedetail() {
           }
         } else {
           // If savedDepositData is empty or does not have an ID, add a new record
-          const response = await fetch('https://mycabinet.onrender.com/api/deposit', {
+          const response = await fetch('http://localhost:3001/api/deposit', {
             method: 'POST',
             headers: {
               'Content-Type': 'application/json',
@@ -371,7 +352,7 @@ export default function Invoicedetail() {
           const data = await response.json();
       
           if (data.success) {
-            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             console.log('New deposit added successfully:', data.deposit);
@@ -400,7 +381,7 @@ export default function Invoicedetail() {
     const fetchinvoicedata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/getinvoicedata/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/getinvoicedata/${invoiceid}`);
             const json = await response.json();
             
             setInvoiceData(json);
@@ -415,7 +396,7 @@ export default function Invoicedetail() {
     const fetchdepositdata = async () => {
         try {
           const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/getdepositdata/${userid}/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/getdepositdata/${userid}/${invoiceid}`);
             const json = await response.json();
             
             setsavedDepositData(json);
@@ -427,7 +408,7 @@ export default function Invoicedetail() {
     const fetchtransactiondata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoiceid}`);
+            const response = await fetch(`http://localhost:3001/api/gettransactiondata/${invoiceid}`);
             const json = await response.json();
 
             // Check if the response contains paidamount
@@ -448,7 +429,7 @@ export default function Invoicedetail() {
     const fetchsignupdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`);
+            const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`);
             const json = await response.json();
             
             // if (Array.isArray(json)) {
@@ -518,7 +499,7 @@ export default function Invoicedetail() {
     setexceedpaymenterror("");
   }
     try {
-      const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
+      const response = await fetch('http://localhost:3001/api/addpayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -704,12 +685,7 @@ export default function Invoicedetail() {
     </html>
   `);
 
-   // Loop through all images and set their src attribute to ensure they are accessible
-  //  const images = content.getElementsByTagName('img');
-  //  for (let i = 0; i < images.length; i++) {
-  //    const imageUrl = images[i].getAttribute('src');
-  //    images[i].setAttribute('src', `https://mycabinet.onrender.com/${signupdata.companyImageUrl}`); // Assuming your images are served from this URL
-  //  }
+
   printWindow.document.close();
   await timeout(1000);
   printWindow.print();
@@ -733,31 +709,9 @@ const handleEditContent = (invoiceData) => {
     }
 };
 
-// const handleRemove = async (invoiceid) => {
-//     try {
-//       const response = await fetch(`https://mycabinet.onrender.com/api/removeData/${invoiceid}`, {
-//         method: 'GET',
-//         // Add any required headers or authentication tokens
-//       });
-  
-//       console.log('Response status:', response.status); // Log response status
-  
-//       if (response.ok) {
-//         console.log('Data removed successfully!');
-//         navigate('/userpanel/Invoice');
-//       } else {
-//         console.error('Failed to remove data.');
-//         const errorData = await response.json(); // If available, log the error response data
-//         console.error('Error response:', errorData);
-//       }
-//     } catch (error) {
-//       console.error('Error removing data:', error); // Log any fetch-related errors
-//     }
-//   };
-
 const handleRemove = async (invoiceid) => {
     try {
-      const response = await fetch(`https://mycabinet.onrender.com/api/deldata/${invoiceid}`, {
+      const response = await fetch(`http://localhost:3001/api/deldata/${invoiceid}`, {
         method: 'GET'
       });
   
@@ -816,7 +770,7 @@ const handleFormSubmit = async (event) => {
     const contentAsPdf = await generatePdfFromHtml();
     try {
       const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
-      const response = await fetch('https://mycabinet.onrender.com/api/send-invoice-email', {
+      const response = await fetch('http://localhost:3001/api/send-invoice-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -853,7 +807,7 @@ const handleDepositFormSubmit = async (event) => {
     const contentAsPdf = await generatePdfFromHtml();
     try {
       const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
-      const response = await fetch('https://mycabinet.onrender.com/api/send-deposit-email', {
+      const response = await fetch('http://localhost:3001/api/send-deposit-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -894,7 +848,7 @@ const generatePdfFromHtml = async () => {
     const content = document.getElementById('invoiceContent').innerHTML;
 const opt = {
   filename:     'myfile.pdf',
-  html2canvas:  { scale: 3 }, // Increase scale for better resolution
+  html2canvas: { scale: 3, useCORS: true  }, // Increase scale for better resolution
   jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' },
   userUnit: 450 / 210 
 };
@@ -910,158 +864,20 @@ html2pdf().from(content).set(opt).toPdf().get('pdf').then(function(pdf) {
 };
 
 const convertToPdf = () => {
+
+  // await timeout(5000);
   const content = document.getElementById('invoiceContent').innerHTML;
-  
+  // console.log(content);
   const opt = {
       filename: 'invoice.pdf',
-      html2canvas: { scale: 3 }, // Increase scale for better resolution
+      html2canvas: { scale: 3, useCORS: true  }, // Increase scale for better resolution
+      image: { type: 'jpeg', quality: 0.98 },
       jsPDF: { unit: 'in', format: 'A4', orientation: 'portrait' },
       userUnit: 450 / 210
   };
-
   html2pdf().from(content).set(opt).save(); // Convert to PDF and save automatically
 };
 
-// const generatePDF = async () => {
-//   try {
-//     setPdfExportVisible(true);
-//     const timestamp = Date.now();
-//     const pdfContent = (
-//       <Document>
-//         <Page size="A4">
-//           <View style={{fontSize:"14px"}}>
-//             {/* Header */}
-//             <View style={{...styles.header,padding: 20}}>
-//               <View style={styles.companyInfo}>
-//                 <Text style={styles.invoiceHeader}>{signupdata.companyname}</Text>
-//               </View>
-//               <View style={styles.customerInfo}>
-//                 <Text style={styles.invoiceHeader}>Invoice</Text>
-//                 <Text>{signupdata.email}</Text>
-//                 <Text>{signupdata.address}</Text>
-//               </View>
-//             </View>
-
-//             <View style={{...styles.bgheader}}>
-//               <View style={{...styles.header,padding: 20}}>
-//                 <View style={styles.companyInfo}>
-//                     <Text>BILL TO</Text>
-//                     <Text style={{paddingTop:"10px"}}>{invoiceData.customername}</Text>
-//                     <Text>{invoiceData.customeremail}</Text>
-//                 </View>
-//                 <View style={styles.Info}>
-//                   <Text>Invoice #</Text>
-//                   <Text style={{paddingTop:"10px"}}>Date</Text>
-//                   <Text>Due date</Text>
-//                 </View>
-//                 <View style={styles.Info}>
-//                   <Text>{invoiceData.InvoiceNumber}</Text>
-//                   <Text style={{paddingTop:"10px"}}>{formatCustomDate(invoiceData.date)}</Text>
-//                   <Text>{formatCustomDate(invoiceData.duedate)}</Text>
-//                 </View>
-//               </View>
-//             </View>
-
-//             <View style={{...styles.bgbottom, fontSize:"14px"}}>
-//               <View style={{...styles.header,padding: 20}}>
-//                   <View style={styles.div40}>
-//                     <Text>ITEM</Text>
-//                   </View>
-//                   <View style={styles.div20}>
-//                     <Text>QUANTITY</Text>
-//                   </View>
-//                   <View style={styles.div20}>
-//                     <Text>PRICE</Text>
-//                   </View>
-//                   <View style={styles.div20}>
-//                     <Text>AMOUNT</Text>
-//                   </View>
-//               </View>
-//             </View>
-//             {/* Item list */}
-//             <View style={styles.bgbottom}>
-//               {items.map(item => (
-//                 <View style={{padding: 20}} key={item._id}>
-//                   <View style={{...styles.header}}>
-//                     <View style={styles.div40}>
-//                       <Text style={styles.itemCell}>{item.itemname}</Text>
-//                       <Text style={styles.itemCell}>{item.description}</Text>
-//                     </View>
-//                     <View style={styles.div20}>
-//                       <Text style={styles.itemCell}>{item.itemquantity}</Text>
-//                     </View>
-//                     <View style={styles.div20}>
-//                       <Text style={styles.itemCell}>{item.price}</Text>
-//                     </View>
-//                     <View style={styles.div20}>
-//                       <Text style={styles.itemCell}>{item.amount}</Text>
-//                     </View>
-//                   </View>
-//                 </View>
-//               ))}
-//             </View>
-//             {/* Total */}
-//             <View style={styles.bgbottom}>
-//               <View style={{...styles.totalRow,padding: 20}}>
-//                 <View style={styles.div40}></View>
-//                 <View style={styles.Info1}>
-//                   <Text>Subtotal</Text>
-//                   <Text>Total</Text>
-//                 </View>
-//                 <View style={styles.Info1}>
-//                   <Text>{invoiceData.subtotal}</Text>
-//                   <Text>{invoiceData.total}</Text>
-//                 </View>
-//                 {/* <View style={styles.Info}></View> */}
-//               </View>
-//             </View>
-//             {/* Transactions */}
-//             {transactions.map(transaction => (
-//               <View style={{...styles.itemRow}} key={transaction._id}>
-//                 {/* <View style={styles.customerInfo}></View> */}
-//                 <View style={styles.customerInfo}>
-//                   <Text>Paid on {transaction.paiddate}</Text>
-//                 </View>
-//                 <View style={styles.Info1}>
-//                   <Text><CurrencySign />{transaction.paidamount}</Text>
-//                 </View>
-//               </View>
-//             ))}
-//             {/* Amount Due */}
-//             <View style={{...styles.totalRow, padding:20}}>
-//               <View style={{...styles.Info1}}></View>
-//               <View style={{...styles.div20}}></View>
-//               <View style={{...styles.bgcolor}}>
-//                 <Text>Amount Due</Text>
-//                 <Text>
-//                 <CurrencySign />{invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)}
-//                 </Text>
-//               </View>
-//             </View>
-//           </View>
-//         </Page>
-//       </Document>
-//     );
-
-//     // Generate PDF blob
-//     const blob = await pdf(pdfContent).toBlob();
-//     const fileName = `invoice-${timestamp}.pdf`;
-//     const url = URL.createObjectURL(blob);
-
-//     // Create a link element to download the PDF
-//     const a = document.createElement('a');
-//     a.href = url;
-//     a.download = fileName;
-//     a.click();
-
-//     // Cleanup
-//     URL.revokeObjectURL(url);
-//     setPdfExportVisible(false);
-//   } catch (error) {
-//     console.error('Error generating PDF:', error);
-//     setPdfExportVisible(false);
-//   }
-// };
 
 
   return (
@@ -1160,9 +976,10 @@ const convertToPdf = () => {
                             <div className="col-12 col-sm-12 col-md-12 col-lg-8" id="invoiceContent">
                                 <div className='box1 rounded adminborder mb-5 pb-5'>
                                     <div className='row pt-30 py-5 px-3'>
+                                      {console.log(signupdata.companyImageUrl, "Comp")}
                                         <div className="col-6">
                                           {signupdata.companyImageUrl !== "" ?
-                                            <img src={`https://mycabinet.onrender.com/${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
+                                            <img src={signupdata.companyImageUrl} className='w-50 logoimage'  alt="testing imahe"  /> :
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
                                           }
                                             {/* <p className='h4 fw-bold'>{signupdata.companyname}</p> */}
