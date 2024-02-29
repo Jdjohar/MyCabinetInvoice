@@ -1066,10 +1066,12 @@ const convertToPdf = () => {
                                             </div>
                                             <div className="col-lg-2 col-md-2 col-sm-3 col-4 invoice-contentcol-2">
                                                 <p className='mb-2'>Subtotal</p>
+                                                <p className=''>GST</p>
                                                 <p className=''>Total</p>
                                             </div>
                                             <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
                                                 <p className='mb-2'><CurrencySign />{invoiceData.subtotal}</p>
+                                                <p className='mb-2'><CurrencySign />{invoiceData.tax}</p>
                                                 <p className=''><CurrencySign />{invoiceData.total}</p>
                                             </div>
                                           </div><hr />

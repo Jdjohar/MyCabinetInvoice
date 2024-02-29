@@ -707,8 +707,8 @@ const onChangeDescription = (event, itemId) => {
             <div className="row">
                 <div className="col-6 col-md-3">
                     <p>Subtotal</p>
-                    <p>Gst</p>
-                    <p className='pt-3'>Tax {taxPercentage}%</p>
+                    <p>GST</p>
+                    <p className='pt-3'>GST {taxPercentage}%</p>
                     <p>Total</p>
                 </div>
                 <div className="col-6 col-md-9">
