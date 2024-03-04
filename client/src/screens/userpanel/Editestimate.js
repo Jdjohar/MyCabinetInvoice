@@ -764,8 +764,8 @@ export default function Editestimate() {
                                         <div className="row">
                                             <div className="col-6">
                                                 <p>Subtotal</p>
-                                                <p>Tax</p>
-                                                <p>Tax {estimateData.taxpercentage}%</p>
+                                                <p>GST</p>
+                                                <p>GST {estimateData.taxpercentage}%</p>
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6">
@@ -781,7 +781,7 @@ export default function Editestimate() {
                                                         className="form-control"
                                                         value={estimateData.taxpercentage}
                                                         onChange={handleTaxChange}
-                                                        placeholder="Enter Tax Percentage"
+                                                        placeholder="Enter GST Percentage"
                                                         id="taxInput"
                                                         min="0"
                                                     />

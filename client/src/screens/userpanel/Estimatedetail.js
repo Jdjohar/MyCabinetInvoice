@@ -552,12 +552,19 @@ const handleRemove = async (estimateid) => {
                                             <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
                                                 <p className='mb-2'><CurrencySign />{estimateData.subtotal}</p>
                                             </div>
-                                          </div><hr />
-                                            <div className='row'>
-                                              <div className=''>
-                                                <p></p>
-                                              </div>
+                                          </div>
+                                          <div className="row padding-20">
+                                            <div className="col-lg-7 col-md-7 col-sm-6 col-4 printcol-8">
+                                              <p className='d-none'>.</p>
                                             </div>
+                                            <div className="col-lg-2 col-md-2 col-sm-3 col-4 invoice-contentcol-2">
+                                                <p className='mb-2'>GST</p>
+                                            </div>
+                                            <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
+                                                <p className='mb-2'><CurrencySign />{estimateData.tax}</p>
+                                            </div>
+                                          </div>
+                                            
                                             <div className="row flex">
                                               <div className="col-lg-4 col-sm-4 col-md-4 col-6 offset-6 offset-lg-7 offset-md-7 offset-sm-7 m-right">
                                                   <div className="mt-2 detailbg p-2 padding">

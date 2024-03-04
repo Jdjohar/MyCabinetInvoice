@@ -777,8 +777,8 @@ export default function Editinvoice() {
                                         <div className="row">
                                             <div className="col-6">
                                                 <p>Subtotal</p>
-                                                <p>Tax</p>
-                                                <p>Tax {invoiceData.taxpercentage}%</p>
+                                                <p>GST</p>
+                                                <p>GST {invoiceData.taxpercentage}%</p>
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6">

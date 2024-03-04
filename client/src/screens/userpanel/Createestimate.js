@@ -27,7 +27,7 @@ export default function Createestimate() {
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
     const [editedName, setEditedName] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
-    const [taxPercentage, setTaxPercentage] = useState(0);
+    const [taxPercentage, setTaxPercentage] = useState(10);
     const [estimateData, setestimateData] = useState({
         customername: '',itemname: '',customeremail: '',estimate_id: '', EstimateNumber:'',purchaseorder: '',
         job: '',date: '',description: '',itemquantity: '', price: '',discount: '',
@@ -688,8 +688,8 @@ const onChangeDescription = (event, itemId) => {
             <div className="row">
                 <div className="col-6 col-md-3">
                     <p>Subtotal</p>
-                    <p>Tax</p>
-                    <p className='pt-3'>Tax {taxPercentage}%</p>
+                    <p>GST</p>
+                    <p className='pt-3'>GST {taxPercentage}%</p>
                     <p>Total</p>
                 </div>
                 <div className="col-6 col-md-9">
@@ -704,7 +704,7 @@ const onChangeDescription = (event, itemId) => {
                             className="form-control"
                             value={taxPercentage}
                             onChange={handleTaxChange}
-                            placeholder="Enter Tax Percentage"
+                            placeholder="Enter GST Percentage"
                             id="taxInput"
                             min="0"
                         />
