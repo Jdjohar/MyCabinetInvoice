@@ -462,7 +462,8 @@ const handleRemove = async (estimateid) => {
                                     <div className='row pt-30 py-5 px-3'>
                                         <div className="col-6">
                                           {signupdata.companyImageUrl !== "" ?
-                                            <img src={`https://mycabinet.onrender.com/${signupdata.companyImageUrl}`} className='w-25 logoimage'  alt="testing imahe"  /> :
+                                            <img src={signupdata.companyImageUrl} className='w-50 logoimage'  alt="testing imahe"  /> 
+                                             :
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
                                           }
                                             {/* <p className='h4 fw-bold'>{signupdata.companyname}</p> */}
