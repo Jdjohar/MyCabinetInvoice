@@ -31,7 +31,7 @@ export default function Createinvoice() {
     const [taxPercentage, setTaxPercentage] = useState(10);
     const [invoiceData, setInvoiceData] = useState({
         customername: '',itemname: '',customeremail: '',invoice_id: '', InvoiceNumber:'',purchaseorder: '',
-        date: '',duedate: '',description: '',itemquantity: '', price: '',discount: '',
+        job:'',date: '',duedate: '',description: '',itemquantity: '', price: '',discount: '',
         amount: '',tax: '',taxpercentage:'',subtotal: '',total: '',amountdue: '',information: '',
     });
     const [editorData, setEditorData] = useState("<p></p>");
@@ -309,6 +309,7 @@ const handleSubmit = async (e) => {
         InvoiceNumber: invoiceData.InvoiceNumber, 
         purchaseorder: invoiceData.purchaseorder,
         information: editorData, 
+        job: invoiceData.job || 'No Job',
         date: invoiceData.date,
         items: invoiceItems,
         duedate: invoiceData.duedate, 
@@ -552,6 +553,23 @@ const onChangeDescription = (event, itemId) => {
                                                 onChange={onchange}
                                                 // placeholder="Due Date"
                                                 id="duedate"
+                                                />
+                                            </div>
+                                        </div>
+                                        <div className="col-lg-6">
+                                            <div className="mb-3">
+                                                <label htmlFor="Job" className="form-label">
+                                                Job
+                                                </label>
+                                                <input
+                                                type="text"
+                                                name="job"
+                                                className="form-control"
+                                                value={invoiceData.job} 
+                                                onChange={onchange}
+                                                // placeholder="Date"
+                                                id="job"
+                                                required
                                                 />
                                             </div>
                                         </div>

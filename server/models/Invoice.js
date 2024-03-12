@@ -22,6 +22,9 @@ const InvoiceSchema = new Schema({
     duedate: {
         type: Date,
     },
+      job: {
+        type: String,
+    },
     description: {
         type: String,
     },

@@ -350,7 +350,7 @@ const handleRemove = async (estimateid) => {
       const content = document.getElementById('invoiceContent').innerHTML;
   const opt = {
     filename:     'myfile.pdf',
-    html2canvas:  { scale: 3 }, // Increase scale for better resolution
+    html2canvas:  { scale: 3, useCORS: true  }, // Increase scale for better resolution
     jsPDF:        { unit: 'in', format: 'A4', orientation: 'portrait' },
     userUnit: 450 / 210 
   };
