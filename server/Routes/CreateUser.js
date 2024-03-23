@@ -58,23 +58,24 @@ router.post('/send-invoice-email', async (req, res) => {
         //     port: 465, // Replace with the appropriate port
         //     secure: true, // true for 465, false for other ports
         //     auth: {
-        //       user: 'grithomesltd@gmail.com',
+        //       user: 'info@mycabinets.net',
         //       pass: 'lpctmxmuoudgnopd'
         //     }
         //   });
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: "grithomesltd@gmail.com",
-        // pass: "lpctmxmuoudgnopd"
-        pass: "lpctmxmuoudgnopd"
-    },
-  });
+        const transporter = nodemailer.createTransport({
+            host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+            port: 465, // Replace with the appropriate port
+            secure: true, // true for 465, false for other ports
+            auth: {
+              user: 'info@mycabinets.net',
+              pass: 'Mycabinets@123'
+            }
+          });
 
   const currencySign = getCurrencySign(currencyType);
   
     const mailOptions = {
-      from: 'grithomesltd@gmail.com',
+      from: 'info@mycabinets.net',
       to: to.join(', '),
       bcc: bcc.join(', '),
       subject: `Invoice from ${companyName}`,
@@ -152,19 +153,21 @@ router.post('/send-deposit-email', async (req, res) => {
             currencyType,
         } = req.body;
     
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: "grithomesltd@gmail.com",
-        pass: "lpctmxmuoudgnopd"
-    },
-  });
+ const transporter = nodemailer.createTransport({
+            host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+            port: 465, // Replace with the appropriate port
+            secure: true, // true for 465, false for other ports
+            auth: {
+              user: 'info@mycabinets.net',
+              pass: 'Mycabinets@123'
+            }
+          });
 // const transporter = nodemailer.createTransport({
 //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
 //     port: 465, // Replace with the appropriate port
 //     secure: true, // true for 465, false for other ports
 //     auth: {
-//       user: 'grithomesltd@gmail.com',
+//       user: 'info@mycabinets.net',
 //       pass: 'lpctmxmuoudgnopd'
 //     }
 //   });
@@ -172,7 +175,7 @@ const transporter = nodemailer.createTransport({
   const currencySign = getCurrencySign(currencyType);
   
     const mailOptions = {
-      from: 'grithomesltd@gmail.com',
+      from: 'info@mycabinets.net',
       to: to.join(', '),
       bcc: bcc.join(', '),
       subject: `Invoice from ${companyName}`,
@@ -250,19 +253,21 @@ router.post('/send-estimate-email', async (req, res) => {
             amountdue1
         } = req.body;
     
-const transporter = nodemailer.createTransport({
-    service: 'gmail',
-    auth: {
-        user: "grithomesltd@gmail.com",
-        pass: "lpctmxmuoudgnopd"
-    },
-  });
+ const transporter = nodemailer.createTransport({
+            host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+            port: 465, // Replace with the appropriate port
+            secure: true, // true for 465, false for other ports
+            auth: {
+              user: 'info@mycabinets.net',
+              pass: 'Mycabinets@123'
+            }
+          });
 // const transporter = nodemailer.createTransport({
 //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
 //     port: 465, // Replace with the appropriate port
 //     secure: true, // true for 465, false for other ports
 //     auth: {
-//       user: 'grithomesltd@gmail.com',
+//       user: 'info@mycabinets.net',
 //       pass: 'lpctmxmuoudgnopd'
 //     }
 //   });
@@ -270,7 +275,7 @@ const transporter = nodemailer.createTransport({
   const currencySign = getCurrencySign(currencyType);
   
     const mailOptions = {
-      from: 'grithomesltd@gmail.com',
+      from: 'info@mycabinets.net',
       to: to.join(', '),
       bcc: bcc.join(', '),
       subject: `Estimate from ${companyName}`,
@@ -777,18 +782,20 @@ function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
     </html>`;
 
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+        port: 465, // Replace with the appropriate port
+        secure: true, // true for 465, false for other ports
         auth: {
-            user: "grithomesltd@gmail.com",
-            pass: "lpctmxmuoudgnopd"
-        },
-    });
+          user: 'info@mycabinets.net',
+          pass: 'Mycabinets@123'
+        }
+      });
     // const transporter = nodemailer.createTransport({
     //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
     //     port: 465, // Replace with the appropriate port
     //     secure: true, // true for 465, false for other ports
     //     auth: {
-    //       user: 'grithomesltd@gmail.com',
+    //       user: 'info@mycabinets.net',
     //       pass: 'lpctmxmuoudgnopd'
     //     }
     //   });
@@ -828,22 +835,20 @@ router.post('/forgot-password', async (req, res) => {
   
       // Nodemailer setup
       const transporter = nodemailer.createTransport({
-        service: "Gmail",
-      secure: false,
-      auth: {
-          user: "grithomesltd@gmail.com",
-          pass: "lpctmxmuoudgnopd"
-      },
-      tls:{
-        rejectUnauthorized: false
-      }
+        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+        port: 465, // Replace with the appropriate port
+        secure: true, // true for 465, false for other ports
+        auth: {
+          user: 'info@mycabinets.net',
+          pass: 'Mycabinets@123'
+        }
       });
     // const transporter = nodemailer.createTransport({
     //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
     //     port: 465, // Replace with the appropriate port
     //     secure: true, // true for 465, false for other ports
     //     auth: {
-    //       user: 'grithomesltd@gmail.com',
+    //       user: 'info@mycabinets.net',
     //       pass: 'lpctmxmuoudgnopd'
     //     }
     //   });
@@ -1438,7 +1443,7 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
     router.post('/updateestimateData/:estimateid', async (req, res) => {
         try {
             const estimateid = req.params.estimateid;
-            const { subtotal, total, items, ...updatedestimateData } = req.body; // Ensure this matches your MongoDB schema
+            const { subtotal, total, items, emailsent, ...updatedestimateData } = req.body; // Ensure this matches your MongoDB schema
     
             // Add the updated subtotal and total to the incoming data
             updatedestimateData.subtotal = subtotal;
@@ -1446,7 +1451,10 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
 
             // Update or replace the 'items' field
             updatedestimateData.items = items; 
-    
+            if (emailsent !== undefined) {
+                updatedData.emailsent = emailsent;
+            }
+        
             // Perform the update operation in your database here
             const result = await Estimate.findByIdAndUpdate(estimateid, updatedestimateData, { new: true });
     
@@ -2331,24 +2339,26 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
     </html>`;
 
     const transporter = nodemailer.createTransport({
-        service: 'gmail',
+        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+        port: 465, // Replace with the appropriate port
+        secure: true, // true for 465, false for other ports
         auth: {
-            user: "grithomesltd@gmail.com",
-            pass: "lpctmxmuoudgnopd"
-        },
-    });
+          user: 'info@mycabinets.net',
+          pass: 'Mycabinets@123'
+        }
+      });
     // const transporter = nodemailer.createTransport({
     //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
     //     port: 465, // Replace with the appropriate port
     //     secure: true, // true for 465, false for other ports
     //     auth: {
-    //       user: 'grithomesltd@gmail.com',
+    //       user: 'info@mycabinets.net',
     //       pass: 'lpctmxmuoudgnopd'
     //     }
     //   });
 
     const mailOptions = {
-        from: 'grithomesltd@gmail.com',
+        from: 'info@mycabinets.net',
         to: userEmail,
         subject: subject,
         html: message,

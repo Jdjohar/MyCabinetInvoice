@@ -13,6 +13,13 @@ const EstimateSchema = new Schema({
     customeremail: {
         type: String,
     },
+    emailsent: {
+        type: String,
+        default:'No'
+    },
+    discountTotal: {
+        type: String,
+    },
     purchaseorder: {
         type: String,
     },

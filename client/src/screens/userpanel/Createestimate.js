@@ -31,10 +31,11 @@ export default function Createestimate() {
     const [editedName, setEditedName] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
     const [taxPercentage, setTaxPercentage] = useState(10);
+    const [discountTotal, setdiscountTotal] = useState(0);
     const [estimateData, setestimateData] = useState({
         customername: '', itemname: '', customeremail: '', estimate_id: '', EstimateNumber: '', purchaseorder: '',
         job: '', date: '', description: '', itemquantity: '', price: '', discount: '',
-        amount: '', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
+        amount: '', tax: '',discountTotal:'', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
     const [editorData, setEditorData] = useState("<p></p>");
     
@@ -287,7 +288,8 @@ export default function Createestimate() {
     const calculateTotal = () => {
         const subtotal = calculateSubtotal();
         const taxAmount = calculateTaxAmount();
-        const totalAmount = subtotal + taxAmount;
+        const discountAmount = discountTotal;
+        const totalAmount = subtotal + taxAmount - discountAmount;
         return totalAmount;
     };
 
@@ -333,6 +335,7 @@ export default function Createestimate() {
                 EstimateNumber: estimateData.EstimateNumber,
                 purchaseorder: estimateData.purchaseorder,
                 job: estimateData.job || 'No Job',
+                discountTotal: discountTotal || 'No Discount',
                 information: editorData,
                 date: estimateData.date,
                 items: estimateItems,
@@ -372,7 +375,10 @@ export default function Createestimate() {
             console.error('Error creating estimate:', error);
         }
     };
-
+    const handleDiscountChange = (e) => {
+        // Ensure you're setting the state to the new value entered by the user
+        setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
+    };
 
     // const onchange = (event) => {
     //     setestimateData({ ...estimateData, [event.target.name]: event.target.value });
@@ -716,7 +722,7 @@ export default function Createestimate() {
                                             id={`description-${itemId}`}
                                         ></textarea> */}
                                                                                 </div>
-                                                                                <div className="col">
+                                                                                {/* <div className="col">
                                                                                     <label htmlFor={`discount-${itemId}`} className="form-label">Discount</label>
                                                                                     <input
                                                                                         type='number'
@@ -728,7 +734,7 @@ export default function Createestimate() {
                                                                                         id={`discount-${itemId}`}
                                                                                         min="0"
                                                                                     />
-                                                                                </div>
+                                                                                </div> */}
                                                                             </div>
                                                                         </td>
                                                                         <td>
@@ -800,6 +806,7 @@ export default function Createestimate() {
                                                                 <p>Subtotal</p>
                                                                 <p>GST</p>
                                                                 <p className='pt-3'>GST {taxPercentage}%</p>
+                                                                <p>Discount</p>
                                                                 <p>Total</p>
                                                             </div>
                                                             <div className="col-6 col-md-9">
@@ -823,6 +830,18 @@ export default function Createestimate() {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
                                                                 })}</p>
+                                                                <div className="mb-3">
+                                                                    <input
+                                                                        type="number"
+                                                                        name="totaldiscount"
+                                                                        className="form-control"
+                                                                        value={discountTotal}
+                                                                        onChange={handleDiscountChange} // Ensure proper event binding
+                                                                        placeholder="Enter Discount Total"
+                                                                        id="discountInput"
+                                                                        min="0"
+                                                                    />
+                                                                </div>
                                                                 <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
