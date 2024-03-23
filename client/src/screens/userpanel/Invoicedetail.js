@@ -794,6 +794,18 @@ const handleFormSubmit = async (event) => {
         console.log('Email sent successfully!');
         // setShowModal(false);
         setShowEmailAlert(true);
+          // Update the database with emailsent status
+            const updatedData = { ...invoiceData, emailsent: 'yes' }; // Update emailsent status
+            await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify(updatedData),
+            });
+
+            // Fetch updated invoice data
+            fetchinvoicedata();
       } else {
         console.error('Failed to send email.');
       }
@@ -987,8 +999,10 @@ const convertToPdf = () => {
                                         <div className="col-6">
                                             <div className="row text-end right">
                                                 <p className='h4 fw-bold'>Invoice</p>
+                                                <p className='fw-bold'>{signupdata.companyname}</p>
                                                 <p className='fw-bold'>{signupdata.address}</p>
                                                 <p className='fw-bold'>{signupdata.email}</p>
+                                                <p className='fw-bold'>{signupdata.gstNumber}</p>
                                             </div>
                                         </div>   
                                         <div className='clear'></div> 
@@ -996,9 +1010,11 @@ const convertToPdf = () => {
 
                                     <div className='row py-4 pb-90 px-4 mx-0 mb-4 detailbg'>
                                         <div bgcolor="#333" className="col-12 col-lg-6 col-md-6 col-sm-6 customerdetail">
-                                            <p className='fw-bold pt-3'>BILL TO</p>
+                                        
+                                            <p className='fw-bold pt-2'>BILL TO</p>
                                             <p className='my-0'>{invoiceData.customername}</p>
                                             <p className='my-0'>{invoiceData.customeremail}</p>
+                                           
                                         </div>
                                         <div className="col-12 col-lg-6 col-md-6 col-sm-6 text-md-end text-lg-end ">
                                             <div className='row'>
@@ -1006,11 +1022,14 @@ const convertToPdf = () => {
                                                   <p className='pt-3'>Invoice #</p>
                                                   <p className='my-0'>Date</p>
                                                   <p className='my-0'>Due date</p>
+                                                  <p className='my-0'>Job</p>
                                               </div>
+                                              {console.log(invoiceData, "invoiceData")}
                                               <div className='col-6'>
                                               <p className='pt-3'>{invoiceData.InvoiceNumber}</p>
                                               <p className='my-0'>{formatCustomDate(invoiceData.date)}</p>
                                               <p className='my-0'>{formatCustomDate(invoiceData.duedate)}</p>
+                                              <p className='my-0'>{invoiceData.job}</p>
 
                                               </div>
                                               
@@ -1059,6 +1078,9 @@ const convertToPdf = () => {
                                             </div>
                                         ))}
                                         <hr />
+                                        {/* <div dangerouslySetInnerHTML={{ __html: invoiceData.information }} /> */}
+                                        <div className="row padding-20 invoice-content">Note: {invoiceData.information.replace(/<\/?[^>]+(>|$)/g, '')}</div>
+                                        <hr />
 
                                           <div className="row padding-20">
                                             <div className="col-lg-7 col-md-7 col-sm-6 col-4 printcol-8">
@@ -1066,12 +1088,14 @@ const convertToPdf = () => {
                                             </div>
                                             <div className="col-lg-2 col-md-2 col-sm-3 col-4 invoice-contentcol-2">
                                                 <p className='mb-2'>Subtotal</p>
-                                                <p className=''>GST</p>
+                                                <p className='mb-2'>GST</p>
+                                                <p className='mb-2'>DISCOUNT</p>
                                                 <p className=''>Total</p>
                                             </div>
                                             <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
                                                 <p className='mb-2'><CurrencySign />{invoiceData.subtotal}</p>
                                                 <p className='mb-2'><CurrencySign />{invoiceData.tax}</p>
+                                                <p className='mb-2'><CurrencySign />{invoiceData.discountTotal}</p>
                                                 <p className=''><CurrencySign />{invoiceData.total}</p>
                                             </div>
                                           </div><hr />

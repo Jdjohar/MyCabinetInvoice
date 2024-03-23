@@ -13,6 +13,10 @@ const InvoiceSchema = new Schema({
     customeremail: {
         type: String,
     },
+     emailsent: {
+        type: String,
+        default:'no'
+    },
     purchaseorder: {
         type: String,
     },
@@ -22,10 +26,13 @@ const InvoiceSchema = new Schema({
     duedate: {
         type: Date,
     },
-      job: {
+    description: {
         type: String,
     },
-    description: {
+    job: {
+        type: String,
+    },
+    discountTotal: {
         type: String,
     },
     items: [],
