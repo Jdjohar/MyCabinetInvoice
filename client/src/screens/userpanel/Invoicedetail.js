@@ -1006,6 +1006,13 @@ const convertToPdf = () => {
                                             <img src={signupdata.companyImageUrl} className='w-50 logoimage'  alt="testing imahe"  /> :
                                             <p className='h4 fw-bold'>{signupdata.companyname}</p>
                                           }
+
+                                        <div className='ps-3 pt-2'>
+                                            <p className='fw-bold'>{signupdata.FirstName} {signupdata.User1_Mobile_Number} | {signupdata.User2FirstName} {signupdata.User2_Mobile_Number}</p>
+                                        </div>
+
+
+
                                             {/* <p className='h4 fw-bold'>{signupdata.companyname}</p> */}
                                         </div>    
                                         <div className="col-6">
@@ -1014,7 +1021,7 @@ const convertToPdf = () => {
                                                 <p className='fw-bold'>{signupdata.companyname}</p>
                                                 <p className='fw-bold'>{signupdata.address}</p>
                                                 <p className='fw-bold'>{signupdata.email}</p>
-                                                <p className='fw-bold'>{signupdata.gstNumber}</p>
+                                                <p className='fw-bold'>ABN: {signupdata.gstNumber}</p>
                                             </div>
                                         </div>   
                                         <div className='clear'></div> 

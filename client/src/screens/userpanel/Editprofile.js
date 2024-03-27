@@ -142,7 +142,6 @@ export default function Editprofile() {
                                                 value={signupdata.CurrencyType}
                                                 onChange={handleInputChange}
                                                 aria-label="Default select example"
-                                                
                                                 >
                                                     <option value="">Select Currency Type</option>
                                                     <option value="AUD"> AUD - Australian Dollar </option>
@@ -151,17 +150,46 @@ export default function Editprofile() {
                                                 </select>
                                             </div>
                                         </div>
-                                        
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
+                                            <div className="form-group mb-3 pt-3">
+                                                <label htmlFor="address" className="form-label">Address</label>
+                                                <textarea type="message" className="form-control" name="address" value={signupdata.address} onChange={handleInputChange} placeholder="Address" id="exampleInputaddress" />
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-12 col-md-4 col-lg-4">
                                             <div class="form-group pt-3">
                                                 <label class="label py-2" for="First_Name">First Name</label>
                                                 <input type="text" class="form-control" name="FirstName" value={signupdata.FirstName} onChange={handleInputChange} placeholder="First Name" />
                                             </div>
                                         </div>
-                                        <div className="col-12 col-sm-12 col-md-6 col-lg-6">
+                                        <div className="col-12 col-sm-12 col-md-4 col-lg-4">
                                             <div class="form-group pt-3">
                                                 <label class="label py-2" for="Last_Name">Last Name</label>
                                                 <input type="text" class="form-control" name="LastName" value={signupdata.LastName} onChange={handleInputChange} placeholder="Last Name"  />
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-12 col-md-4 col-lg-4">
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="User1_Mobile_Number">Number</label>
+                                                <input type="text" class="form-control" name="User1_Mobile_Number" value={signupdata.User1_Mobile_Number} onChange={handleInputChange} placeholder="Number"  />
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-12 col-md-4 col-lg-4">
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="First_Name1">First Name</label>
+                                                <input type="text" class="form-control" name="User2FirstName" value={signupdata.User2FirstName} onChange={handleInputChange} placeholder="First Name" />
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-12 col-md-4 col-lg-4">
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="Last_Name">Last Name</label>
+                                                <input type="text" class="form-control" name="LastName" value={signupdata.User2LastName} onChange={handleInputChange} placeholder="Last Name"  />
+                                            </div>
+                                        </div>
+                                        <div className="col-12 col-sm-12 col-md-4 col-lg-4">
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="User2_Mobile_Number">Number</label>
+                                                <input type="text" class="form-control" name="User2_Mobile_Number" value={signupdata.User2_Mobile_Number} onChange={handleInputChange} placeholder="Number"  />
                                             </div>
                                         </div>
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
@@ -171,17 +199,12 @@ export default function Editprofile() {
                                             </div>
                                         </div>
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                            <div className="form-group mb-3 pt-3">
-                                                <label htmlFor="address" className="form-label">Address</label>
-                                                <textarea type="message" className="form-control" name="address" value={signupdata.address} onChange={handleInputChange} placeholder="Address" id="exampleInputaddress" />
-                                            </div>
-                                        </div>
-                                        <div className="col-12 col-sm-12 col-md-6 col-lg-6">
                                             <div class="form-group pt-3">
-                                                <label class="label py-2" for="gstNumber">GST Number</label>
-                                                <input type="text" class="form-control" name="gstNumber" value={signupdata.gstNumber} onChange={handleInputChange} placeholder="GST Number" />
+                                                <label class="label py-2" for="gstNumber">Abn</label>
+                                                <input type="text" class="form-control" name="gstNumber" value={signupdata.gstNumber} onChange={handleInputChange} placeholder="Abn" />
                                             </div>
                                         </div>
+                                        
 
                                     </div>
                                 <button type="button" className='btn btnclr text-white me-2' onClick={handleSaveClick}>Save</button>

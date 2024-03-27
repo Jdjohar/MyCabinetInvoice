@@ -251,7 +251,7 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              <div className="row">
+              {/* <div className="row">
                 <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
                   <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2 text-center'>
                     <p className='fs-6 fw-bold'>TOTAL PAYMENTS RECEIVED</p>
@@ -264,7 +264,7 @@ export default function Dashboard() {
                     <p className='fs-3 fw-bold'></p>
                   </div>
                 </div>
-              </div>
+              </div> */}
 
               {/* <div className="row">
             <div className='col-12 col-sm-8 col-md-8 col-lg-8'>
