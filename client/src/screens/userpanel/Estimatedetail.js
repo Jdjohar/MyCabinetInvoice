@@ -489,6 +489,7 @@ export default function Estimatedetail() {
                                 <p className='h4 fw-bold'>Estimate</p>
                                 <p className='fw-bold'>{signupdata.address}</p>
                                 <p className='fw-bold'>{signupdata.email}</p>
+                                <p className='fw-bold'>ABN: {signupdata.gstNumber}</p>
                               </div>
                             </div>
                             <div className='clear'></div>

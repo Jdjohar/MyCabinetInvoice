@@ -58,7 +58,7 @@ router.post('/send-invoice-email', async (req, res) => {
         //     port: 465, // Replace with the appropriate port
         //     secure: true, // true for 465, false for other ports
         //     auth: {
-        //       user: 'info@mycabinets.net',
+        //       user: 'accounts@mycabinets.net',
         //       pass: 'lpctmxmuoudgnopd'
         //     }
         //   });
@@ -67,7 +67,7 @@ router.post('/send-invoice-email', async (req, res) => {
             port: 465, // Replace with the appropriate port
             secure: true, // true for 465, false for other ports
             auth: {
-              user: 'info@mycabinets.net',
+              user: 'accounts@mycabinets.net',
               pass: 'Mycabinets@123'
             }
           });
@@ -75,7 +75,7 @@ router.post('/send-invoice-email', async (req, res) => {
   const currencySign = getCurrencySign(currencyType);
   
     const mailOptions = {
-      from: 'info@mycabinets.net',
+      from: 'accounts@mycabinets.net',
       to: to.join(', '),
       bcc: bcc.join(', '),
       subject: `Invoice from ${companyName}`,
@@ -158,7 +158,7 @@ router.post('/send-deposit-email', async (req, res) => {
             port: 465, // Replace with the appropriate port
             secure: true, // true for 465, false for other ports
             auth: {
-              user: 'info@mycabinets.net',
+              user: 'accounts@mycabinets.net',
               pass: 'Mycabinets@123'
             }
           });
@@ -167,7 +167,7 @@ router.post('/send-deposit-email', async (req, res) => {
 //     port: 465, // Replace with the appropriate port
 //     secure: true, // true for 465, false for other ports
 //     auth: {
-//       user: 'info@mycabinets.net',
+//       user: 'accounts@mycabinets.net',
 //       pass: 'lpctmxmuoudgnopd'
 //     }
 //   });
@@ -175,7 +175,7 @@ router.post('/send-deposit-email', async (req, res) => {
   const currencySign = getCurrencySign(currencyType);
   
     const mailOptions = {
-      from: 'info@mycabinets.net',
+      from: 'accounts@mycabinets.net',
       to: to.join(', '),
       bcc: bcc.join(', '),
       subject: `Invoice from ${companyName}`,
@@ -258,7 +258,7 @@ router.post('/send-estimate-email', async (req, res) => {
             port: 465, // Replace with the appropriate port
             secure: true, // true for 465, false for other ports
             auth: {
-              user: 'info@mycabinets.net',
+              user: 'accounts@mycabinets.net',
               pass: 'Mycabinets@123'
             }
           });
@@ -267,7 +267,7 @@ router.post('/send-estimate-email', async (req, res) => {
 //     port: 465, // Replace with the appropriate port
 //     secure: true, // true for 465, false for other ports
 //     auth: {
-//       user: 'info@mycabinets.net',
+//       user: 'accounts@mycabinets.net',
 //       pass: 'lpctmxmuoudgnopd'
 //     }
 //   });
@@ -275,7 +275,7 @@ router.post('/send-estimate-email', async (req, res) => {
   const currencySign = getCurrencySign(currencyType);
   
     const mailOptions = {
-      from: 'info@mycabinets.net',
+      from: 'accounts@mycabinets.net',
       to: to.join(', '),
       bcc: bcc.join(', '),
       subject: `Estimate from ${companyName}`,
@@ -786,7 +786,7 @@ function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
         port: 465, // Replace with the appropriate port
         secure: true, // true for 465, false for other ports
         auth: {
-          user: 'info@mycabinets.net',
+          user: 'accounts@mycabinets.net',
           pass: 'Mycabinets@123'
         }
       });
@@ -795,7 +795,7 @@ function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
     //     port: 465, // Replace with the appropriate port
     //     secure: true, // true for 465, false for other ports
     //     auth: {
-    //       user: 'info@mycabinets.net',
+    //       user: 'accounts@mycabinets.net',
     //       pass: 'lpctmxmuoudgnopd'
     //     }
     //   });
@@ -839,7 +839,7 @@ router.post('/forgot-password', async (req, res) => {
         port: 465, // Replace with the appropriate port
         secure: true, // true for 465, false for other ports
         auth: {
-          user: 'info@mycabinets.net',
+          user: 'accounts@mycabinets.net',
           pass: 'Mycabinets@123'
         }
       });
@@ -848,7 +848,7 @@ router.post('/forgot-password', async (req, res) => {
     //     port: 465, // Replace with the appropriate port
     //     secure: true, // true for 465, false for other ports
     //     auth: {
-    //       user: 'info@mycabinets.net',
+    //       user: 'accounts@mycabinets.net',
     //       pass: 'lpctmxmuoudgnopd'
     //     }
     //   });
@@ -1452,7 +1452,7 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
             // Update or replace the 'items' field
             updatedestimateData.items = items; 
             if (emailsent !== undefined) {
-                updatedData.emailsent = emailsent;
+                updatedestimateData.emailsent = emailsent;
             }
         
             // Perform the update operation in your database here
@@ -2343,7 +2343,7 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
         port: 465, // Replace with the appropriate port
         secure: true, // true for 465, false for other ports
         auth: {
-          user: 'info@mycabinets.net',
+          user: 'accounts@mycabinets.net',
           pass: 'Mycabinets@123'
         }
       });
@@ -2352,13 +2352,13 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
     //     port: 465, // Replace with the appropriate port
     //     secure: true, // true for 465, false for other ports
     //     auth: {
-    //       user: 'info@mycabinets.net',
+    //       user: 'accounts@mycabinets.net',
     //       pass: 'lpctmxmuoudgnopd'
     //     }
     //   });
 
     const mailOptions = {
-        from: 'info@mycabinets.net',
+        from: 'accounts@mycabinets.net',
         to: userEmail,
         subject: subject,
         html: message,
