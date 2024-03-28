@@ -68,7 +68,7 @@ router.post('/send-invoice-email', async (req, res) => {
             secure: true, // true for 465, false for other ports
             auth: {
               user: 'accounts@mycabinets.net',
-              pass: 'Mycabinets@123'
+              pass: 'Mycabinet@123'
             }
           });
 
@@ -159,7 +159,7 @@ router.post('/send-deposit-email', async (req, res) => {
             secure: true, // true for 465, false for other ports
             auth: {
               user: 'accounts@mycabinets.net',
-              pass: 'Mycabinets@123'
+              pass: 'Mycabinet@123'
             }
           });
 // const transporter = nodemailer.createTransport({
@@ -259,7 +259,7 @@ router.post('/send-estimate-email', async (req, res) => {
             secure: true, // true for 465, false for other ports
             auth: {
               user: 'accounts@mycabinets.net',
-              pass: 'Mycabinets@123'
+              pass: 'Mycabinet@123'
             }
           });
 // const transporter = nodemailer.createTransport({
@@ -787,7 +787,7 @@ function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
         secure: true, // true for 465, false for other ports
         auth: {
           user: 'accounts@mycabinets.net',
-          pass: 'Mycabinets@123'
+          pass: 'Mycabinet@123'
         }
       });
     // const transporter = nodemailer.createTransport({
@@ -840,7 +840,7 @@ router.post('/forgot-password', async (req, res) => {
         secure: true, // true for 465, false for other ports
         auth: {
           user: 'accounts@mycabinets.net',
-          pass: 'Mycabinets@123'
+          pass: 'Mycabinet@123'
         }
       });
     // const transporter = nodemailer.createTransport({
@@ -2344,7 +2344,7 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
         secure: true, // true for 465, false for other ports
         auth: {
           user: 'accounts@mycabinets.net',
-          pass: 'Mycabinets@123'
+          pass: 'Mycabinet@123'
         }
       });
     // const transporter = nodemailer.createTransport({
