@@ -68,7 +68,7 @@ router.post('/send-invoice-email', async (req, res) => {
             secure: true, // true for 465, false for other ports
             auth: {
               user: 'accounts@mycabinets.net',
-              pass: 'Mycabinets@123'
+              pass: 'Mycabinet@123'
             }
           });
 
@@ -152,7 +152,7 @@ router.post('/send-deposit-email', async (req, res) => {
             InvoiceNumber,
             currencyType,
         } = req.body;
-    
+
         const transporter = nodemailer.createTransport({
                    host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
                    port: 465, // Replace with the appropriate port
@@ -162,6 +162,7 @@ router.post('/send-deposit-email', async (req, res) => {
                      pass: 'Mycabinets@123'
                    }
                  });
+
 // const transporter = nodemailer.createTransport({
 //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
 //     port: 465, // Replace with the appropriate port
@@ -262,6 +263,7 @@ router.post('/send-estimate-email', async (req, res) => {
                      pass: 'Mycabinets@123'
                    }
                  });
+
 // const transporter = nodemailer.createTransport({
 //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
 //     port: 465, // Replace with the appropriate port
@@ -784,10 +786,10 @@ function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: "jdwebservices1@gmail.com",
-            pass: "cwoxnbrrxvsjfbmr"
-        },
-    });
+          user: 'accounts@mycabinets.net',
+          pass: 'Mycabinet@123'
+        }
+      });
     // const transporter = nodemailer.createTransport({
     //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
     //     port: 465, // Replace with the appropriate port
@@ -833,15 +835,14 @@ router.post('/forgot-password', async (req, res) => {
   
       // Nodemailer setup
       const transporter = nodemailer.createTransport({
-        service: "Gmail",
-      secure: false,
-      auth: {
-          user: "jdwebservices1@gmail.com",
-          pass: "cwoxnbrrxvsjfbmr"
-      },
-      tls:{
-        rejectUnauthorized: false
-      }
+
+        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+        port: 465, // Replace with the appropriate port
+        secure: true, // true for 465, false for other ports
+        auth: {
+          user: 'accounts@mycabinets.net',
+          pass: 'Mycabinet@123'
+        }
       });
     // const transporter = nodemailer.createTransport({
     //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
@@ -2689,7 +2690,7 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
         secure: true, // true for 465, false for other ports
         auth: {
           user: 'accounts@mycabinets.net',
-          pass: 'Mycabinets@123'
+          pass: 'Mycabinet@123'
         }
       });
     // const transporter = nodemailer.createTransport({
