@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Usernav from './Usernav';
 import { ColorRing } from 'react-loader-spinner'
 import CurrencySign from '../../components/CurrencySign ';
+import Alertauthtoken from '../../components/Alertauthtoken';
 
 export default function Estimate() {
   const [loading, setloading] = useState(true);
@@ -14,6 +15,7 @@ export default function Estimate() {
   const navigate = useNavigate();
   const [convertedEstimates, setConvertedEstimates] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [alertMessage, setAlertMessage] = useState('');
   const entriesPerPage = 10;
 
   useEffect(() => {
@@ -26,13 +28,27 @@ export default function Estimate() {
   const fetchData = async () => {
     try {
       const userid = localStorage.getItem("userid");
-      const response = await fetch(`https://mycabinet.onrender.com/api/estimatedata/${userid}`);
-      const json = await response.json();
-
-      if (Array.isArray(json)) {
-        setestimates(json);
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`https://mycabinet.onrender.com/api/estimatedata/${userid}`, {
+        headers: {
+          'Authorization': authToken,
+        }
+      });
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0,0);
+        return; // Stop further execution
       }
-      setloading(false);
+      else{
+        const json = await response.json();
+        if (Array.isArray(json)) {
+          setestimates(json);
+        }
+        setloading(false);
+      }
+      
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -56,22 +72,34 @@ export default function Estimate() {
   const handleConvertToInvoice = async (estimateid) => {
     console.log(estimateid);
     try {
+      const authToken = localStorage.getItem('authToken');
       const response = await fetch(`https://mycabinet.onrender.com/api/converttoinvoice/${estimateid}`, {
         method: 'POST',
+        headers: {
+          'Authorization': authToken,
+        }
       });
-
-      if (response.ok) {
+      if (response.status === 401) {
         const data = await response.json();
-        console.log('Converted to Invoice:', data);
-        fetchData(); // Update the estimate list after conversion
-        setConvertedEstimates([...convertedEstimates, estimateid]);
-      } else {
-        const errorMessage = await response.json();
-        if (errorMessage.message === 'Estimate already converted to invoice') {
-          console.log('Estimate already converted to invoice. Cannot convert again.');
+        setAlertMessage(data.message);
+        setloading(false);
+        window.scrollTo(0,0);
+        return; // Stop further execution
+      }
+      else{
+          if (response.ok) {
+          const data = await response.json();
+          console.log('Converted to Invoice:', data);
+          fetchData(); // Update the estimate list after conversion
+          setConvertedEstimates([...convertedEstimates, estimateid]);
         } else {
-          console.error('Error converting to invoice:', errorMessage.message);
-          // Handle error state or display an error message to the user
+          const errorMessage = await response.json();
+          if (errorMessage.message === 'Estimate already converted to invoice') {
+            console.log('Estimate already converted to invoice. Cannot convert again.');
+          } else {
+            console.error('Error converting to invoice:', errorMessage.message);
+            // Handle error state or display an error message to the user
+          }
         }
       }
     } catch (error) {
@@ -129,6 +157,9 @@ export default function Estimate() {
                 <div className='d-lg-none d-md-none d-block mt-2'>
                   <Usernav />
                 </div>
+                <div className='mt-4 mx-4'>
+                            {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
+                        </div>
                 <div className='bg-white my-5 p-4 box mx-4'>
                   <div className='row py-2'>
                     <div className='col-lg-4 col-md-6 col-sm-6 col-7 me-auto'>

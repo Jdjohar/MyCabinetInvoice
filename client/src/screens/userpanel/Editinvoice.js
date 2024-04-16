@@ -10,6 +10,7 @@ import VirtualizedSelect from 'react-virtualized-select';
 import 'react-virtualized-select/styles.css';
 import 'react-virtualized/styles.css'
 import CurrencySign from '../../components/CurrencySign ';
+import Alertauthtoken from '../../components/Alertauthtoken';
 
 export default function Editinvoice() {
     
@@ -32,6 +33,7 @@ export default function Editinvoice() {
     const location = useLocation();
     const invoiceid = location.state?.invoiceid;
     const [editorData, setEditorData] = useState("<p></p>");
+    const [alertMessage, setAlertMessage] = useState('');
 
     useEffect(() => {
         if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
@@ -49,15 +51,30 @@ export default function Editinvoice() {
     const fetchdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/geteditinvoicedata/${invoiceid}`);
-            const json = await response.json();
+            const authToken = localStorage.getItem('authToken');
+            const response = await fetch(`https://mycabinet.onrender.com/api/geteditinvoicedata/${invoiceid}`, {
+                headers: {
+                  'Authorization': authToken,
+                }
+            });
+              if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
+              }
+              else{
+                const json = await response.json();
             
-            if (json.Success) {
-                setInvoiceData(json.invoices);
-            } else {
-                console.error('Error fetching invoicedata:', json.message);
-            }
-            console.log(invoiceData);
+                if (json.Success) {
+                    setInvoiceData(json.invoices);
+                } else {
+                    console.error('Error fetching invoicedata:', json.message);
+                }
+                console.log(invoiceData);
+              }
+            
         } catch (error) {
             console.error('Error fetching invoicedata:', error);
         }
@@ -66,12 +83,27 @@ export default function Editinvoice() {
     const fetchcustomerdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`);
-            const json = await response.json();
+            const authToken = localStorage.getItem('authToken');
+            const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`, {
+                headers: {
+                  'Authorization': authToken,
+                }
+              });
+              if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
+              }
+              else{
+                const json = await response.json();
             
-            if (Array.isArray(json)) {
-                setcustomers(json);
-            }
+                if (Array.isArray(json)) {
+                    setcustomers(json);
+                }
+              }
+            
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -101,13 +133,28 @@ export default function Editinvoice() {
     const fetchitemdata = async () => {
         try {
             const userid =  localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`);
-            const json = await response.json();
+            const authToken = localStorage.getItem('authToken');
+            const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`, {
+                headers: {
+                  'Authorization': authToken,
+                }
+              });
+              if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
+              }
+              else{
+                const json = await response.json();
             
-            if (Array.isArray(json)) {
-                setitems(json);
-            }
-            setloading(false);
+                if (Array.isArray(json)) {
+                    setitems(json);
+                }
+                setloading(false);
+              }
+            
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -125,22 +172,34 @@ export default function Editinvoice() {
                 tax: calculateTaxAmount(), 
             };
     
+            const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
                 method: 'POST',
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    'Authorization': authToken,
                 },
                 body: JSON.stringify(updatedInvoiceData)
             });
-    
-            const json = await response.json();
-    
-            if (json.Success) {
-                navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
-                console.log(updatedInvoiceData);
-            } else {
-                console.error('Error updating invoice data:', json.message);
+            if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
             }
+            else{
+               const json = await response.json();
+    
+                if (json.Success) {
+                    navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
+                    console.log(updatedInvoiceData);
+                } else {
+                    console.error('Error updating invoice data:', json.message);
+                } 
+            }
+    
+            
         } catch (error) {
             console.error('Error updating invoice data:', error);
         }
@@ -236,17 +295,31 @@ export default function Editinvoice() {
                 return;
             }
     
+            const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/delinvoiceitem/${invoiceData._id}/${itemId}`, {
-                method: 'GET'
+                method: 'GET',
+                headers: {
+                    'Authorization': authToken,
+                }
             });
-    
-            if (!response.ok) {
-                const errorMessage = await response.text();
-                throw new Error(`Failed to delete item: ${errorMessage}`);
+            if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
             }
+            else{
+                if (!response.ok) {
+                    const errorMessage = await response.text();
+                    throw new Error(`Failed to delete item: ${errorMessage}`);
+                }
     
             // Update UI or perform other actions upon successful deletion
             fetchdata();
+            }
+    
+            
         } catch (error) {
             console.error('Error deleting item:', error);
         }
@@ -487,6 +560,9 @@ export default function Editinvoice() {
                             <div className="col-lg-3 col-md-4 col-sm-4 col-5 text-right">
                                 <button className='btn rounded-pill btn-danger text-white fw-bold' type="submit" onClick={handleSaveClick}>Save</button>
                             </div>
+                            <div className='mt-2'>
+                                {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
+                            </div>
                         </div>
                         <div className='box1 rounded adminborder p-4 m-2 mb-5'>
                             <div className='row me-2'>
@@ -670,20 +746,20 @@ export default function Editinvoice() {
                                                         value={item.description}
                                                         onChange={(event) => handleDescriptionChange(event, item.itemId)}
                                                     /> */}
-                                                  <CKEditor
-    editor={ClassicEditor}
-    data={item.description} // Make sure item.description is a valid string
-    onChange={(event, editor) => {
-        // Ensure handleDescriptionChange receives editor instance
-        handleDescriptionChange(editor, item.itemId);
-    }}
-    onBlur={(event, editor) => {
-        console.log('Blur.', editor);
-    }}
-    onFocus={(event, editor) => {
-        console.log('Focus.', editor);
-    }}
-/>
+                                                    <CKEditor
+                                                        editor={ClassicEditor}
+                                                        data={item.description} // Make sure item.description is a valid string
+                                                        onChange={(event, editor) => {
+                                                            // Ensure handleDescriptionChange receives editor instance
+                                                            handleDescriptionChange(editor, item.itemId);
+                                                        }}
+                                                        onBlur={(event, editor) => {
+                                                            console.log('Blur.', editor);
+                                                        }}
+                                                        onFocus={(event, editor) => {
+                                                            console.log('Focus.', editor);
+                                                        }}
+                                                    />
                                                 </div>
                                             </div>
                                             

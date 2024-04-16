@@ -153,15 +153,15 @@ router.post('/send-deposit-email', async (req, res) => {
             currencyType,
         } = req.body;
     
- const transporter = nodemailer.createTransport({
-            host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-            port: 465, // Replace with the appropriate port
-            secure: true, // true for 465, false for other ports
-            auth: {
-              user: 'accounts@mycabinets.net',
-              pass: 'Mycabinets@123'
-            }
-          });
+        const transporter = nodemailer.createTransport({
+                   host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+                   port: 465, // Replace with the appropriate port
+                   secure: true, // true for 465, false for other ports
+                   auth: {
+                     user: 'accounts@mycabinets.net',
+                     pass: 'Mycabinets@123'
+                   }
+                 });
 // const transporter = nodemailer.createTransport({
 //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
 //     port: 465, // Replace with the appropriate port
@@ -253,15 +253,15 @@ router.post('/send-estimate-email', async (req, res) => {
             amountdue1
         } = req.body;
     
- const transporter = nodemailer.createTransport({
-            host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-            port: 465, // Replace with the appropriate port
-            secure: true, // true for 465, false for other ports
-            auth: {
-              user: 'accounts@mycabinets.net',
-              pass: 'Mycabinets@123'
-            }
-          });
+        const transporter = nodemailer.createTransport({
+                   host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+                   port: 465, // Replace with the appropriate port
+                   secure: true, // true for 465, false for other ports
+                   auth: {
+                     user: 'accounts@mycabinets.net',
+                     pass: 'Mycabinets@123'
+                   }
+                 });
 // const transporter = nodemailer.createTransport({
 //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
 //     port: 465, // Replace with the appropriate port
@@ -307,7 +307,7 @@ router.post('/send-estimate-email', async (req, res) => {
             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
                 <div>
                     <p style="font-size: 15px; color:#222">Make your Estimate</p>
-                    <h1 style="font-size: 35px; margin-bottom: 0; margin-top: 0; color:#222">INVOICE</h1>
+                    <h1 style="font-size: 35px; margin-bottom: 0; margin-top: 0; color:#222">ESTIMATE</h1>
                 </div>
                 <div>
                     <ul style="text-align: center;display: inline-flex;list-style:none;padding-left:0px">
@@ -782,14 +782,12 @@ function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
     </html>`;
 
     const transporter = nodemailer.createTransport({
-        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        port: 465, // Replace with the appropriate port
-        secure: true, // true for 465, false for other ports
+        service: 'gmail',
         auth: {
-          user: 'accounts@mycabinets.net',
-          pass: 'Mycabinets@123'
-        }
-      });
+            user: "jdwebservices1@gmail.com",
+            pass: "cwoxnbrrxvsjfbmr"
+        },
+    });
     // const transporter = nodemailer.createTransport({
     //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
     //     port: 465, // Replace with the appropriate port
@@ -835,13 +833,15 @@ router.post('/forgot-password', async (req, res) => {
   
       // Nodemailer setup
       const transporter = nodemailer.createTransport({
-        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        port: 465, // Replace with the appropriate port
-        secure: true, // true for 465, false for other ports
-        auth: {
-          user: 'accounts@mycabinets.net',
-          pass: 'Mycabinets@123'
-        }
+        service: "Gmail",
+      secure: false,
+      auth: {
+          user: "jdwebservices1@gmail.com",
+          pass: "cwoxnbrrxvsjfbmr"
+      },
+      tls:{
+        rejectUnauthorized: false
+      }
       });
     // const transporter = nodemailer.createTransport({
     //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
@@ -934,11 +934,17 @@ router.post('/reset-password', async (req, res) => {
 // });
 
 router.post('/clockin', async (req, res) => {
+    try{
     const { userid,username,userEmail,isTeamMember } = req.body;
 
     const startTime = new Date();
     const options = { timeZone: 'Asia/Kolkata', timeZoneName: 'short' };
     const formattedStartTime = startTime.toLocaleString('en-US', options);
+    let authtoken = req.headers.authorization;
+
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
 
     const newClockEntry = new Timeschema({
         startTime: formattedStartTime,
@@ -952,14 +958,28 @@ router.post('/clockin', async (req, res) => {
         res.json({ message: 'Clock-in successful', startTime: formattedStartTime });
     } catch (error) {
         res.status(500).json({ message: 'Failed to store clock entry' });
+    }} catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
 router.post('/clockout', async (req, res) => {
+    try{
     const { userid,username,userEmail,isTeamMember } = req.body;
     const endTime = new Date();
     const options = { timeZone: 'Asia/Kolkata', timeZoneName: 'short' };
     const formattedEndTime = endTime.toLocaleString('en-US', options);
+    let authtoken = req.headers.authorization;
+
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
 
     // Find the most recent clock-in entry and update it with the end time
     const mostRecentClockEntry = await Timeschema.findOne({ endTime: null, userid:userid }).sort({ startTime: -1 });
@@ -985,12 +1005,25 @@ router.post('/clockout', async (req, res) => {
         res.json({ message: 'Clock-out successful', endTime: formattedEndTime,totalTimeWorked: mostRecentClockEntry.totalTime });
     } else {
         res.json({ message: 'No matching clock-in entry found for clock-out' });
+    }} catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
 router.get('/userEntries/:userid', async (req, res) => {
     try {
       const { userid } = req.params;
+      let authtoken = req.headers.authorization;
+
+      // Verify JWT token
+      const decodedToken = jwt.verify(authtoken, jwrsecret);
+      console.log(decodedToken);
       const userEntries = await Timeschema.find({ userid }).sort({ startTime: 1 });
   
       if (userEntries) {
@@ -998,9 +1031,14 @@ router.get('/userEntries/:userid', async (req, res) => {
       } else {
         res.status(404).json({ message: 'No entries found for this user' });
       }
-    } catch (error) {
-      console.error(error);
-      res.status(500).json({ message: 'Server error' });
+    }catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -1050,11 +1088,15 @@ router.post("/addcustomer",
 ]
 , async (req, res) => {
     const errors = validationResult(req);
+    let authtoken = req.headers.authorization;
+    try {
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
+
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-
-    try {
         const email = req.body.email;
         const existingcustomer = await Customerlist.findOne({ email });
 
@@ -1091,11 +1133,16 @@ router.post("/addcustomer",
         })
         }
     }
-    catch (error) {
-    console.log(error);
-    return res.status(500).json({ success: false, message: "Internal Server Error" });
+        catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-    });
+});
 
 // router.post(
 //         '/savecreateinvoice',
@@ -1193,12 +1240,16 @@ router.post("/addcustomer",
     // Create a new invoice
 router.post('/savecreateinvoice', async (req, res) => {
     const invoiceSchemaDefinition = Invoice.schema.obj;
-console.log('Invoice Schema:', invoiceSchemaDefinition);
+    console.log('Invoice Schema:', invoiceSchemaDefinition);
         try {
             const { userid, invoiceData } = req.body; // Extracting invoiceData from the request body
             console.log('Received userid:', userid);
             console.log('Received invoiceData:', invoiceData); // Add this line to log the entire invoiceData
 
+            let authtoken = req.headers.authorization;
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             // Check if the invoice number already exists for the given user ID
         const existingInvoice = await Invoice.findOne({
             userid: userid,
@@ -1229,11 +1280,16 @@ console.log('Invoice Schema:', invoiceSchemaDefinition);
             message: 'Invoice saved successfully!',
             invoice: savedInvoice,
           });
-        } catch (error) {
-          console.error('Error creating invoice:', error);
-          res.status(500).json({ success: false, message: 'Failed to save the invoice.' });
+        }  catch (error) {
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
-});
+    });
 
 
     // Create a new estimate
@@ -1241,6 +1297,11 @@ router.post('/savecreateestimate', async (req, res) => {
         try {
             const { userid, estimateData } = req.body; // Extracting estimateData from the request body
             console.log('Received userid:', userid);
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
 
                 // Check if the invoice number already exists for the given user ID
         const existingEstimate = await Estimate.findOne({
@@ -1271,27 +1332,47 @@ router.post('/savecreateestimate', async (req, res) => {
             message: 'Estimate saved successfully!',
             estimate: savedEstimate,
           });
-        } catch (error) {
-          console.error('Error creating Estimate:', error);
-          res.status(500).json({ success: false, message: 'Failed to save the Estimate.' });
+        }  catch (error) {
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
-      });
+    });
 
 router.get('/invoicedata/:userid', async (req, res) => {
         try {
             let userid = req.params.userid;
+            let authtoken = req.headers.authorization;
+            // console.log(authtoken);
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             const invoicedata = (await Invoice.find({ userid: userid}));
             res.json(invoicedata);
         } catch (error) {
-            console.error(error);
+            console.error('Error fetching dashboard data:', error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
             res.status(500).json({ message: 'Internal server error' });
         }
-});
+    });
 
 router.post('/converttoinvoice/:estimateid', async (req, res) => {
     try {
         const { estimateid } = req.params;
         // Find the estimate by ID
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
         const estimate = await Estimate.findById(estimateid);
 
         if (!estimate) {
@@ -1339,7 +1420,12 @@ router.post('/converttoinvoice/:estimateid', async (req, res) => {
     }
     } catch (error) {
         console.error(error);
-        res.status(500).json({ message: 'Error converting estimate to invoice' });
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -1348,6 +1434,11 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
         try {
             const invoiceid = req.params.invoiceid;
             console.log(invoiceid);
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
     
             const result = await Invoice.findById(invoiceid);
     
@@ -1363,12 +1454,14 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
                     message: "invoicedata not found"
                 });
             }
-        } catch (error) {
-            console.error("Error retrieving invoicedata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to retrieve invoicedata"
-            });
+        }catch (error) {
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -1376,6 +1469,11 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
         try {
             const estimateid = req.params.estimateid;
             console.log(estimateid);
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
     
             const result = await Estimate.findById(estimateid);
     
@@ -1392,11 +1490,13 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
                 });
             }
         } catch (error) {
-            console.error("Error retrieving estimatedata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to retrieve estimatedata"
-            });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -1415,6 +1515,11 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
             if (emailsent !== undefined) {
             updatedData.emailsent = emailsent;
         }
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
     
             // Perform the update operation in your database here
             const result = await Invoice.findByIdAndUpdate(invoiceid, updatedData, { new: true });
@@ -1431,12 +1536,14 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
                     message: "Invoice data not found"
                 });
             }
-        } catch (error) {
-            console.error("Error updating invoice data:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to update invoice data"
-            });
+        }catch (error) {
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -1455,6 +1562,11 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
                 updatedestimateData.emailsent = emailsent;
             }
         
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             // Perform the update operation in your database here
             const result = await Estimate.findByIdAndUpdate(estimateid, updatedestimateData, { new: true });
     
@@ -1471,11 +1583,13 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
                 });
             }
         } catch (error) {
-            console.error("Error updating estimate data:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to update estimate data"
-            });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -1497,6 +1611,11 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
 router.get('/deldata/:invoiceid', async (req, res) => {
     try {
       const invoiceid = req.params.invoiceid;
+      let authtoken = req.headers.authorization;
+
+      // Verify JWT token
+      const decodedToken = jwt.verify(authtoken, jwrsecret);
+      console.log(decodedToken);
       const invoice = await Invoice.findById(invoiceid);
   
       if (!invoice) {
@@ -1528,17 +1647,24 @@ router.get('/deldata/:invoiceid', async (req, res) => {
         });
       }
     } catch (error) {
-      console.error('Error deleting Invoice:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to delete Invoice'
-      });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-  });
+});
 
 router.get('/delestimatedata/:estimateid', async (req, res) => {
     try {
       const estimateid = req.params.estimateid;
+      let authtoken = req.headers.authorization;
+
+      // Verify JWT token
+      const decodedToken = jwt.verify(authtoken, jwrsecret);
+      console.log(decodedToken);
       const result = await Estimate.findByIdAndDelete(estimateid);
   
       if (result) {
@@ -1552,14 +1678,16 @@ router.get('/delestimatedata/:estimateid', async (req, res) => {
           message: 'Failed to delete Estimate'
         });
       }
-    } catch (error) {
-      console.error('Error deleting Estimate:', error);
-      return res.status(500).json({
-        success: false,
-        message: 'Failed to delete Estimate'
-      });
+    }  catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-  });
+});
 
 // DELETE route to remove invoice and associated transactions by invoice ID
 router.get('/removeInvoiceAndTransactions/:invoiceid', async (req, res) => {
@@ -1592,6 +1720,11 @@ router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
     try {
         const invoiceid = req.params.invoiceid;
         const itemId = req.params.itemId;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
         const result = await Invoice.findById(invoiceid);
         console.log(result);
         const updateditems = [];
@@ -1616,11 +1749,13 @@ router.get('/delinvoiceitem/:invoiceid/:itemId', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Error deleting item:', error);
-        res.status(500).json({
-            Success: false,
-            message: 'Failed to delete item'
-        });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -1628,6 +1763,11 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
     try {
         const estimateid = req.params.estimateid;
         const itemId = req.params.itemId;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
         const result = await Estimate.findById(estimateid);
         console.log(result);
         const updateditems = [];
@@ -1652,11 +1792,13 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error('Error deleting item:', error);
-        res.status(500).json({
-            Success: false,
-            message: 'Failed to delete item'
-        });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -1664,31 +1806,57 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
     router.get('/getinvoicedata/:invoiceid', async (req, res) => {
     try {
     const invoiceid = req.params.invoiceid;
+    let authtoken = req.headers.authorization;
+
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
     const invoicedetail = await Invoice.findById(invoiceid);
     
     res.json(invoicedetail);
     } catch (error) {
-    console.error('Error fetching invoicedetail:', error);
-    res.status(500).json({ message: 'Internal server error' });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-    });
+});
 
     // Fetch estimatedetail from a estimate
     router.get('/getestimatedata/:estimateid', async (req, res) => {
     try {
     const estimateid = req.params.estimateid;
+    let authtoken = req.headers.authorization;
+
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
     const estimatedetail = await Estimate.findById(estimateid);
     
     res.json(estimatedetail);
     } catch (error) {
-    console.error('Error fetching estimatedetail:', error);
-    res.status(500).json({ message: 'Internal server error' });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-    });
+});
 
     router.get('/lastinvoicenumber/:userid', async (req, res) => {
         try {
             const userid = req.params.userid;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
+
             const lastInvoice = await Invoice.findOne({ userid: userid}).sort({ invoice_id: -1 });
     
             if (lastInvoice) {
@@ -1701,14 +1869,24 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
                 res.json({ lastInvoiceNumber: "Invoice-1", lastInvoiceId: 0 }); // Default value if no invoices found
             }
         } catch (error) {
-            console.error('Error fetching last invoice number:', error);
-            res.status(500).json({ message: 'Server Error' });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
         }
-    });
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
     router.get('/lastEstimateNumber/:userid', async (req, res) => {
         try {
             const userid = req.params.userid;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             const lastEstimate = await Estimate.findOne({ userid: userid}).sort({ estimate_id: -1 });
     
             if (lastEstimate) {
@@ -1721,8 +1899,13 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
                 res.json({ lastEstimateNumber: "Estimate-1", lastEstimateId: 0 }); // Default value if no estimate found
             }
         } catch (error) {
-            console.error('Error fetching last estimate number:', error);
-            res.status(500).json({ message: 'Server Error' });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -1731,13 +1914,23 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
     router.get('/gettransactiondata/:invoiceid', async (req, res) => {
     try {
     const invoiceid = req.params.invoiceid;
+    let authtoken = req.headers.authorization;
+
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
     const transactiondata = (await Transactions.find({ invoiceid: invoiceid}));
     res.json(transactiondata);
-    } catch (error) {
-    console.error('Error fetching transactiondata:', error);
-    res.status(500).json({ message: 'Internal server error' });
+    }   catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-    });
+});
 
     // Fetch invoicedetail from a userid
     router.get('/invoicedata/:userid', async (req, res) => {
@@ -1755,10 +1948,20 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
     router.get('/estimatedata/:userid', async (req, res) => {
         try {
             let userid = req.params.userid;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             const estimates = (await Estimate.find({ userid: userid}));
             res.json(estimates);
         } catch (error) {
             console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
             res.status(500).json({ message: 'Internal server error' });
         }
     });
@@ -1767,6 +1970,11 @@ router.get('/delestimateitem/:estimateid/:itemId', async (req, res) => {
 router.post('/addpayment', async (req, res) => {
     try {
         const { paidamount, paiddate, method, note, userid, invoiceid, depositid } = req.body;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
 
         // Create a new transaction
         const newTransaction = new Transactions({
@@ -1793,8 +2001,13 @@ router.post('/addpayment', async (req, res) => {
             transaction: savedTransaction,
         });
     } catch (error) {
-        console.error('Error adding payment:', error);
-        res.status(500).json({ success: false, message: 'Failed to add payment.' });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -1835,6 +2048,11 @@ router.post('/updatedeposit/:id', async (req, res) => {
             duedepositdate,
             depositpercentage,
         }
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
 
         // Find the deposit by id
         const depositToUpdate = await Deposit.findByIdAndUpdate(depositId, updatedepositdata, { new: true });
@@ -1852,11 +2070,13 @@ router.post('/updatedeposit/:id', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error("Error updating Depositdata:", error);
-        res.status(500).json({
-            Success: false,
-            message: "Failed to update Depositdata"
-        });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -1864,6 +2084,11 @@ router.post('/updatedeposit/:id', async (req, res) => {
 router.get('/deposit/:id', async (req, res) => {
     try {
         const depositId = req.params.id;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
 
         // Find the deposit by its unique ID
         const deposit = await Deposit.findById(depositId);
@@ -1876,8 +2101,13 @@ router.get('/deposit/:id', async (req, res) => {
             res.status(200).json({ success: true, deposit });
         }
     } catch (error) {
-        console.error('Error retrieving deposit:', error);
-        res.status(500).json({ success: false, message: 'Failed to retrieve deposit.' });
+        console.error('Error retrieving deposit:',error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Failed to retrieve deposit.' });
     }
 });
 
@@ -1885,35 +2115,65 @@ router.get('/getdepositdata/:userid/:invoiceid', async (req, res) => {
     try {
     const userid = req.params.userid;
     const invoiceid = req.params.invoiceid;
+    let authtoken = req.headers.authorization;
+
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
     const depositdetail = await Deposit.find({userid: userid, invoiceid : invoiceid});
     res.json(depositdetail.length > 0 ? depositdetail[depositdetail.length-1] : depositdetail);
     } catch (error) {
-    console.error('Error fetching signupdetail:', error);
-    res.status(500).json({ message: 'Internal server error' });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-    });
+});
 
 
     // Fetch signupdata from a signup
     router.get('/getsignupdata/:userid', async (req, res) => {
     try {
     const userid = req.params.userid;
+    let authtoken = req.headers.authorization;
+
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
     const signupdetail = await User.findById(userid);
     res.json(signupdetail);
     } catch (error) {
-    console.error('Error fetching signupdetail:', error);
-    res.status(500).json({ message: 'Internal server error' });
+        console.error('Error fetching dashboard data:', error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
-    });
+});
       
   
 router.get('/customers/:userid', async (req, res) => {
     try {
         let userid = req.params.userid;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
         const customers = (await Customerlist.find({ userid: userid}));
         res.json(customers);
     } catch (error) {
         console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
         res.status(500).json({ message: 'Internal server error' });
     }
 });
@@ -1922,6 +2182,11 @@ router.get('/customers/:userid', async (req, res) => {
         try {
             const customerId = req.params.customerId;
             console.log(customerId);
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
     
             const result = await Customerlist.findById(customerId);
     
@@ -1938,11 +2203,13 @@ router.get('/customers/:userid', async (req, res) => {
                 });
             }
         } catch (error) {
-            console.error("Error retrieving Customerdata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to retrieve Customerdata"
-            });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -1952,6 +2219,11 @@ router.get('/customers/:userid', async (req, res) => {
         try {
             const customerId = req.params.customerId; // Fix here
             const updatedcustomerdata = req.body;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
         
             const result = await Customerlist.findByIdAndUpdate(customerId, updatedcustomerdata, { new: true });
         
@@ -1968,11 +2240,13 @@ router.get('/customers/:userid', async (req, res) => {
                 });
             }
         } catch (error) {
-            console.error("Error updating Customerdata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to update Customerdata"
-            });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
     
@@ -1980,6 +2254,11 @@ router.get('/customers/:userid', async (req, res) => {
         try {
             const userid = req.params.userid; // Fix here
             const updatedsignupdata = req.body;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             
             if (req.file) {
                 updatedsignupdata.companyImageUrl = req.file.path;
@@ -1999,12 +2278,14 @@ router.get('/customers/:userid', async (req, res) => {
                     message: "Signupdata not found"
                 });
             }
-        } catch (error) {
-            console.error("Error updating Signupdata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to update Signupdata"
-            });
+        }catch (error) {
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -2012,6 +2293,11 @@ router.get('/customers/:userid', async (req, res) => {
         try {
             const userid = req.params.userid; // Fix here
             const updatedsignupdata = req.body;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             const result = await User.findByIdAndUpdate(userid, updatedsignupdata, { new: true });
         
             if (result) {
@@ -2027,17 +2313,24 @@ router.get('/customers/:userid', async (req, res) => {
                 });
             }
         } catch (error) {
-            console.error("Error updating Signupdata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to update Signupdata"
-            });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
     router.get('/delcustomers/:customerId', async (req, res) => {
         try {
             const customerId = req.params.customerId;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
     
             const result = await Customerlist.findByIdAndDelete(customerId);
     
@@ -2053,11 +2346,13 @@ router.get('/customers/:userid', async (req, res) => {
                 });
             }
         } catch (error) {
-            console.error("Error deleting Customer:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to delete Customer"
-            });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -2071,11 +2366,14 @@ router.get('/customers/:userid', async (req, res) => {
 ]
 , async (req, res) => {
     const errors = validationResult(req);
+    let authtoken = req.headers.authorization;
+    try {
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-
-    try {
         Itemlist.create({
             userid: req.body.userid,
             itemname: req.body.itemname,
@@ -2087,19 +2385,35 @@ router.get('/customers/:userid', async (req, res) => {
             message: "Congratulations! Your Item has been successfully added! "
         })
     }
+        
     catch (error) {
-        console.log(error);
-        res.json({ Success: false })
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
 router.get('/itemdata/:userid', async (req, res) => {
     try {
         let userid = req.params.userid;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
         const itemdata = (await Itemlist.find({ userid: userid}));
         res.json(itemdata);
-    } catch (error) {
+    }  catch (error) {
         console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
         res.status(500).json({ message: 'Internal server error' });
     }
 });
@@ -2107,6 +2421,11 @@ router.get('/itemdata/:userid', async (req, res) => {
 router.get('/delitem/:itemId', async (req, res) => {
     try {
         const itemId = req.params.itemId;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
 
         const result = await Itemlist.findByIdAndDelete(itemId);
 
@@ -2122,11 +2441,13 @@ router.get('/delitem/:itemId', async (req, res) => {
             });
         }
     } catch (error) {
-        console.error("Error deleting Item:", error);
-        res.status(500).json({
-            Success: false,
-            message: "Failed to delete Item"
-        });
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -2134,6 +2455,11 @@ router.get('/getitems/:itemId', async (req, res) => {
     try {
         const itemId = req.params.itemId;
         console.log(itemId);
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
 
         const result = await Itemlist.findById(itemId);
 
@@ -2149,12 +2475,14 @@ router.get('/getitems/:itemId', async (req, res) => {
                 message: "Itemdata not found"
             });
         }
-    } catch (error) {
-        console.error("Error retrieving Itemdata:", error);
-        res.status(500).json({
-            Success: false,
-            message: "Failed to retrieve Itemdata"
-        });
+    }catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
 
@@ -2164,6 +2492,11 @@ router.post('/updateitemdata/:itemId', async (req, res) => {
     try {
         const itemId = req.params.itemId; // Fix here
         const updateditemdata = req.body;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
     
         const result = await Itemlist.findByIdAndUpdate(itemId, updateditemdata, { new: true });
     
@@ -2179,12 +2512,14 @@ router.post('/updateitemdata/:itemId', async (req, res) => {
                 message: "Itemdata not found"
             });
         }
-    } catch (error) {
-        console.error("Error updating Itemdata:", error);
-        res.status(500).json({
-            Success: false,
-            message: "Failed to update Itemdata"
-        });
+    }catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
     }
 });
   
@@ -2230,12 +2565,16 @@ router.post("/addteammember", [
     body('number').isNumeric(),
     body('password').isLength({ min: 4 }),
 ], async (req, res) => {
+    
     const errors = validationResult(req);
+    let authtoken = req.headers.authorization;
+    try {
+    // Verify JWT token
+    const decodedToken = jwt.verify(authtoken, jwrsecret);
+    console.log(decodedToken);
     if (!errors.isEmpty()) {
         return res.status(400).json({ errors: errors.array() });
     }
-
-    try {
         const email = req.body.email;
         const existingTeamMember = await Team.findOne({ email });
         const existingUser = await User.findOne({ email: email });
@@ -2265,10 +2604,16 @@ router.post("/addteammember", [
                 message: "Congratulations! Your Team member has been successfully added!"
             });
         }
-    } catch (error) {
-        console.log(error);
-        return res.status(500).json({ success: false, message: "Internal Server Error" });
     }
+    catch (error) {
+    console.error(error);
+    // Handle token verification errors
+    if (error.name === 'JsonWebTokenError') {
+        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    }
+    // Handle other errors
+    res.status(500).json({ message: 'Internal server error' });
+}
 });
 
 async function getCompanyName(userId) {
@@ -2376,10 +2721,20 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
     router.get('/teammemberdata/:userid', async (req, res) => {
         try {
             let userid = req.params.userid;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
             const teammemberdata = (await Team.find({ userid: userid}));
             res.json(teammemberdata);
-        } catch (error) {
+        }catch (error) {
             console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
             res.status(500).json({ message: 'Internal server error' });
         }
     });
@@ -2388,6 +2743,11 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
         try {
             const teamid = req.params.teamid;
             console.log(teamid);
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
     
             const result = await Team.findById(teamid);
     
@@ -2403,14 +2763,17 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
                     message: "teamdata not found"
                 });
             }
-        } catch (error) {
-            console.error("Error retrieving teamdata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to retrieve teamdata"
-            });
         }
-    });
+        catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
     
     
     // Update a restaurant using POST
@@ -2418,6 +2781,11 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
         try {
             const teamid = req.params.teamid; // Fix here
             const updatedteamdata = req.body;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
         
             const result = await Team.findByIdAndUpdate(teamid, updatedteamdata, { new: true });
         
@@ -2433,12 +2801,14 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
                     message: "teamdata not found"
                 });
             }
-        } catch (error) {
-            console.error("Error updating teamdata:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to update teamdata"
-            });
+        }catch (error) {
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 
@@ -2446,6 +2816,11 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
     router.get('/delteammember/:teamid', async (req, res) => {
         try {
             const teamid = req.params.teamid;
+            let authtoken = req.headers.authorization;
+    
+            // Verify JWT token
+            const decodedToken = jwt.verify(authtoken, jwrsecret);
+            console.log(decodedToken);
     
             const result = await Team.findByIdAndDelete(teamid);
     
@@ -2461,11 +2836,13 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
                 });
             }
         } catch (error) {
-            console.error("Error deleting teammember:", error);
-            res.status(500).json({
-                Success: false,
-                message: "Failed to delete teammember"
-            });
+            console.error(error);
+            // Handle token verification errors
+            if (error.name === 'JsonWebTokenError') {
+                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+            }
+            // Handle other errors
+            res.status(500).json({ message: 'Internal server error' });
         }
     });
 

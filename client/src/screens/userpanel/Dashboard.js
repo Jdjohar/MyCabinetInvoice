@@ -3,6 +3,7 @@ import { format } from 'date-fns';
 import { useNavigate, useLocation } from 'react-router-dom'
 import { ColorRing } from 'react-loader-spinner'
 import CurrencySign from '../../components/CurrencySign ';
+import Alertauthtoken from '../../components/Alertauthtoken';
 
 export default function Dashboard() {
   const [loading, setloading] = useState(true);
@@ -26,65 +27,66 @@ export default function Dashboard() {
   const [signupdata, setsignupdata] = useState([]);
   const [startTime, setStartTime] = useState(null);
   const [totalTime, setTotalTime] = useState(0);
+  const [alertMessage, setAlertMessage] = useState('');
   const [userEntries, setUserEntries] = useState([]);
   const currentDate = new Date(); // Get the current date
 
   const currentMonth = format(currentDate, 'MMMM');
 
 
-  useEffect(() => {
-    const localstarttime = localStorage.getItem("startTime");
-    if (localstarttime != undefined && localstarttime != null && localstarttime != "") {
-      setStartTime(localstarttime);
-      setIsClockedIn(true);
-    }
+  // useEffect(() => {
+  //   const localstarttime = localStorage.getItem("startTime");
+  //   if (localstarttime != undefined && localstarttime != null && localstarttime != "") {
+  //     setStartTime(localstarttime);
+  //     setIsClockedIn(true);
+  //   }
 
-    if (isClockedIn && startTime) {
-      const interval = setInterval(() => {
-        const currentTimestamp = new Date().getTime();
-        const startTimestamp = new Date(startTime).getTime();
-        const timeDifference = currentTimestamp - startTimestamp;
-        const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-        const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-        const seconds = Math.floor((timeDifference / 1000) % 60);
-        setTotalTime(`${hours} hrs ${minutes} mins ${seconds} secs`);
-      }, 1000);
+  //   if (isClockedIn && startTime) {
+  //     const interval = setInterval(() => {
+  //       const currentTimestamp = new Date().getTime();
+  //       const startTimestamp = new Date(startTime).getTime();
+  //       const timeDifference = currentTimestamp - startTimestamp;
+  //       const hours = Math.floor(timeDifference / (1000 * 60 * 60));
+  //       const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
+  //       const seconds = Math.floor((timeDifference / 1000) % 60);
+  //       setTotalTime(`${hours} hrs ${minutes} mins ${seconds} secs`);
+  //     }, 1000);
 
-      return () => clearInterval(interval);
-    }
-    else {
-      setTotalTime('0 hrs 0 mins 0 secs');
-    }
-    // Calculate the start and end timestamps for the current month
-    const currentMonthIndex = currentDate.getMonth(); // Get the current month (0-indexed)
-    const currentYear = currentDate.getFullYear();
-    const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
-    const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
+  //     return () => clearInterval(interval);
+  //   }
+  //   else {
+  //     setTotalTime('0 hrs 0 mins 0 secs');
+  //   }
+  //   // Calculate the start and end timestamps for the current month
+  //   const currentMonthIndex = currentDate.getMonth(); // Get the current month (0-indexed)
+  //   const currentYear = currentDate.getFullYear();
+  //   const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
+  //   const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
 
-    fetchUserEntries(startOfMonth, endOfMonth);
-  }, [isClockedIn, startTime]);
+  //   fetchUserEntries(startOfMonth, endOfMonth);
+  // }, [isClockedIn, startTime]);
 
-  const fetchUserEntries = async (start, end) => {
-    try {
-      const userid = localStorage.getItem('userid');
-      const response = await fetch(`https://mycabinet.onrender.com/api/userEntries/${userid}`);
-      const data = await response.json();
+  // const fetchUserEntries = async (start, end) => {
+  //   try {
+  //     const userid = localStorage.getItem('userid');
+  //     const response = await fetch(`https://mycabinet.onrender.com/api/userEntries/${userid}`);
+  //     const data = await response.json();
 
-      // Filter userEntries to include only entries for the current month
-      const filteredEntries = data.userEntries.filter((entry) => {
-        const entryTime = new Date(entry.startTime).getTime();
-        return entryTime >= start.getTime() && entryTime <= end.getTime();
-      });
+  //     // Filter userEntries to include only entries for the current month
+  //     const filteredEntries = data.userEntries.filter((entry) => {
+  //       const entryTime = new Date(entry.startTime).getTime();
+  //       return entryTime >= start.getTime() && entryTime <= end.getTime();
+  //     });
 
-      setUserEntries(filteredEntries);
+  //     setUserEntries(filteredEntries);
 
-      setTimeout(() => {
-        setloading(false);
-      }, 2000);
-    } catch (error) {
-      console.error(error);
-    }
-  };
+  //     setTimeout(() => {
+  //       setloading(false);
+  //     }, 2000);
+  //   } catch (error) {
+  //     console.error(error);
+  //   }
+  // };
 
   const handleAddinvoiceClick = () => {
     navigate('/userpanel/Createinvoice');
@@ -95,13 +97,27 @@ export default function Dashboard() {
 
   const fetchsignupdata = async () => {
     try {
+      const authToken = localStorage.getItem('authToken');
       const userid = localStorage.getItem("userid");
-      const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`);
-      const json = await response.json();
+      const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`, {
+        headers: {
+          'Authorization': authToken,
+        }
+      });
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0,0);
+        return; // Stop further execution
+      }
+      else{
+        const json = await response.json();
 
-      // if (Array.isArray(json)) {
-      setsignupdata(json);
-      // }
+        // if (Array.isArray(json)) {
+        setsignupdata(json);
+        // }
+      }
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -110,26 +126,40 @@ export default function Dashboard() {
   const fetchData = async () => {
     try {
       const userid = localStorage.getItem("userid");
-      const response = await fetch(`https://mycabinet.onrender.com/api/invoicedata/${userid}`);
-      const json = await response.json();
-
-      if (Array.isArray(json)) {
-        setinvoices(json);
-
-        const transactionPromises = json.map(async (invoice) => {
-          const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoice._id}`);
-          const transactionJson = await response.json();
-          return transactionJson.map(transaction => ({
-            ...transaction,
-            invoiceId: invoice._id // Attach invoiceId to each transaction
-          }));
-        });
-
-        const transactionsData = await Promise.all(transactionPromises);
-        const flattenedTransactions = transactionsData.flat(); // Flatten the transactions array
-        setTransactions(flattenedTransactions);
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`https://mycabinet.onrender.com/api/invoicedata/${userid}`, {
+        headers: {
+          'Authorization': authToken,
+        }
+      });
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0,0);
+        return; // Stop further execution
       }
-      setloading(false);
+      else{
+        const json = await response.json();
+        if (Array.isArray(json)) {
+          setinvoices(json);
+
+          // const transactionPromises = json.map(async (invoice) => {
+          //   const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoice._id}`);
+          //   const transactionJson = await response.json();
+          //   return transactionJson.map(transaction => ({
+          //     ...transaction,
+          //     invoiceId: invoice._id // Attach invoiceId to each transaction
+          //   }));
+          // });
+
+          // const transactionsData = await Promise.all(transactionPromises);
+          // const flattenedTransactions = transactionsData.flat(); // Flatten the transactions array
+          // setTransactions(flattenedTransactions);
+        }
+        setloading(false);
+      }
+      
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -286,6 +316,10 @@ export default function Dashboard() {
               </div>
             </div>
           </div> */}
+          
+          <div className=''>
+            {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
+          </div>
               <div className="bg-white my-5 p-4 box">
                 <div className="row px-2 table-responsive">
                   <table class="table table-bordered">

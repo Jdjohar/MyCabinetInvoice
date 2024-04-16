@@ -12,6 +12,7 @@ import 'react-virtualized/styles.css'
 import CurrencySign from '../../components/CurrencySign ';
 import { CountrySelect, StateSelect, CitySelect } from '@davzon/react-country-state-city';
 import "@davzon/react-country-state-city/dist/react-country-state-city.css";
+import Alertauthtoken from '../../components/Alertauthtoken';
 
 export default function Createinvoice() {
     const [loading, setloading] = useState(true);
@@ -39,6 +40,7 @@ export default function Createinvoice() {
         amount: '', discountTotal:'', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
     const [editorData, setEditorData] = useState("<p></p>");
+    const [alertMessage, setAlertMessage] = useState('');
     const [credentials, setCredentials] = useState({
         name: '',
         email: '',
@@ -81,18 +83,34 @@ export default function Createinvoice() {
     const fetchLastInvoiceNumber = async () => {
         try {
             const userid = localStorage.getItem('userid');
-            const response = await fetch(`https://mycabinet.onrender.com/api/lastinvoicenumber/${userid}`);
-            const json = await response.json();
+            const authToken = localStorage.getItem('authToken');
+            const response = await fetch(`https://mycabinet.onrender.com/api/lastinvoicenumber/${userid}`, {
+                headers: {
+                  'Authorization': authToken,
+                }
+              });
 
-            // let nextInvoiceNumber = 1;
-            // if (json && json.lastInvoiceNumber) {
-            //     nextInvoiceNumber = json.lastInvoiceNumber + 1;
-            // }
-            setInvoiceData({
-                ...invoiceData,
-                InvoiceNumber: `Invoice-${json.lastInvoiceId + 1}`,
-                invoice_id: json.lastInvoiceId + 1,
-            });
+              if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
+              }
+              else{
+                const json = await response.json();
+
+                // let nextInvoiceNumber = 1;
+                // if (json && json.lastInvoiceNumber) {
+                //     nextInvoiceNumber = json.lastInvoiceNumber + 1;
+                // }
+                setInvoiceData({
+                    ...invoiceData,
+                    InvoiceNumber: `Invoice-${json.lastInvoiceId + 1}`,
+                    invoice_id: json.lastInvoiceId + 1,
+                });
+              }
+            
         } catch (error) {
             console.error('Error fetching last invoice number:', error);
         }
@@ -102,12 +120,28 @@ export default function Createinvoice() {
     const fetchcustomerdata = async () => {
         try {
             const userid = localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`);
-            const json = await response.json();
+            const authToken = localStorage.getItem('authToken');
+            const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`, {
+                headers: {
+                  'Authorization': authToken,
+                }
+              });
 
-            if (Array.isArray(json)) {
-                setcustomers(json);
-            }
+              if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
+              }
+              else{
+                const json = await response.json();
+
+                if (Array.isArray(json)) {
+                    setcustomers(json);
+                }
+              }
+            
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -116,12 +150,26 @@ export default function Createinvoice() {
     const fetchitemdata = async () => {
         try {
             const userid = localStorage.getItem("userid");
-            const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`);
-            const json = await response.json();
+            const authToken = localStorage.getItem('authToken');
+            const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`, {
+                headers: {
+                  'Authorization': authToken,
+                }
+              });
 
-            if (Array.isArray(json)) {
-                setitems(json);
-            }
+              if (response.status === 401) {
+                const json = await response.json();
+                setAlertMessage(json.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
+              }
+              else{
+                const json = await response.json();
+                if (Array.isArray(json)) {
+                    setitems(json);
+                }
+              }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -299,7 +347,7 @@ export default function Createinvoice() {
         e.preventDefault();
         try {
             const userid = localStorage.getItem('userid'); // Assuming you have user ID stored in local storage
-
+            const authToken = localStorage.getItem('authToken');
             const invoiceItems = searchitemResults.map((item) => {
                 const selectedItem = items.find((i) => i._id === item.value);
                 const itemPrice = selectedItem?.price || 0;
@@ -355,29 +403,35 @@ export default function Createinvoice() {
                 method: 'POST',
                 headers: {
                     'Content-Type': 'application/json',
+                    'Authorization': authToken,
                 },
                 body: JSON.stringify({ userid, invoiceData: data }),
             });
-
-            console.log("After Invoice Data:", data,);
-
-
-            if (response.ok) {
+            if (response.status === 401) {
                 const responseData = await response.json();
-                if (responseData.success) {
-                    const invoiceid = responseData.invoice._id;
-                    console.log("After Invoice responseData:", responseData);
-                    navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
-                    console.log(responseData, 'Invoice saved successfully!');
-                } else {
-                    console.error('Failed to save the invoice.');
-                }
-            } else {
-                const responseData = await response.json();
-                setmessage(true);
-                setAlertShow(responseData.error)
-                console.error('Failed to save the invoice.');
+                setAlertMessage(responseData.message);
+                setloading(false);
+                window.scrollTo(0,0);
+                return; // Stop further execution
             }
+            else{
+                if (response.ok) {
+                    const responseData = await response.json();
+                    if (responseData.success) {
+                        const invoiceid = responseData.invoice._id;
+                        console.log("After Invoice responseData:", responseData);
+                        navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
+                        console.log(responseData, 'Invoice saved successfully!');
+                    } else {
+                        console.error('Failed to save the invoice.');
+                    }
+                } else {
+                    const responseData = await response.json();
+                    setmessage(true);
+                    setAlertShow(responseData.error)
+                    console.error('Failed to save the invoice.');
+                }  
+            }   
         } catch (error) {
             console.error('Error creating invoice:', error);
         }
@@ -447,10 +501,12 @@ export default function Createinvoice() {
     const handleAddCustomer = async (e) => {
         e.preventDefault();
         let userid = localStorage.getItem('userid');
+        const authToken = localStorage.getItem('authToken');
         const response = await fetch('https://mycabinet.onrender.com/api/addcustomer', {
             method: 'POST',
             headers: {
                 'Content-Type': 'application/json',
+                'Authorization': authToken,
             },
             body: JSON.stringify({
                 userid: userid,
@@ -473,32 +529,40 @@ export default function Createinvoice() {
             }),
         });
 
-        const json = await response.json();
-        console.log(json);
-
-        if (json.Success) {
-            setCredentials({
-                name: '',
-                email: '',
-                number: '',
-                citydata: '',
-                statedata: '',
-                countrydata: '',
-                information: '',
-                address1: '',
-                address2: '',
-                post: '',
-            });
-
-            setMessage1(true);
-            setAlertShow(json.message);
-            window.location.reload();
-            //   navigate('/userpanel/Customerlist');
+        if (response.status === 401) {
+          const json = await response.json();
+          setAlertMessage(json.message);
+          setloading(false);
+          window.scrollTo(0,0);
+          return; // Stop further execution
         }
+        else{
+            const json = await response.json();
+            console.log(json);
 
-        else {
-            alert("This Customer Email already exist")
-        }
+            if (json.Success) {
+                setCredentials({
+                    name: '',
+                    email: '',
+                    number: '',
+                    citydata: '',
+                    statedata: '',
+                    countrydata: '',
+                    information: '',
+                    address1: '',
+                    address2: '',
+                    post: '',
+                });
+
+                setMessage1(true);
+                setAlertShow(json.message);
+                window.location.reload();
+                //   navigate('/userpanel/Customerlist');
+            }
+            else {
+                alert("This Customer Email already exist")
+            }
+        }  
     };
 
     const onchangeaddcustomer = (event) => {
@@ -535,7 +599,6 @@ export default function Createinvoice() {
                                     <Usernav />
                                 </div>
                                 <div className='mx-4'>
-
                                     <form onSubmit={handleSubmit}>
                                         <div className='row py-4 px-2 breadcrumbclr'>
                                             <div className="col-lg-4 col-md-6 col-sm-12 col-7 me-auto">
@@ -549,6 +612,10 @@ export default function Createinvoice() {
                                             </div>
                                             <div className="col-lg-3 col-md-4 col-sm-12 col-5 text-right">
                                                 <button className='btn rounded-pill btn-danger text-white fw-bold' type="submit">Save</button>
+                                            </div>
+                                            
+                                            <div className='mt-4'>
+                                                {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
                                             </div>
                                         </div>
                                         <div className='box1 rounded adminborder p-4 m-2 mb-5'>

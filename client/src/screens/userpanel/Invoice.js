@@ -4,6 +4,7 @@ import { useNavigate, useLocation } from 'react-router-dom';
 import Usernav from './Usernav';
 import { ColorRing } from 'react-loader-spinner'
 import CurrencySign from '../../components/CurrencySign ';
+import Alertauthtoken from '../../components/Alertauthtoken';
 // import Nav from './Nav';
 
 export default function Invoice() {
@@ -15,6 +16,7 @@ export default function Invoice() {
   const navigate = useNavigate();
   const [transactions, setTransactions] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [alertMessage, setAlertMessage] = useState('');
   const entriesPerPage = 10;
 
   useEffect(() => {
@@ -27,19 +29,47 @@ export default function Invoice() {
   const fetchData = async () => {
     try {
       const userid = localStorage.getItem("userid");
-      const response = await fetch(`https://mycabinet.onrender.com/api/invoicedata/${userid}`);
-      const json = await response.json();
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`https://mycabinet.onrender.com/api/invoicedata/${userid}`, {
+        headers: {
+          'Authorization': authToken,
+        }
+      });
+
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0,0);
+        return; // Stop further execution
+      }
+      else{
+        const json = await response.json();
 
       if (Array.isArray(json)) {
         setinvoices(json);
 
         const transactionPromises = json.map(async (invoice) => {
-          const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoice._id}`);
-          const transactionJson = await response.json();
-          return transactionJson.map(transaction => ({
-            ...transaction,
-            invoiceId: invoice._id // Attach invoiceId to each transaction
-          }));
+          const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoice._id}`, {
+            headers: {
+              'Authorization': authToken,
+            }
+          });
+
+          if (response.status === 401) {
+            const transactionJson = await response.json();
+            setAlertMessage(transactionJson.message);
+            setloading(false);
+            window.scrollTo(0,0);
+            return; // Stop further execution
+          }
+          else{
+            const transactionJson = await response.json();
+            return transactionJson.map(transaction => ({
+              ...transaction,
+              invoiceId: invoice._id // Attach invoiceId to each transaction
+            }));
+          }
         });
 
         const transactionsData = await Promise.all(transactionPromises);
@@ -47,6 +77,8 @@ export default function Invoice() {
         setTransactions(flattenedTransactions);
       }
       setloading(false);
+      }
+      
     } catch (error) {
       console.error('Error fetching data:', error);
     }
@@ -155,6 +187,9 @@ export default function Invoice() {
                   <Usernav />
                 </div>
                 <div className='bg-white my-5 p-4 box mx-4'>
+                  <div className=''>
+                    {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
+                  </div>
                   <div className='row py-2'>
                     <div className='col-lg-4 col-md-6 col-sm-6 col-7 me-auto'>
                       <p className='h5 fw-bold'>Invoice</p>
