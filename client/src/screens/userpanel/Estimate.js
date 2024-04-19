@@ -44,6 +44,8 @@ export default function Estimate() {
       else{
         const json = await response.json();
         if (Array.isArray(json)) {
+          const sortedEstimates = json.sort((a, b) => new Date(b.date) - new Date(a.date));
+          setestimates(sortedEstimates);
           setestimates(json);
         }
         setloading(false);
