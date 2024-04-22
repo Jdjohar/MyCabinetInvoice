@@ -35,48 +35,85 @@ export default function Editinvoice() {
     const [editorData, setEditorData] = useState("<p></p>");
     const [alertMessage, setAlertMessage] = useState('');
 
+    // useEffect(() => {
+    //     if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
+    //     {
+    //       navigate("/");
+    //     }
+    //     if (invoiceid) {
+    //         fetchdata();
+    //         fetchcustomerdata();
+    //         fetchitemdata();
+    //     }
+    // }, [invoiceid])
+
     useEffect(() => {
-        if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
-        {
-          navigate("/");
+        if (!localStorage.getItem('authToken') || localStorage.getItem('isTeamMember') === 'true') {
+            navigate('/');
+        } else if (invoiceid) {
+            fetchInvoiceData();
         }
-        if (invoiceid) {
-            fetchdata();
-            fetchcustomerdata();
-            fetchitemdata();
-        }
-    }, [invoiceid])
+    }, [invoiceid]);
+
     let navigate = useNavigate();
 
-    const fetchdata = async () => {
+    // const fetchdata = async () => {
+    //     try {
+    //         const userid =  localStorage.getItem("userid");
+    //         const authToken = localStorage.getItem('authToken');
+    //         const response = await fetch(`https://mycabinet.onrender.com/api/geteditinvoicedata/${invoiceid}`, {
+    //             headers: {
+    //               'Authorization': authToken,
+    //             }
+    //         });
+    //           if (response.status === 401) {
+    //             const json = await response.json();
+    //             setAlertMessage(json.message);
+    //             setloading(false);
+    //             window.scrollTo(0,0);
+    //             return; // Stop further execution
+    //           }
+    //           else{
+    //             const json = await response.json();
+            
+    //             if (json.Success) {
+    //                 setInvoiceData(json.invoices);
+    //             } else {
+    //                 console.error('Error fetching invoicedata:', json.message);
+    //             }
+    //             console.log(invoiceData);
+    //           }
+            
+    //     } catch (error) {
+    //         console.error('Error fetching invoicedata:', error);
+    //     }
+    // };
+
+    const fetchInvoiceData = async () => {
         try {
-            const userid =  localStorage.getItem("userid");
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/geteditinvoicedata/${invoiceid}`, {
                 headers: {
-                  'Authorization': authToken,
+                    'Authorization': authToken,
                 }
             });
-              if (response.status === 401) {
+            if (response.status === 401) {
                 const json = await response.json();
                 setAlertMessage(json.message);
                 setloading(false);
-                window.scrollTo(0,0);
-                return; // Stop further execution
-              }
-              else{
+                window.scrollTo(0, 0);
+                return;
+            } else {
                 const json = await response.json();
-            
                 if (json.Success) {
                     setInvoiceData(json.invoices);
                 } else {
-                    console.error('Error fetching invoicedata:', json.message);
+                    console.error('Error fetching invoice data:', json.message);
                 }
-                console.log(invoiceData);
-              }
-            
+                setloading(false);
+            }
         } catch (error) {
-            console.error('Error fetching invoicedata:', error);
+            console.error('Error fetching invoice data:', error);
         }
     };
 
