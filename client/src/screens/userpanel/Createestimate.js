@@ -38,6 +38,7 @@ export default function Createestimate() {
         job: '', date: format(new Date(), 'yyyy-MM-dd'), description: '', itemquantity: '', price: '', discount: '',
         amount: '', tax: '',discountTotal:'', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
+    
     // const [editorData, setEditorData] = useState("<p></p>");
     const [editorData, setEditorData] = useState(`
         <p>
