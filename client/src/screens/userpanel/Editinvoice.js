@@ -353,7 +353,7 @@ export default function Editinvoice() {
                 }
     
             // Update UI or perform other actions upon successful deletion
-            fetchdata();
+            // fetchdata();
             }
     
             
