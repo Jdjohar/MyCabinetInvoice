@@ -340,9 +340,18 @@ export default function Createestimate() {
     };
 
     // Function to calculate tax amount
+    // const calculateTaxAmount = () => {
+    //     const subtotal = calculateSubtotal();
+    //     const taxAmount = (subtotal * taxPercentage) / 100;
+    //     return taxAmount;
+    // };
+
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
-        const taxAmount = (subtotal * taxPercentage) / 100;
+        const totalDiscountedAmount = subtotal - discountTotal; // Apply overall discount first
+    
+        // Calculate tax amount on the discounted amount
+        const taxAmount = (totalDiscountedAmount * taxPercentage) / 100;
         return taxAmount;
     };
 
