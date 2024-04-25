@@ -318,7 +318,7 @@ export default function Createinvoice() {
             const discount = discountMap[itemId] || 0;
 
             const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
-
+console.log("discountedAmount:", discountedAmount);
             subtotal += discountedAmount;
         });
 
@@ -328,11 +328,14 @@ export default function Createinvoice() {
     // Function to handle tax change
     const handleTaxChange = (event) => {
         let enteredTax = event.target.value;
+        // console.log("enteredTax:", enteredTax);
+
         // Restrict input to two digits after the decimal point
         const regex = /^\d*\.?\d{0,2}$/; // Regex to allow up to two decimal places
         if (regex.test(enteredTax)) {
             // Ensure that the entered value is a valid number
             enteredTax = parseFloat(enteredTax);
+            // console.log("enteredTaxValue:", enteredTax);
             setTaxPercentage(enteredTax);
             setInvoiceData({ ...invoiceData, taxpercentage: enteredTax });
         }
@@ -341,7 +344,8 @@ export default function Createinvoice() {
     // Function to calculate tax amount
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
-        const taxAmount = (subtotal * taxPercentage) / 100;
+        const taxAmount = ((subtotal-discountTotal) * taxPercentage) / 100;
+        // console.log("taxAmount:", taxAmount, "subtotal:", subtotal, "discountTotal:",discountTotal);
         return taxAmount;
     };
 
@@ -950,7 +954,9 @@ export default function Createinvoice() {
                                                                     />
                                                                 </div>
 
-                                                                <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
+                                                                <p>{console.log("check Tax Amount",calculateTaxAmount())}<CurrencySign />{
+                                                                
+                                                                calculateTaxAmount().toLocaleString('en-IN', {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
                                                                 })}</p>

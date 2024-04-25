@@ -342,7 +342,8 @@ export default function Createestimate() {
     // Function to calculate tax amount
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
-        const taxAmount = (subtotal * taxPercentage) / 100;
+        const taxAmount = ((subtotal-discountTotal) * taxPercentage) / 100;
+        // console.log("taxAmount:", taxAmount, "subtotal:", subtotal, "discountTotal:",discountTotal);
         return taxAmount;
     };
 
