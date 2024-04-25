@@ -857,7 +857,7 @@ export default function Createestimate() {
                                                                             />
                                                                         </td>
                                                                         <td className="text-center">
-                                                                            <p><CurrencySign />{discount.toFixed(2)}</p>
+                                                                            <p><CurrencySign />{discountTotal.toFixed(2)}</p>
                                                                         </td>
                                                                         <td className="text-center">
                                                                             <p><CurrencySign />{formattedTotalAmount}</p>
