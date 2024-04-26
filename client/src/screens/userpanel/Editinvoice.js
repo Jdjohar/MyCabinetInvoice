@@ -24,11 +24,12 @@ export default function Editinvoice() {
     const [searchitemResults, setSearchitemResults] = useState([]);
     const [quantityMap, setQuantityMap] = useState({});
     const [discountMap, setDiscountMap] = useState({});
+    const [discountTotal, setdiscountTotal] = useState(0);
     const [taxPercentage, setTaxPercentage] = useState(0);
     const [invoiceData, setInvoiceData] = useState({
         _id: '', customername: '',itemname: '',customeremail: '',InvoiceNumber: '',purchaseorder: '',
         date: new Date(),duedate: new Date(),description: '',itemquantity: '', price: '',discount: '',
-        amount: '',tax: '',taxpercentage:'',subtotal: '',total: '',amountdue: '',information: '', items:[]
+        discountTotal:'',amount: '',tax: '',taxpercentage:'',subtotal: '',total: '',amountdue: '',information: '', items:[]
     });
     const location = useLocation();
     const invoiceid = location.state?.invoiceid;
@@ -52,6 +53,8 @@ export default function Editinvoice() {
             navigate('/');
         } else if (invoiceid) {
             fetchInvoiceData();
+            fetchitemdata();
+            fetchcustomerdata();
         }
     }, [invoiceid]);
 
@@ -107,6 +110,7 @@ export default function Editinvoice() {
                 const json = await response.json();
                 if (json.Success) {
                     setInvoiceData(json.invoices);
+                    setdiscountTotal(json.invoices.discountTotal);
                 } else {
                     console.error('Error fetching invoice data:', json.message);
                 }
@@ -207,6 +211,7 @@ export default function Editinvoice() {
                 items: invoiceData.items, // Include invoiceData.items
                 // searchitemResults: searchitemResults 
                 tax: calculateTaxAmount(), 
+                discountTotal: discountTotal,
             };
     
             const authToken = localStorage.getItem('authToken');
@@ -362,9 +367,6 @@ export default function Editinvoice() {
         }
     };
     
-    
-    
-
     const calculateDiscountedAmount = (price, quantity, discount) => {
         const totalAmount = price * quantity;
         const discountedAmount = totalAmount - Math.max(discount, 0); // Ensure discount is not negative
@@ -480,7 +482,8 @@ export default function Editinvoice() {
     // Function to calculate tax amount
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
-        const taxAmount = (subtotal * invoiceData.taxpercentage) / 100;
+        const totalDiscountedAmount = subtotal - discountTotal; 
+        const taxAmount = (totalDiscountedAmount * invoiceData.taxpercentage) / 100;
         return taxAmount;
     };
     
@@ -488,7 +491,9 @@ export default function Editinvoice() {
     const calculateTotal = () => {
         const subtotal = calculateSubtotal();
         const taxAmount = calculateTaxAmount();
-        const totalAmount = subtotal + taxAmount;
+        const discountAmount = discountTotal;
+        // console.log(discountAmount,"- discountAmount");
+        const totalAmount = (subtotal- discountAmount) + taxAmount ;
         return totalAmount;
       };
 
@@ -549,7 +554,10 @@ export default function Editinvoice() {
     //     }
     //   };
       
-      
+    const handleDiscountChange = (e) => {
+        // Ensure you're setting the state to the new value entered by the user
+        setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
+    }; 
 
 
   return (
@@ -700,7 +708,7 @@ export default function Editinvoice() {
 
                             <div className='box1 rounded adminborder p-4 m-2'>
                                 <div className="row pt-3">
-                                    <div className="col-4">
+                                    <div className="col-6">
                                         <p>ITEM</p>
                                     </div>
                                     <div className="col-2">
@@ -709,9 +717,9 @@ export default function Editinvoice() {
                                     <div className="col-2">
                                         <p>PRICE</p>
                                     </div>
-                                    <div className="col-2">
+                                    {/* <div className="col-2">
                                         <p>DISCOUNT</p>
-                                    </div>
+                                    </div> */}
                                     <div className="col-2">
                                         <p>AMOUNT</p>
                                     </div>
@@ -721,7 +729,7 @@ export default function Editinvoice() {
                                     {console.log(invoiceData, "invoiceData")}
                                 {invoiceData.items && invoiceData.items.map((item) => (
                                     <div className='row' key={item.itemId}>
-                                    <div className="col-4 ">
+                                    <div className="col-6 ">
                                         <div className="mb-3 d-flex align-items-baseline justify-content-between">
                                             <p>{item.itemname}</p>
                                             <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item.itemId)}>
@@ -765,13 +773,13 @@ export default function Editinvoice() {
                                                     />
                                         </div>
                                     </div>
-                                    <div className="col-2">
+                                    {/* <div className="col-2">
                                         <p><CurrencySign />{item.discount}</p>
-                                    </div>
+                                    </div> */}
                                     <div className="col-2">
                                         <p><CurrencySign />{item.amount}</p>
                                     </div>
-                                    <div className="col-5">
+                                    <div className="col-6">
                                                 <div class="mb-3">
                                                     <label htmlFor="description" className="form-label">Description</label>
                                                     {/* <textarea
@@ -942,6 +950,7 @@ export default function Editinvoice() {
                                                 <p>Subtotal</p>
                                                 <p>GST</p>
                                                 <p>GST {invoiceData.taxpercentage}%</p>
+                                                <p>Discount</p>
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6">
@@ -967,6 +976,19 @@ export default function Editinvoice() {
                                                     // style: 'currency',
                                                     // currency: 'INR',
                                                 })}</p>
+                                                
+                                                <div className="mb-3">
+                                                    <input
+                                                        type="number"
+                                                        name="totaldiscount"
+                                                        className="form-control"
+                                                        value={discountTotal}
+                                                        onChange={handleDiscountChange} // Ensure proper event binding
+                                                        placeholder="Enter Discount Total"
+                                                        id="discountInput"
+                                                        min="0"
+                                                    />
+                                                </div>
                                                 <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
                                                     // style: 'currency',
                                                     // currency: 'INR',
