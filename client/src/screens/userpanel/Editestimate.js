@@ -740,7 +740,7 @@ export default function Editestimate() {
                                         </div>
                                     </div>
                                             
-                                            <div className="col-3">
+                                            {/* <div className="col-3">
                                                 <div class="mb-3">
                                                     <label htmlFor="Discount" className="form-label">Discount</label>
                                                     <input
@@ -754,7 +754,7 @@ export default function Editestimate() {
                                                         min="0"
                                                     />
                                                 </div>
-                                            </div>
+                                            </div> */}
                                     
                                     </div>
                                         ))}
@@ -843,7 +843,7 @@ export default function Editestimate() {
                                                 </div>
                                             </div>
                                             
-                                            <div className="col-3">
+                                            {/* <div className="col-3">
                                                 <div class="mb-3">
                                                     <label htmlFor="Discount" className="form-label">Discount</label>
                                                     <input
@@ -857,7 +857,7 @@ export default function Editestimate() {
                                                         min="0"
                                                     />
                                                 </div>
-                                            </div>
+                                            </div> */}
                                         </div>
         );
       })}
