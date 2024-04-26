@@ -782,14 +782,7 @@ export default function Createestimate() {
                                                                             <div className="row">
                                                                                 <div className="col">
                                                                                     <label htmlFor={`item-description-${itemId}`} className="form-label">Description</label>
-                                                                                    {/* <textarea
-                                            className="form-control mb-3"
-                                            name='description'
-                                            id={`item-description-${itemId}`}
-                                            placeholder='Item Description'
-                                            rows="3"
-                                            value={selectedItem?.description || ''}
-                                        ></textarea> */}
+                                                                                   
                                                                                     <CKEditor
                                                                                         editor={ClassicEditor}
                                                                                         data={selectedItem?.description || ''}
@@ -802,28 +795,9 @@ export default function Createestimate() {
                                                                                             console.log('Focus.', editor);
                                                                                         }}
                                                                                     />
-                                                                                    {/* <textarea
-                                            className="form-control"
-                                            name={`description-${itemId}`}  // Use a unique identifier for each item
-                                            value={selectedItem?.description || ''}
-                                            onChange={(event) => onChangeDescription(event, itemId)}  // Add onChange handler for description
-                                            rows="3"
-                                            id={`description-${itemId}`}
-                                        ></textarea> */}
+                                                                          
                                                                                 </div>
-                                                                                {/* <div className="col">
-                                                                                    <label htmlFor={`discount-${itemId}`} className="form-label">Discount</label>
-                                                                                    <input
-                                                                                        type='number'
-                                                                                        name={`discount-${itemId}`}
-                                                                                        className='form-control mb-3'
-                                                                                        value={discount}
-                                                                                        onChange={(event) => onDiscountChange(event, itemId)}
-                                                                                        placeholder='Discount'
-                                                                                        id={`discount-${itemId}`}
-                                                                                        min="0"
-                                                                                    />
-                                                                                </div> */}
+                                                                              
                                                                             </div>
                                                                         </td>
                                                                         <td>
@@ -906,6 +880,18 @@ export default function Createestimate() {
                                                                 <div className="mb-3">
                                                                     <input
                                                                         type="number"
+                                                                        name="totaldiscount"
+                                                                        className="form-control"
+                                                                        value={discountTotal}
+                                                                        onChange={handleDiscountChange} // Ensure proper event binding
+                                                                        placeholder="Enter Discount Total"
+                                                                        id="discountInput"
+                                                                        min="0"
+                                                                    />
+                                                                </div>
+                                                                <div className="mb-3">
+                                                                    <input
+                                                                        type="number"
                                                                         name="tax"
                                                                         className="form-control"
                                                                         value={taxPercentage}
@@ -919,18 +905,7 @@ export default function Createestimate() {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
                                                                 })}</p>
-                                                                <div className="mb-3">
-                                                                    <input
-                                                                        type="number"
-                                                                        name="totaldiscount"
-                                                                        className="form-control"
-                                                                        value={discountTotal}
-                                                                        onChange={handleDiscountChange} // Ensure proper event binding
-                                                                        placeholder="Enter Discount Total"
-                                                                        id="discountInput"
-                                                                        min="0"
-                                                                    />
-                                                                </div>
+                                                                
                                                                 <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
