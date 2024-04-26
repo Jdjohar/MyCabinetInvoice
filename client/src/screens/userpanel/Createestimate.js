@@ -42,7 +42,7 @@ export default function Createestimate() {
     // const [editorData, setEditorData] = useState("<p></p>");
     const [editorData, setEditorData] = useState(`
         <p>
-            if you have any queries contact us. please deposit <strong>40%</strong> to secure your place 
+            If you have any queries contact us. please deposit <strong>40%</strong> to secure your place 
             <strong>50%</strong> before delivery and the remaining <strong>10%</strong> on Completion,<br />
             Please share the payment receipt<br />
             <strong>Commonwealth</strong><br />
@@ -340,9 +340,19 @@ export default function Createestimate() {
     };
 
     // Function to calculate tax amount
+    // const calculateTaxAmount = () => {
+    //     const subtotal = calculateSubtotal();
+    //     const taxAmount = (subtotal * taxPercentage) / 100;
+    //     return taxAmount;
+    // };
+
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
-        const taxAmount = ((subtotal-discountTotal) * taxPercentage) / 100;
+        const totalDiscountedAmount = subtotal - discountTotal; // Apply overall discount first
+    
+        // Calculate tax amount on the discounted amount
+        const taxAmount = (totalDiscountedAmount * taxPercentage) / 100;
+        // const taxAmount = ((subtotal-discountTotal) * taxPercentage) / 100;
         // console.log("taxAmount:", taxAmount, "subtotal:", subtotal, "discountTotal:",discountTotal);
         return taxAmount;
     };

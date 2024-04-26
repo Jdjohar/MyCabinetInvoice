@@ -24,6 +24,7 @@ export default function Editestimate() {
     const [searchitemResults, setSearchitemResults] = useState([]);
     const [quantityMap, setQuantityMap] = useState({});
     const [discountMap, setDiscountMap] = useState({});
+    const [discountTotal, setdiscountTotal] = useState(0);
     const [taxPercentage, setTaxPercentage] = useState(0);
     const [estimateData, setestimateData] = useState({
         _id: '', customername: '',itemname: '',customeremail: '',EstimateNumber: '',purchaseorder: '',
@@ -69,6 +70,7 @@ export default function Editestimate() {
             
                 if (json.Success) {
                     setestimateData(json.estimates);
+                    setdiscountTotal(json.invoices.discountTotal);
                 } else {
                     console.error('Error fetching estimateData:', json.message);
                 }
@@ -170,6 +172,7 @@ export default function Editestimate() {
                 items: estimateData.items, // Include estimateData.items
                 // searchitemResults: searchitemResults 
                 tax: calculateTaxAmount(), 
+                discountTotal: discountTotal,
             };
             const authToken = localStorage.getItem('authToken');
     
@@ -432,7 +435,8 @@ export default function Editestimate() {
     // Function to calculate tax amount
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
-        const taxAmount = (subtotal * estimateData.taxpercentage) / 100;
+        const totalDiscountedAmount = subtotal - discountTotal; 
+        const taxAmount = (totalDiscountedAmount * estimateData.taxpercentage) / 100;
         return taxAmount;
     };
     
@@ -440,7 +444,9 @@ export default function Editestimate() {
     const calculateTotal = () => {
         const subtotal = calculateSubtotal();
         const taxAmount = calculateTaxAmount();
-        const totalAmount = subtotal + taxAmount;
+        const discountAmount = discountTotal;
+        // console.log(discountAmount,"- discountAmount");
+        const totalAmount = (subtotal- discountAmount) + taxAmount ;
         return totalAmount;
       };
 
@@ -475,7 +481,10 @@ export default function Editestimate() {
         setestimateData({ ...estimateData, items: updatedItems });
     };
     
-    
+    const handleDiscountChange = (e) => {
+        // Ensure you're setting the state to the new value entered by the user
+        setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
+    };
 
 
   return (
@@ -612,7 +621,7 @@ export default function Editestimate() {
 
                             <div className='box1 rounded adminborder p-4 m-2'>
                                 <div className="row pt-3">
-                                    <div className="col-4">
+                                    <div className="col-6">
                                         <p>ITEM</p>
                                     </div>
                                     <div className="col-2">
@@ -621,9 +630,9 @@ export default function Editestimate() {
                                     <div className="col-2">
                                         <p>PRICE</p>
                                     </div>
-                                    <div className="col-2">
+                                    {/* <div className="col-2">
                                         <p>DISCOUNT</p>
-                                    </div>
+                                    </div> */}
                                     <div className="col-2">
                                         <p>AMOUNT</p>
                                     </div>
@@ -632,7 +641,7 @@ export default function Editestimate() {
                                 <div>
                                 {estimateData.items && estimateData.items.map((item) => (
                                     <div className='row' key={item.itemId}>
-                                    <div className="col-4 ">
+                                    <div className="col-6 ">
                                         <div className="mb-3 d-flex align-items-baseline justify-content-between">
                                             <p>{item.itemname}</p>
                                             <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item.itemId)}>
@@ -677,9 +686,9 @@ export default function Editestimate() {
                                             />
                                         </div>
                                     </div>
-                                    <div className="col-2">
+                                    {/* <div className="col-2">
                                         <p><CurrencySign />{item.discount}</p>
-                                    </div>
+                                    </div> */}
                                     <div className="col-2">
                                         <p><CurrencySign />{item.amount}</p>
                                     </div>
@@ -698,7 +707,7 @@ export default function Editestimate() {
                                                     </textarea>
                                                 </div>
                                     </div> */}
-                                    <div className="col-5">
+                                    <div className="col-6">
                                         <div className="mb-3">
                                             <label htmlFor={`description-${item.itemId}`} className="form-label">Description</label>
                                             {/* <textarea
@@ -731,7 +740,7 @@ export default function Editestimate() {
                                         </div>
                                     </div>
                                             
-                                            <div className="col-3">
+                                            {/* <div className="col-3">
                                                 <div class="mb-3">
                                                     <label htmlFor="Discount" className="form-label">Discount</label>
                                                     <input
@@ -745,7 +754,7 @@ export default function Editestimate() {
                                                         min="0"
                                                     />
                                                 </div>
-                                            </div>
+                                            </div> */}
                                     
                                     </div>
                                         ))}
@@ -763,7 +772,7 @@ export default function Editestimate() {
 
                                     return (
                                         <div className='row'  key={item.itemId}>
-                                            <div className="col-4 ">
+                                            <div className="col-6 ">
                                                 <div className="mb-3 d-flex align-items-baseline justify-content-between">
                                                     <p>{item.label}</p>
                                                     <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
@@ -797,13 +806,13 @@ export default function Editestimate() {
                                                     />
                                                 </div>
                                             </div>
-                                            <div className="col-2 text-center">
+                                            {/* <div className="col-2 text-center">
                                                 <p><CurrencySign />{discount.toFixed(2)}</p>
-                                            </div>
+                                            </div> */}
                                             <div className="col-2 text-center">
                                                 <p><CurrencySign />{formattedTotalAmount}</p>
                                             </div>
-                                            <div className="col-5">
+                                            <div className="col-6">
                                                 <div class="mb-3">
                                                     <label htmlFor="description" className="form-label">Description</label>
                                                     {/* <textarea
@@ -834,7 +843,7 @@ export default function Editestimate() {
                                                 </div>
                                             </div>
                                             
-                                            <div className="col-3">
+                                            {/* <div className="col-3">
                                                 <div class="mb-3">
                                                     <label htmlFor="Discount" className="form-label">Discount</label>
                                                     <input
@@ -848,7 +857,7 @@ export default function Editestimate() {
                                                         min="0"
                                                     />
                                                 </div>
-                                            </div>
+                                            </div> */}
                                         </div>
         );
       })}
@@ -880,6 +889,7 @@ export default function Editestimate() {
                                                 <p>Subtotal</p>
                                                 <p>GST</p>
                                                 <p>GST {estimateData.taxpercentage}%</p>
+                                                <p>Discount</p>
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6">
@@ -905,6 +915,19 @@ export default function Editestimate() {
                                                     // style: 'currency',
                                                     // currency: 'INR',
                                                 })}</p>
+                                                
+                                                <div className="mb-3">
+                                                    <input
+                                                        type="number"
+                                                        name="totaldiscount"
+                                                        className="form-control"
+                                                        value={discountTotal}
+                                                        onChange={handleDiscountChange} // Ensure proper event binding
+                                                        placeholder="Enter Discount Total"
+                                                        id="discountInput"
+                                                        min="0"
+                                                    />
+                                                </div>
                                                 <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
                                                     // style: 'currency',
                                                     // currency: 'INR',

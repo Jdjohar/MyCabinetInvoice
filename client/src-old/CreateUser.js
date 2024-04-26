@@ -1497,11 +1497,12 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
     router.post('/updateinvoicedata/:invoiceid', async (req, res) => {
         try {
             const invoiceid = req.params.invoiceid;
-            const { subtotal, total, items, emailsent, ...updatedData } = req.body; // Ensure this matches your MongoDB schema
+            const { subtotal, total, items,discountTotal, emailsent, ...updatedData } = req.body; // Ensure this matches your MongoDB schema
     
             // Add the updated subtotal and total to the incoming data
             updatedData.subtotal = subtotal;
             updatedData.total = total;
+            updatedData.discountTotal = discountTotal;
 
             // Update or replace the 'items' field
             updatedData.items = items; 
@@ -1544,11 +1545,12 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
     router.post('/updateestimateData/:estimateid', async (req, res) => {
         try {
             const estimateid = req.params.estimateid;
-            const { subtotal, total, items, emailsent, ...updatedestimateData } = req.body; // Ensure this matches your MongoDB schema
+            const { subtotal, total, items, emailsent,discountTotal, ...updatedestimateData } = req.body; // Ensure this matches your MongoDB schema
     
             // Add the updated subtotal and total to the incoming data
             updatedestimateData.subtotal = subtotal;
             updatedestimateData.total = total;
+            updatedData.discountTotal = discountTotal;
 
             // Update or replace the 'items' field
             updatedestimateData.items = items; 

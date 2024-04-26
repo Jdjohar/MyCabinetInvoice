@@ -645,6 +645,17 @@ export default function Estimatedetail() {
                               <p className='d-none'>.</p>
                             </div>
                             <div className="col-lg-2 col-md-2 col-sm-3 col-4 invoice-contentcol-2">
+                              <p className='mb-2'>Discount</p>
+                            </div>
+                            <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
+                              <p className='mb-2'><CurrencySign />{estimateData.discountTotal}</p>
+                            </div>
+                          </div>
+                          <div className="row padding-20">
+                            <div className="col-lg-7 col-md-7 col-sm-6 col-4 printcol-8">
+                              <p className='d-none'>.</p>
+                            </div>
+                            <div className="col-lg-2 col-md-2 col-sm-3 col-4 invoice-contentcol-2">
                               <p className='mb-2'>GST</p>
                             </div>
                             <div className="col-lg-3 col-md-3 col-sm-3 col-4 invoice-contentcol-2">
