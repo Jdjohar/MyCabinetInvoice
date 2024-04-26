@@ -808,7 +808,7 @@ export default function Editinvoice() {
                                                 </div>
                                             </div>
                                             
-                                            <div className="col-3">
+                                            {/* <div className="col-3">
                                                 <div class="mb-3">
                                                     <label htmlFor="Discount" className="form-label">Discount</label>
                                                     <input
@@ -822,9 +822,7 @@ export default function Editinvoice() {
                                                         min="0"
                                                     />
                                                 </div>
-
-                                                
-                                            </div>
+                                            </div> */}
                                     
                                     </div>
                                         ))}
