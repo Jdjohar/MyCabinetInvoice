@@ -159,7 +159,7 @@ router.post('/send-deposit-email', async (req, res) => {
                    secure: true, // true for 465, false for other ports
                    auth: {
                      user: 'accounts@mycabinets.net',
-                     pass: 'Mycabinets@123'
+                     pass: 'Mycabinet@123'
                    }
                  });
 
@@ -260,7 +260,7 @@ router.post('/send-estimate-email', async (req, res) => {
                    secure: true, // true for 465, false for other ports
                    auth: {
                      user: 'accounts@mycabinets.net',
-                     pass: 'Mycabinets@123'
+                     pass: 'Mycabinet@123'
                    }
                  });
 

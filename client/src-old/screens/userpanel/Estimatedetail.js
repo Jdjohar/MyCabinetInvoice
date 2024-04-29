@@ -33,7 +33,14 @@ export default function Estimatedetail() {
   const [showAlert, setShowAlert] = useState(false);
   const [emails, setEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
-  const [content, setContent] = useState('Thank you for your business.');
+  const [content, setContent] = useState(`<p> > Quotation Is based on drawings provided and quote is valid for 2 weeks from the date of issue.
+  <br/>> Overhead Cabinets and Fridge Panels are of maximum 2380mm in Height.
+  <br/>> All Cabinets are made with A-Grade Australian made material in our factory in Ravenhall.
+  <br/>> Plumbing and Electrical Connection disconnect or replace is customer responsibility.
+  <br/>> There will be 3-5mm Gap between wall and panels is expectable.
+  <br/>> Travell Charges over 50km of radius form Ravenhall will be charged.
+  <br/>> Delivery to upstairs additional $100 to each floor will be added to final invoice.
+  <br/>> Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost.</p>`);
   const [showModal, setShowModal] = useState(false);
   const [showEmailAlert, setShowEmailAlert] = useState(false);
 
@@ -308,7 +315,14 @@ export default function Estimatedetail() {
     event.preventDefault();
     const contentAsPdf = await generatePdfFromHtml();
     try {
-      const finalContent = content.trim() || 'Thank you for your business.'; // If content is empty, use default value
+      const finalContent = content.trim() || `<p> > Quotation Is based on drawings provided and quote is valid for 2 weeks from the date of issue.
+      <br/>> Overhead Cabinets and Fridge Panels are of maximum 2380mm in Height.
+      <br/>> All Cabinets are made with A-Grade Australian made material in our factory in Ravenhall.
+      <br/>> Plumbing and Electrical Connection disconnect or replace is customer responsibility.
+      <br/>> There will be 3-5mm Gap between wall and panels is expectable.
+      <br/>> Travell Charges over 50km of radius form Ravenhall will be charged.
+      <br/>> Delivery to upstairs additional $100 to each floor will be added to final invoice.
+      <br/>> Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost.</p>`; // If content is empty, use default value
       const response = await fetch('https://mycabinet.onrender.com/api/send-estimate-email', {
         method: 'POST',
         headers: {
