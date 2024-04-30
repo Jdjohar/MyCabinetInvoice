@@ -1557,7 +1557,7 @@ router.get('/geteditinvoicedata/:invoiceid', async (req, res) => {
             // Add the updated subtotal and total to the incoming data
             updatedestimateData.subtotal = subtotal;
             updatedestimateData.total = total;
-            updatedData.discountTotal = discountTotal;
+            updatedestimateData.discountTotal = discountTotal;
 
             // Update or replace the 'items' field
             updatedestimateData.items = items; 
