@@ -877,13 +877,14 @@ export default function Createestimate() {
                                                         <div className="row">
                                                             <div className="col-6 col-md-3">
                                                                 <p>Subtotal</p>
-                                                                <p>GST</p>
-                                                                <p className='pt-3'>GST {taxPercentage}%</p>
                                                                 <p>Discount</p>
+                                                                {/* <p>GST</p> */}
+                                                                <p className='pt-3'>GST {taxPercentage}%</p>
+                                                                
                                                                 <p>Total</p>
                                                             </div>
                                                             <div className="col-6 col-md-9">
-                                                                <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
+                                                                <p className="mb-3"><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
                                                                 })}</p>
@@ -899,7 +900,7 @@ export default function Createestimate() {
                                                                         min="0"
                                                                     />
                                                                 </div>
-                                                                <div className="mb-3">
+                                                                {/* <div className="mb-3">
                                                                     <input
                                                                         type="number"
                                                                         name="tax"
@@ -910,7 +911,7 @@ export default function Createestimate() {
                                                                         id="taxInput"
                                                                         min="0"
                                                                     />
-                                                                </div>
+                                                                </div> */}
                                                                 <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
