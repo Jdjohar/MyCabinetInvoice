@@ -32,11 +32,11 @@ const UserSchema = new Schema({
       User2_Mobile_Number: {
         type: String,
       },
-      email: {
-        type: String,
-      },
       password:{
           type:String,
+      },
+      email: {
+        type: String,
       },
       address: {
         type: String,
