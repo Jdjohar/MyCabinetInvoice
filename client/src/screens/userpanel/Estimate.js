@@ -44,8 +44,8 @@ export default function Estimate() {
       else{
         const json = await response.json();
         if (Array.isArray(json)) {
-          const sortedEstimates = json.sort((a, b) => new Date(b.date) - new Date(a.date));
-          setestimates(sortedEstimates);
+          // const sortedEstimates = json.sort((a, b) => new Date(b.date) - new Date(a.date));
+          // setestimates(sortedEstimates);
           setestimates(json);
         }
         setloading(false);
@@ -75,7 +75,7 @@ export default function Estimate() {
     console.log(estimateid);
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`https://mycabinet.onrender.com/api/converttoinvoice/${estimateid}`, {
+      const response = await fetch(`http://mycabinet.onrender.com/api/converttoinvoice/${estimateid}`, {
         method: 'POST',
         headers: {
           'Authorization': authToken,

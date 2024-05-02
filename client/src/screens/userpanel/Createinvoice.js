@@ -37,7 +37,7 @@ export default function Createinvoice() {
     const [invoiceData, setInvoiceData] = useState({
         customername: '', itemname: '', customeremail: '', invoice_id: '', InvoiceNumber: '', purchaseorder: '',
         date: format(new Date(), 'yyyy-MM-dd'), job: '', duedate: format(addDays(new Date(), 15), 'yyyy-MM-dd'), description: '', itemquantity: '', price: '', discount: '',
-        amount: '', discountTotal:'', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
+        amount: '', discountTotal: '', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
     // const [editorData, setEditorData] = useState("<p></p>");
     const [editorData, setEditorData] = useState(`
@@ -74,6 +74,9 @@ export default function Createinvoice() {
             await fetchitemdata();
             await fetchLastInvoiceNumber();
         };
+        if (isNaN(discountTotal)) {
+            setdiscountTotal(0);
+        }
 
         fetchData();
         setloading(false);
@@ -97,18 +100,18 @@ export default function Createinvoice() {
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/lastinvoicenumber/${userid}`, {
                 headers: {
-                  'Authorization': authToken,
+                    'Authorization': authToken,
                 }
-              });
+            });
 
-              if (response.status === 401) {
+            if (response.status === 401) {
                 const json = await response.json();
                 setAlertMessage(json.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
-              }
-              else{
+            }
+            else {
                 const json = await response.json();
 
                 // let nextInvoiceNumber = 1;
@@ -120,8 +123,8 @@ export default function Createinvoice() {
                     InvoiceNumber: `Invoice-${json.lastInvoiceId + 1}`,
                     invoice_id: json.lastInvoiceId + 1,
                 });
-              }
-            
+            }
+
         } catch (error) {
             console.error('Error fetching last invoice number:', error);
         }
@@ -134,25 +137,25 @@ export default function Createinvoice() {
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`, {
                 headers: {
-                  'Authorization': authToken,
+                    'Authorization': authToken,
                 }
-              });
+            });
 
-              if (response.status === 401) {
+            if (response.status === 401) {
                 const json = await response.json();
                 setAlertMessage(json.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
-              }
-              else{
+            }
+            else {
                 const json = await response.json();
 
                 if (Array.isArray(json)) {
                     setcustomers(json);
                 }
-              }
-            
+            }
+
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -164,23 +167,23 @@ export default function Createinvoice() {
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`, {
                 headers: {
-                  'Authorization': authToken,
+                    'Authorization': authToken,
                 }
-              });
+            });
 
-              if (response.status === 401) {
+            if (response.status === 401) {
                 const json = await response.json();
                 setAlertMessage(json.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
-              }
-              else{
+            }
+            else {
                 const json = await response.json();
                 if (Array.isArray(json)) {
                     setitems(json);
                 }
-              }
+            }
         } catch (error) {
             console.error('Error fetching data:', error);
         }
@@ -318,7 +321,7 @@ export default function Createinvoice() {
             const discount = discountMap[itemId] || 0;
 
             const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
-console.log("discountedAmount:", discountedAmount);
+            console.log("discountedAmount:", discountedAmount);
             subtotal += discountedAmount;
         });
 
@@ -351,7 +354,7 @@ console.log("discountedAmount:", discountedAmount);
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
         const totalDiscountedAmount = subtotal - discountTotal; // Apply overall discount first
-    
+
         // Calculate tax amount on the discounted amount
         const taxAmount = (totalDiscountedAmount * taxPercentage) / 100;
         // const taxAmount = ((subtotal-discountTotal) * taxPercentage) / 100;
@@ -410,7 +413,7 @@ console.log("discountedAmount:", discountedAmount);
                 InvoiceNumber: invoiceData.InvoiceNumber,
                 purchaseorder: invoiceData.purchaseorder,
                 job: invoiceData.job || 'No Job',
-                discountTotal: discountTotal || 'No Discount',
+                discountTotal: discountTotal || 0,
                 information: editorData,
                 date: invoiceData.date,
                 items: invoiceItems,
@@ -436,10 +439,10 @@ console.log("discountedAmount:", discountedAmount);
                 const responseData = await response.json();
                 setAlertMessage(responseData.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
             }
-            else{
+            else {
                 if (response.ok) {
                     const responseData = await response.json();
                     if (responseData.success) {
@@ -455,8 +458,8 @@ console.log("discountedAmount:", discountedAmount);
                     setmessage(true);
                     setAlertShow(responseData.error)
                     console.error('Failed to save the invoice.');
-                }  
-            }   
+                }
+            }
         } catch (error) {
             console.error('Error creating invoice:', error);
         }
@@ -468,10 +471,7 @@ console.log("discountedAmount:", discountedAmount);
             <div className="alert alert-danger" role="alert">
                 {message}
             </div>
-            //   <div className="alert alert-warning alert-dismissible fade show" role="alert">
-            //   <strong>{alertShow}</strong>
-            //   <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-            // </div>
+
         );
     };
 
@@ -519,9 +519,11 @@ console.log("discountedAmount:", discountedAmount);
         setitems(updatedItems);
     };
 
-    const handleDiscountChange = (e) => {
-        // Ensure you're setting the state to the new value entered by the user
-        setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
+    const handleDiscountChange = (event) => {
+        const value = event.target.value;
+        // If the input is empty or NaN, set the value to 0
+        const newValue = value === '' || isNaN(parseFloat(value)) ? 0 : parseFloat(value);
+        setdiscountTotal(newValue);
     };
     const handleAddCustomer = async (e) => {
         e.preventDefault();
@@ -555,13 +557,13 @@ console.log("discountedAmount:", discountedAmount);
         });
 
         if (response.status === 401) {
-          const json = await response.json();
-          setAlertMessage(json.message);
-          setloading(false);
-          window.scrollTo(0,0);
-          return; // Stop further execution
+            const json = await response.json();
+            setAlertMessage(json.message);
+            setloading(false);
+            window.scrollTo(0, 0);
+            return; // Stop further execution
         }
-        else{
+        else {
             const json = await response.json();
             console.log(json);
 
@@ -587,7 +589,7 @@ console.log("discountedAmount:", discountedAmount);
             else {
                 alert("This Customer Email already exist")
             }
-        }  
+        }
     };
 
     const onchangeaddcustomer = (event) => {
@@ -638,7 +640,7 @@ console.log("discountedAmount:", discountedAmount);
                                             <div className="col-lg-3 col-md-4 col-sm-12 col-5 text-right">
                                                 <button className='btn rounded-pill btn-danger text-white fw-bold' type="submit">Save</button>
                                             </div>
-                                            
+
                                             <div className='mt-4'>
                                                 {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
                                             </div>
@@ -819,14 +821,7 @@ console.log("discountedAmount:", discountedAmount);
                                                                             <div className="row">
                                                                                 <div className="col">
                                                                                     <label htmlFor={`item-description-${itemId}`} className="form-label">Description</label>
-                                                                                    {/* <textarea
-                                            className="form-control mb-3"
-                                            name='description'
-                                            id={`item-description-${itemId}`}
-                                            placeholder='Item Description'
-                                            rows="3"
-                                            value={selectedItem?.description || ''}
-                                        ></textarea> */}
+
                                                                                     <CKEditor
                                                                                         editor={ClassicEditor}
                                                                                         data={selectedItem?.description || ''}
@@ -839,29 +834,9 @@ console.log("discountedAmount:", discountedAmount);
                                                                                             console.log('Focus.', editor);
                                                                                         }}
                                                                                     />
-                                                                                    {/* <textarea
-                                            className="form-control"
-                                            name={`description-${itemId}`}
-                                            value={selectedItem?.description || ''}
-                                            onChange={(event) => onChangeDescription(event, itemId)}
-                                            id={`description-${itemId}`}
-                                            rows="3"
-                                            placeholder="Item Description"
-                                        ></textarea> */}
+
                                                                                 </div>
-                                                                                {/* <div className="col-4">
-                                        <label htmlFor={`discount-${itemId}`} className="form-label">Discount</label>
-                                        <input
-                                            type='number'
-                                            name={`discount-${itemId}`}
-                                            className='form-control mb-3'
-                                            value={discount}
-                                            onChange={(event) => onDiscountChange(event, itemId)}
-                                            placeholder='Discount'
-                                            id={`discount-${itemId}`}
-                                            min="0"
-                                        />
-                                    </div> */}
+
                                                                             </div>
                                                                         </td>
                                                                         <td>
@@ -875,16 +850,7 @@ console.log("discountedAmount:", discountedAmount);
                                                                                 required
                                                                             />
                                                                         </td>
-                                                                        {/* <td>
-                                <input
-                                    type="number"
-                                    name="price"
-                                    className="form-control"
-                                    value={itemPrice}
-                                    id="price"
-                                    required
-                                />
-                            </td> */}
+
                                                                         <td>
                                                                             <input
                                                                                 type="number"
@@ -896,9 +862,7 @@ console.log("discountedAmount:", discountedAmount);
                                                                                 required
                                                                             />
                                                                         </td>
-                                                                        {/* <td className="text-center">
-                                <p><CurrencySign />{discount.toFixed(2)}</p>
-                            </td> */}
+
                                                                         <td className="text-center">
                                                                             <p><CurrencySign />{formattedTotalAmount}</p>
                                                                         </td>
@@ -944,7 +908,7 @@ console.log("discountedAmount:", discountedAmount);
                                                                 <p>Discount</p>
                                                                 {/* <p>GST</p> */}
                                                                 <p className='pt-3'>GST {taxPercentage}%</p>
-                                                                
+
                                                                 <p>Total</p>
                                                             </div>
                                                             <div className="col-6 col-md-9">
@@ -977,13 +941,13 @@ console.log("discountedAmount:", discountedAmount);
                                                                     />
                                                                 </div> */}
 
-                                                                <p>{console.log("check Tax Amount",calculateTaxAmount())}<CurrencySign />{
-                                                                
-                                                                calculateTaxAmount().toLocaleString('en-IN', {
-                                                                    // style: 'currency',
-                                                                    // currency: 'INR',
-                                                                })}</p>
-                                                                
+                                                                <p>{console.log("check Tax Amount", calculateTaxAmount())}<CurrencySign />{
+
+                                                                    calculateTaxAmount().toLocaleString('en-IN', {
+                                                                        // style: 'currency',
+                                                                        // currency: 'INR',
+                                                                    })}</p>
+
                                                                 <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
                                                                     // style: 'currency',
                                                                     // currency: 'INR',
@@ -1046,41 +1010,7 @@ console.log("discountedAmount:", discountedAmount);
 
             }
 
-            {/* <form action="">
-  <div class="modal fade" id="exampleModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-    <div class="modal-dialog modal-lg">
-      <div class="modal-content">
-        <div class="modal-header">
-          <h1 class="modal-title fs-5" id="exampleModalLabel">Mark paid</h1>
-          <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
-        </div>
-        <div class="modal-body">
-            <div class="mb-3">
-            <div className="search-container forms">
-                                            <p className='fs-20 mb-0'>Select Customers</p>
-                                            <VirtualizedSelect
-                                                id="searchitems" 
-                                                name="customername"
-                                                className="form-control zindex op pl-0"
-                                                placeholder="" 
-                                                onChange={onChangecustomer}
-                                                required
-                                                options={ customers.map((customer,index)=>
-                                                    ({label: customer.name, value: customer._id})
-            
-                                                )}
-                                            />
-                </div>
-            </div>
-        </div>
-        <div class="modal-footer">
-          <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
-          <a className='greenclr ms-2 text-decoration-none pointer' >Edit Customer</a>
-        </div>
-      </div>
-    </div>
-  </div>
-</form> */}
+
 
             <form action="">
                 <div className="modal fade" id="exampleModal" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">

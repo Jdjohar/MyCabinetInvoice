@@ -75,7 +75,9 @@ export default function Createestimate() {
             await fetchitemdata();
             await fetchLastEstimateNumber();
         };
-
+        if (isNaN(discountTotal)) {
+            setdiscountTotal(0);
+        }
         fetchData();
         setloading(false);
     }, [])
@@ -459,9 +461,11 @@ export default function Createestimate() {
             console.error('Error creating estimate:', error);
         }
     };
-    const handleDiscountChange = (e) => {
-        // Ensure you're setting the state to the new value entered by the user
-        setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
+    const handleDiscountChange = (event) => {
+        const value = event.target.value;
+        // If the input is empty or NaN, set the value to 0
+        const newValue = value === '' || isNaN(parseFloat(value)) ? 0 : parseFloat(value);
+        setdiscountTotal(newValue);
     };
 
     // const onchange = (event) => {
@@ -762,7 +766,7 @@ export default function Createestimate() {
                                                                 <th scope="col">ITEM</th>
                                                                 <th scope="col">QUANTITY</th>
                                                                 <th scope="col">PRICE</th>
-                                                                <th scope="col">DISCOUNT</th>
+                                                                {/* <th scope="col">DISCOUNT</th> */}
                                                                 <th scope="col">AMOUNT</th>
                                                             </tr>
                                                         </thead>
@@ -841,9 +845,9 @@ export default function Createestimate() {
                                                                                 required
                                                                             />
                                                                         </td>
-                                                                        <td className="text-center">
+                                                                        {/* <td className="text-center">
                                                                             <p><CurrencySign />{discountTotal.toFixed(2)}</p>
-                                                                        </td>
+                                                                        </td> */}
                                                                         <td className="text-center">
                                                                             <p><CurrencySign />{formattedTotalAmount}</p>
                                                                         </td>

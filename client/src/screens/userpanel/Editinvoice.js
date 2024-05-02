@@ -56,6 +56,9 @@ export default function Editinvoice() {
             fetchitemdata();
             fetchcustomerdata();
         }
+        if (isNaN(discountTotal)) {
+            setdiscountTotal(0);
+        }
     }, [invoiceid]);
 
     let navigate = useNavigate();
@@ -554,10 +557,16 @@ export default function Editinvoice() {
     //     }
     //   };
       
-    const handleDiscountChange = (e) => {
-        // Ensure you're setting the state to the new value entered by the user
-        setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
-    }; 
+    // const handleDiscountChange = (e) => {
+    //     // Ensure you're setting the state to the new value entered by the user
+    //     setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
+    // }; 
+    const handleDiscountChange = (event) => {
+        const value = event.target.value;
+        // If the input is empty or NaN, set the value to 0
+        const newValue = value === '' || isNaN(parseFloat(value)) ? 0 : parseFloat(value);
+        setdiscountTotal(newValue);
+    };
 
 
   return (
@@ -946,7 +955,7 @@ export default function Editinvoice() {
                                         <div className="row">
                                             <div className="col-6">
                                                 <p>Subtotal</p>
-                                                <p>GST</p>
+                                                {/* <p>GST</p> */}
                                                 <p>GST {invoiceData.taxpercentage}%</p>
                                                 <p>Discount</p>
                                                 <p>Total</p>
@@ -957,7 +966,7 @@ export default function Editinvoice() {
                                                     // currency: 'INR',
                                                 })}</p>
                                                 <div className="col-6">
-                                                <div class="mb-3">
+                                                {/* <div class="mb-3">
                                                     <input
                                                         type="number"
                                                         name="tax"
@@ -968,7 +977,7 @@ export default function Editinvoice() {
                                                         id="taxInput"
                                                         min="0"
                                                     />
-                                                </div>
+                                                </div> */}
                                             </div>
                                                 <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
                                                     // style: 'currency',

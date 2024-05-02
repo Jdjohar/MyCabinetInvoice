@@ -45,10 +45,9 @@ export default function Invoice() {
       }
       else{
         const json = await response.json();
-
+        console.log("json:->===============",json);
       if (Array.isArray(json)) {
-        const sortedInvoices = json.sort((a, b) => new Date(b.date) - new Date(a.date));
-        setinvoices(sortedInvoices);
+       setinvoices(json);
 
         const transactionPromises = json.map(async (invoice) => {
           const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoice._id}`, {
@@ -104,16 +103,16 @@ export default function Invoice() {
     // Filter transactions related to the current invoice
     const relatedTransactions = transactions.filter(transaction => transaction.invoiceId === invoice._id);
 
-    console.log("relatedTransactions:", relatedTransactions);
-    console.log("Transactions:", transactions);
-    console.log("Invoices:", invoices);
+    // console.log("relatedTransactions:", relatedTransactions);
+    // console.log("Transactions:", transactions);
+    // console.log("Invoices:", invoices);
     // Calculate the total paid amount for the current invoice
     const totalPaidAmount = relatedTransactions.reduce(
       (total, payment) => total + parseFloat(payment.paidamount),
       0
     );
 
-    console.log("totalPaidAmount:", totalPaidAmount);
+    // console.log("totalPaidAmount:", totalPaidAmount);
     if (totalPaidAmount === 0) {
       return (
         <strong>

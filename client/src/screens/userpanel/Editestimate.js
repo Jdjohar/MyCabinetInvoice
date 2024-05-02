@@ -46,6 +46,9 @@ export default function Editestimate() {
             fetchcustomerdata();
             fetchitemdata();
         }
+        if (isNaN(discountTotal)) {
+            setdiscountTotal(0);
+        }
     }, [estimateid])
     let navigate = useNavigate();
 
@@ -481,9 +484,11 @@ export default function Editestimate() {
         setestimateData({ ...estimateData, items: updatedItems });
     };
     
-    const handleDiscountChange = (e) => {
-        // Ensure you're setting the state to the new value entered by the user
-        setdiscountTotal(parseFloat(e.target.value)); // Assuming the input should accept decimal values
+    const handleDiscountChange = (event) => {
+        const value = event.target.value;
+        // If the input is empty or NaN, set the value to 0
+        const newValue = value === '' || isNaN(parseFloat(value)) ? 0 : parseFloat(value);
+        setdiscountTotal(newValue);
     };
 
 
@@ -887,9 +892,8 @@ export default function Editestimate() {
                                         <div className="row">
                                             <div className="col-6">
                                                 <p>Subtotal</p>
-                                                <p>GST</p>
+                                                <p className="mb-4">Discount</p>
                                                 <p>GST {estimateData.taxpercentage}%</p>
-                                                <p>Discount</p>
                                                 <p>Total</p>
                                             </div>
                                             <div className="col-6">
@@ -898,25 +902,9 @@ export default function Editestimate() {
                                                     // currency: 'INR',
                                                 })}</p>
                                                 <div className="col-6">
-                                                <div class="mb-3">
-                                                    <input
-                                                        type="number"
-                                                        name="tax"
-                                                        className="form-control"
-                                                        value={estimateData.taxpercentage}
-                                                        onChange={handleTaxChange}
-                                                        placeholder="Enter GST Percentage"
-                                                        id="taxInput"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                            </div>
-                                                <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
-                                                })}</p>
                                                 
-                                                <div className="mb-3">
+                                            </div>
+                                            <div className="mb-3">
                                                     <input
                                                         type="number"
                                                         name="totaldiscount"
@@ -928,6 +916,12 @@ export default function Editestimate() {
                                                         min="0"
                                                     />
                                                 </div>
+                                                <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
+                                                    // style: 'currency',
+                                                    // currency: 'INR',
+                                                })}</p>
+                                                
+                                                
                                                 <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
                                                     // style: 'currency',
                                                     // currency: 'INR',
