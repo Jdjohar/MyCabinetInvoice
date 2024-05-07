@@ -27,15 +27,16 @@ export default function Createinvoice() {
     const [message, setmessage] = useState(false);
     const [alertShow, setAlertShow] = useState("");
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
-        name: '', email: ''
+        name: '', email: '', phone: ''
     });
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
     const [editedName, setEditedName] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
+    const [editedPhone, setEditedPhone] = useState('');
     const [taxPercentage, setTaxPercentage] = useState(10);
     const [discountTotal, setdiscountTotal] = useState(0);
     const [invoiceData, setInvoiceData] = useState({
-        customername: '', itemname: '', customeremail: '', invoice_id: '', InvoiceNumber: '', purchaseorder: '',
+        customername: '', itemname: '', customeremail: '',customerphone:'', invoice_id: '', InvoiceNumber: '', purchaseorder: '',
         date: format(new Date(), 'yyyy-MM-dd'), job: '', duedate: format(addDays(new Date(), 15), 'yyyy-MM-dd'), description: '', itemquantity: '', price: '', discount: '',
         amount: '', discountTotal: '', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
@@ -66,6 +67,7 @@ export default function Createinvoice() {
     });
 
     useEffect(() => {
+      
         const fetchData = async () => {
             if (!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") === "true") {
                 navigate("/");
@@ -152,6 +154,7 @@ export default function Createinvoice() {
                 const json = await response.json();
 
                 if (Array.isArray(json)) {
+                    console.log("CustomerData:->    ", json)
                     setcustomers(json);
                 }
             }
@@ -243,11 +246,13 @@ export default function Createinvoice() {
                 ...invoiceData,
                 customername: selectedCustomer.name,
                 customeremail: selectedCustomer.email,
+                customerphone: selectedCustomer.number,
             });
 
             setSelectedCustomerDetails({
                 name: selectedCustomer.name,
-                email: selectedCustomer.email
+                email: selectedCustomer.email,
+                phone: selectedCustomer.number
             });
             setIsCustomerSelected(true);
         }
@@ -268,11 +273,13 @@ export default function Createinvoice() {
         const updatedCustomerDetails = {
             name: editedName,
             email: editedEmail,
+            phone: editedPhone
         };
 
         setSelectedCustomerDetails({
             name: editedName,
-            email: editedEmail
+            email: editedEmail,
+            phone: editedPhone
         });
         console.log("Updated customer details:", updatedCustomerDetails);
     };
@@ -409,6 +416,7 @@ export default function Createinvoice() {
                 userid: userid,
                 customername: invoiceData.customername,
                 customeremail: invoiceData.customeremail,
+                customerphone: invoiceData.customerphone,
                 invoice_id: invoiceData.invoice_id,
                 InvoiceNumber: invoiceData.InvoiceNumber,
                 purchaseorder: invoiceData.purchaseorder,
@@ -656,7 +664,8 @@ export default function Createinvoice() {
                                                                     <a href="" className='text-decoration-none' data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</a>
                                                                 </li>
                                                             </ul>
-                                                            <p>{selectedCustomerDetails.email}</p>
+                                                            <p className='m-0'>{selectedCustomerDetails.email}</p>
+                                                            <p>{selectedCustomerDetails.phone}</p>
                                                         </div>
                                                     ) : (
                                                         <div className="search-container forms">

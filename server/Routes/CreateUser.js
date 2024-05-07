@@ -139,6 +139,8 @@ router.post('/send-invoice-email', async (req, res) => {
     }
 });
 
+
+module.exports = router;
 router.post('/send-deposit-email', async (req, res) => {
     const {
         to,
