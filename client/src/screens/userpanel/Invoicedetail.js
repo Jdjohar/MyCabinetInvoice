@@ -118,7 +118,7 @@ export default function Invoicedetail() {
       };
 
       try {
-        const response = await fetch('http://localhost:3001/api/addpayment', {
+        const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -188,7 +188,7 @@ export default function Invoicedetail() {
     try {
       if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
         // If savedDepositData exists and has an ID, update the existing record
-        const response = await fetch(`http://localhost:3001/api/updatedeposit/${savedDepositData._id}`, {
+        const response = await fetch(`https://mycabinet.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -216,7 +216,7 @@ export default function Invoicedetail() {
 
           if (data.Success) {
             console.log('Deposit updated successfully:', data.deposit);
-            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`);
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`);
             const savedDepositDatad = await savedDepositResponse.json();
             setsavedDepositData(savedDepositDatad.deposit);
             // You may update the state here if required
@@ -228,7 +228,7 @@ export default function Invoicedetail() {
 
       } else {
         // If savedDepositData is empty or does not have an ID, add a new record
-        const response = await fetch('http://localhost:3001/api/deposit', {
+        const response = await fetch('https://mycabinet.onrender.com/api/deposit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -254,7 +254,7 @@ export default function Invoicedetail() {
         else {
           const data = await response.json();
           if (data.success) {
-            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`, {
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`, {
               headers: {
                 'Authorization': authToken,
               }
@@ -288,7 +288,7 @@ export default function Invoicedetail() {
     try {
       if ((savedDepositData != null || savedDepositData != "") && savedDepositData._id != undefined) {
         // If savedDepositData exists and has an ID, update the existing record
-        const response = await fetch(`http://localhost:3001/api/updatedeposit/${savedDepositData._id}`, {
+        const response = await fetch(`https://mycabinet.onrender.com/api/updatedeposit/${savedDepositData._id}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -316,7 +316,7 @@ export default function Invoicedetail() {
 
           if (data.Success) {
             console.log('Deposit updated successfully:', data.deposit);
-            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`, {
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`, {
               headers: {
                 'Authorization': authToken,
               }
@@ -339,7 +339,7 @@ export default function Invoicedetail() {
         }
       } else {
         // If savedDepositData is empty or does not have an ID, add a new record
-        const response = await fetch('http://localhost:3001/api/deposit', {
+        const response = await fetch('https://mycabinet.onrender.com/api/deposit', {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -364,7 +364,7 @@ export default function Invoicedetail() {
         else {
           const data = await response.json();
           if (data.success) {
-            const savedDepositResponse = await fetch(`http://localhost:3001/api/deposit/${data.deposit._id}`, {
+            const savedDepositResponse = await fetch(`https://mycabinet.onrender.com/api/deposit/${data.deposit._id}`, {
               headers: {
                 'Authorization': authToken,
               }
@@ -409,7 +409,7 @@ export default function Invoicedetail() {
     try {
       const userid = localStorage.getItem("userid");
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3001/api/getinvoicedata/${invoiceid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/getinvoicedata/${invoiceid}`, {
         headers: {
           'Authorization': authToken,
         }
@@ -440,7 +440,7 @@ export default function Invoicedetail() {
     try {
       const userid = localStorage.getItem("userid");
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3001/api/getdepositdata/${userid}/${invoiceid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/getdepositdata/${userid}/${invoiceid}`, {
         headers: {
           'Authorization': authToken,
         }
@@ -467,7 +467,7 @@ export default function Invoicedetail() {
     try {
       const userid = localStorage.getItem("userid");
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3001/api/gettransactiondata/${invoiceid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/gettransactiondata/${invoiceid}`, {
         headers: {
           'Authorization': authToken,
         }
@@ -504,7 +504,7 @@ export default function Invoicedetail() {
     try {
       const userid = localStorage.getItem("userid");
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3001/api/getsignupdata/${userid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`, {
         headers: {
           'Authorization': authToken,
         }
@@ -590,7 +590,7 @@ export default function Invoicedetail() {
       setexceedpaymenterror("");
     }
     try {
-      const response = await fetch('http://localhost:3001/api/addpayment', {
+      const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -971,7 +971,7 @@ thead{
   const handleRemove = async (invoiceid) => {
     const authToken = localStorage.getItem('authToken');
     try {
-      const response = await fetch(`http://localhost:3001/api/deldata/${invoiceid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/deldata/${invoiceid}`, {
         method: 'GET',
         headers: {
           'Authorization': authToken,
@@ -1048,7 +1048,7 @@ thead{
       <br/>> Travell Charges over 50km of radius form Ravenhall will be charged.
       <br/>> Delivery to upstairs additional $100 to each floor will be added to final invoice.
       <br/>> Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost.</p>`; // If content is empty, use default value
-      const response = await fetch('http://localhost:3001/api/send-invoice-email', {
+      const response = await fetch('https://mycabinet.onrender.com/api/send-invoice-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1074,7 +1074,7 @@ thead{
         setShowEmailAlert(true);
         // Update the database with emailsent status
         const updatedData = { ...invoiceData, emailsent: 'yes' }; // Update emailsent status
-        await fetch(`http://localhost:3001/api/updateinvoicedata/${invoiceid}`, {
+        await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
@@ -1116,7 +1116,7 @@ thead{
       <br/>> Travell Charges over 50km of radius form Ravenhall will be charged.
       <br/>> Delivery to upstairs additional $100 to each floor will be added to final invoice.
       <br/>> Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost.</p>`; // If content is empty, use default value
-      const response = await fetch('http://localhost:3001/api/send-deposit-email', {
+      const response = await fetch('https://mycabinet.onrender.com/api/send-deposit-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
@@ -1142,7 +1142,7 @@ thead{
         setShowEmailAlert(true);
         // Update the database with emailsent status
         const updatedData = { ...invoiceData, emailsent: 'yes' }; // Update emailsent status
-        await fetch(`http://localhost:3001/api/updateinvoicedata/${invoiceid}`, {
+        await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
           method: 'POST',
           headers: {
             'Content-Type': 'application/json',
