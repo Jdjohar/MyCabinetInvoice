@@ -847,11 +847,19 @@ thead{
             <td className='text-md-end' width="22%">Subtotal</td>
             <td className='text-end' width="22%">${estimateData.subtotal}</td>
           </tr>
-          <tr>
 
-            <td className='text-md-end' width="22%">Discount</td>
-            <td className='text-end' width="22%">${estimateData.discountTotal}</td>
-          </tr>
+        {
+                                      estimateData.discountTotal > 0
+                                        ?
+                                        <tr>
+
+                                          <td className='text-md-end' width="22%">Discount</td>
+                                          <td className='text-end' width="22%">${estimateData.discountTotal}</td>
+                                        </tr>
+                                        :
+                                        null
+                                    }
+          
           <tr>
 
             <td className='text-md-end' width="22%">GST (10%)</td>
