@@ -484,22 +484,30 @@ export default function Createestimate() {
 
     const onChangePrice = (event, itemId) => {
         const { value } = event.target;
-        const newPrice = parseFloat(value) || 0;
-
-        // Update the items array in the state with the new price for the specified item
-        const updatedItems = items.map((item) => {
-            if (item._id === itemId) {
-                return {
-                    ...item,
-                    price: newPrice,
-                };
-            }
-            return item;
+        const numericValue = value.replace(/[^0-9.]/g, ''); // Remove any non-numeric characters except decimal point
+      
+        // Limit the numeric value to two decimal places
+        const decimalIndex = numericValue.indexOf('.');
+        let formattedValue = numericValue;
+        if (decimalIndex !== -1) {
+          formattedValue = numericValue.slice(0, decimalIndex + 1) + numericValue.slice(decimalIndex + 1).replace(/[^0-9]/g, '').slice(0, 2);
+        }
+      
+        const newPrice = parseFloat(formattedValue) || 0;
+      
+        // Update the item's price in the items array
+        const updatedItems = items.map(item => {
+          if (item._id === itemId) {
+            return {
+              ...item,
+              price: formattedValue // Update with formatted value
+            };
+          }
+          return item;
         });
-
-        // Update the state with the updated items array
+      
         setitems(updatedItems);
-    };
+      };
     const onChangeDescription = (event, editor, itemId) => {
         const value = editor.getData();
 
@@ -836,7 +844,7 @@ export default function Createestimate() {
                                     disabled
                                 /> */}
                                                                             <input
-                                                                                type="number"
+                                                                                type="text"
                                                                                 name={`price-${itemId}`}  // Use a unique identifier for each item
                                                                                 className="form-control"
                                                                                 value={itemPrice}

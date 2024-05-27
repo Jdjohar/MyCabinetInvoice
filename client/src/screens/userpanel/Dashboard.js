@@ -22,6 +22,14 @@ export default function Dashboard() {
     // setloading(true)
 
   }, [])
+
+  const getFilteredInvoices = () => {
+    if (filterStatus === 'All') {
+      return invoices;
+    }
+    return invoices.filter(invoice => invoice.status === filterStatus);
+  };
+
   let navigate = useNavigate();
   const [isClockedIn, setIsClockedIn] = useState(false);
   const [signupdata, setsignupdata] = useState([]);
@@ -32,61 +40,8 @@ export default function Dashboard() {
   const currentDate = new Date(); // Get the current date
 
   const currentMonth = format(currentDate, 'MMMM');
+  const [filterStatus, setFilterStatus] = useState('All');
 
-
-  // useEffect(() => {
-  //   const localstarttime = localStorage.getItem("startTime");
-  //   if (localstarttime != undefined && localstarttime != null && localstarttime != "") {
-  //     setStartTime(localstarttime);
-  //     setIsClockedIn(true);
-  //   }
-
-  //   if (isClockedIn && startTime) {
-  //     const interval = setInterval(() => {
-  //       const currentTimestamp = new Date().getTime();
-  //       const startTimestamp = new Date(startTime).getTime();
-  //       const timeDifference = currentTimestamp - startTimestamp;
-  //       const hours = Math.floor(timeDifference / (1000 * 60 * 60));
-  //       const minutes = Math.floor((timeDifference / (1000 * 60)) % 60);
-  //       const seconds = Math.floor((timeDifference / 1000) % 60);
-  //       setTotalTime(`${hours} hrs ${minutes} mins ${seconds} secs`);
-  //     }, 1000);
-
-  //     return () => clearInterval(interval);
-  //   }
-  //   else {
-  //     setTotalTime('0 hrs 0 mins 0 secs');
-  //   }
-  //   // Calculate the start and end timestamps for the current month
-  //   const currentMonthIndex = currentDate.getMonth(); // Get the current month (0-indexed)
-  //   const currentYear = currentDate.getFullYear();
-  //   const startOfMonth = new Date(currentYear, currentMonthIndex, 1, 0, 0, 0);
-  //   const endOfMonth = new Date(currentYear, currentMonthIndex + 1, 0, 23, 59, 59);
-
-  //   fetchUserEntries(startOfMonth, endOfMonth);
-  // }, [isClockedIn, startTime]);
-
-  // const fetchUserEntries = async (start, end) => {
-  //   try {
-  //     const userid = localStorage.getItem('userid');
-  //     const response = await fetch(`https://mycabinet.onrender.com/api/userEntries/${userid}`);
-  //     const data = await response.json();
-
-  //     // Filter userEntries to include only entries for the current month
-  //     const filteredEntries = data.userEntries.filter((entry) => {
-  //       const entryTime = new Date(entry.startTime).getTime();
-  //       return entryTime >= start.getTime() && entryTime <= end.getTime();
-  //     });
-
-  //     setUserEntries(filteredEntries);
-
-  //     setTimeout(() => {
-  //       setloading(false);
-  //     }, 2000);
-  //   } catch (error) {
-  //     console.error(error);
-  //   }
-  // };
 
   const handleAddinvoiceClick = () => {
     navigate('/userpanel/Createinvoice');
@@ -218,9 +173,10 @@ export default function Dashboard() {
   const getPageCount = () => Math.ceil(invoices.length / entriesPerPage);
 
   const getCurrentPageInvoices = () => {
+    const filteredInvoices = getFilteredInvoices();
     const startIndex = currentPage * entriesPerPage;
     const endIndex = startIndex + entriesPerPage;
-    return invoices.slice(startIndex, endIndex);
+    return filteredInvoices.slice(startIndex, startIndex + entriesPerPage);
   };
 
   const handlePrevPage = () => {
@@ -282,46 +238,22 @@ export default function Dashboard() {
                 </div>
               </div>
 
-              {/* <div className="row">
-                <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
-                  <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2 text-center'>
-                    <p className='fs-6 fw-bold'>TOTAL PAYMENTS RECEIVED</p>
-                    <p className='fs-3 fw-bold'></p>
-                  </div>
-                </div>
-                <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
-                  <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2 text-center'>
-                    <p className='fs-6 fw-bold'>OCTOBER INVOICE AMOUNT</p>
-                    <p className='fs-3 fw-bold'></p>
-                  </div>
-                </div>
-              </div> */}
-
-              {/* <div className="row">
-            <div className='col-12 col-sm-8 col-md-8 col-lg-8'>
-              <div className='box1 fw-bold rounded adminborder py-4 px-3 m-2'>
-                <div className="row">
-                  <div className="col-3 greyclr">
-                    <p>INVOICE</p>
-                  </div>
-                  <div className="col-3 greyclr">
-                    <p>STATUS</p>
-                  </div>
-                  <div className="col-3 greyclr">
-                    <p>DATE</p>
-                  </div>
-                  <div className="col-3 greyclr">
-                    <p>AMOUNT</p>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div> */}
           
           <div className=''>
             {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
           </div>
               <div className="bg-white my-5 p-4 box">
+              <div className='row mb-3'>
+              <div className='col-3'>
+                <select onChange={(e) => setFilterStatus(e.target.value)} className='form-select'>
+                  <option value='All'>All</option>
+                  <option value='Paid'>Paid</option>
+                  <option value='Partially Paid'>Partially Paid</option>
+                  <option value='Saved'>Saved</option>
+                  <option value='Send'>Send</option>
+                </select>
+              </div>
+            </div>
                 <div className="row px-2 table-responsive">
                   <table class="table table-bordered">
                     <thead>
@@ -329,7 +261,7 @@ export default function Dashboard() {
                         <th scope="col">INVOICE </th>
                         <th scope="col">STATUS </th>
                         <th scope="col">DATE </th>
-                        <th scope='col'>EMAIL STATUS </th>
+                        {/* <th scope='col'>EMAIL STATUS </th> */}
                         <th scope="col">VIEW </th>
                         <th scope="col">AMOUNT </th>
                       </tr>
@@ -343,7 +275,36 @@ export default function Dashboard() {
                             <p className='my-0'>Job: {invoice.job}</p>
                           </td>
                           <td>
-                            <span className='clrtrxtstatus'>{getStatus(invoice)}</span>
+                            {/* <span className='clrtrxtstatus'>{getStatus(invoice)}</span> */}
+                            <td>
+  {invoice.status === 'Saved' ? (
+    <span className='saved p-2 rounded-pill'>
+    <i className="fa-solid fa-circle fs-12 me-2 grey-3"></i> 
+    <span className='clrtrxtstatus fw-bold'>Saved</span>
+  </span>
+  ) : invoice.status === 'Send' ? (
+    <span className='sent p-2 rounded-pill'>
+      <i className="fa-solid fa-circle fs-12 me-2 text-primary"></i> 
+      <span className='clrtrxtstatus fw-bold'>Send</span>
+    </span>
+  ) : invoice.status === 'Paid' ? (
+    <span className='paid p-2 rounded-pill'>
+      <i class="fa-solid fa-circle fs-12 me-2 "></i>
+      <span className='clrtrxtstatus fw-bold'>Paid</span>
+    </span>
+  ) : invoice.status === 'Partially Paid' ? (
+    <span className='paid p-2 rounded-pill'>
+      <i class="fa-solid fa-circle fs-12 me-2"></i> 
+      <span className='clrtrxtstatus fw-bold'>Partially Paid</span>
+    </span>
+  ) : (
+    <>
+      <i className="fa-solid fa-circle fs-12 me-2 unknown"></i> 
+      <span className='clrtrxtstatus fw-bold'>Unknown Status</span>
+    </>
+  )}
+</td>
+                          
                           </td>
                           <td>
                             <div className='d-flex'>
@@ -355,9 +316,9 @@ export default function Dashboard() {
                               <p className='datetext'>{formatCustomDate(invoice.duedate)}</p>
                             </div>
                           </td>
-                          <td className='text-center'>
+                          {/* <td className='text-center'>
                             <p className='datetext'>{invoice.emailsent}</p>
-                          </td>
+                          </td> */}
 
                           <td className='text-center'>
                             <a role="button" className='text-black text-center' onClick={() => handleViewClick(invoice)}>

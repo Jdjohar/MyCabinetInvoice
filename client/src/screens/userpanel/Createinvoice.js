@@ -33,13 +33,20 @@ export default function Createinvoice() {
     const [editedName, setEditedName] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
     const [editedPhone, setEditedPhone] = useState('');
-    const [taxPercentage, setTaxPercentage] = useState(10);
+    const [taxPercentage, setTaxPercentage] = useState(0);
+    const [signUpData, setsignUpData] = useState(0);
     const [discountTotal, setdiscountTotal] = useState(0);
     const [invoiceData, setInvoiceData] = useState({
         customername: '', itemname: '', customeremail: '',customerphone:'', invoice_id: '', InvoiceNumber: '', purchaseorder: '',
         date: format(new Date(), 'yyyy-MM-dd'), job: '', duedate: format(addDays(new Date(), 15), 'yyyy-MM-dd'), description: '', itemquantity: '', price: '', discount: '',
         amount: '', discountTotal: '', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
+
+    
+    const roundOff = (value) => {
+        return Math.round(value * 100) / 100;
+      };
+
     // const [editorData, setEditorData] = useState("<p></p>");
     const [editorData, setEditorData] = useState(`
         <p>
@@ -72,6 +79,9 @@ export default function Createinvoice() {
             if (!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") === "true") {
                 navigate("/");
             }
+            const getTaxOptions = localStorage.getItem("taxOptions")
+            console.log("getTaxOptions:===",JSON.parse(getTaxOptions)[0].name);
+            setsignUpData(JSON.parse(getTaxOptions)[0])
             await fetchcustomerdata();
             await fetchitemdata();
             await fetchLastInvoiceNumber();
@@ -221,7 +231,7 @@ export default function Createinvoice() {
         setEditorData(data);
     };
 
-    const onChangeQuantity = (event, itemId) => {
+   const onChangeQuantity = (event, itemId) => {
         let newQuantity = event.target.value ? parseFloat(event.target.value) : 1;
         newQuantity = Math.max(newQuantity, 0); // Ensure quantity is not negative
 
@@ -332,7 +342,7 @@ export default function Createinvoice() {
             subtotal += discountedAmount;
         });
 
-        return subtotal;
+        return roundOff(subtotal);
     };
 
     // Function to handle tax change
@@ -363,10 +373,10 @@ export default function Createinvoice() {
         const totalDiscountedAmount = subtotal - discountTotal; // Apply overall discount first
 
         // Calculate tax amount on the discounted amount
-        const taxAmount = (totalDiscountedAmount * taxPercentage) / 100;
+        const taxAmount = (totalDiscountedAmount * signUpData.percentage) / 100;
         // const taxAmount = ((subtotal-discountTotal) * taxPercentage) / 100;
         // console.log("taxAmount:", taxAmount, "subtotal:", subtotal, "discountTotal:",discountTotal);
-        return taxAmount;
+        return roundOff(taxAmount);
     };
 
     // Function to calculate total amount
@@ -375,7 +385,7 @@ export default function Createinvoice() {
         const taxAmount = calculateTaxAmount();
         const discountAmount = discountTotal;
         const totalAmount = subtotal + taxAmount - discountAmount;
-        return totalAmount;
+        return roundOff(totalAmount);
     };
 
     const handleSubmit = async (e) => {
@@ -429,7 +439,7 @@ export default function Createinvoice() {
                 subtotal: subtotal,
                 total: total,
                 tax: taxAmount,
-                taxpercentage: taxPercentageValue,
+                taxpercentage: signUpData.percentage,
                 amountdue: amountdue
             };
             console.log(data, "Invoice Data ====");
@@ -495,19 +505,31 @@ export default function Createinvoice() {
     };
 
     const onChangePrice = (event, itemId) => {
-        const newPrice = parseFloat(event.target.value);
+        const { value } = event.target;
+        const numericValue = value.replace(/[^0-9.]/g, ''); // Remove any non-numeric characters except decimal point
+      
+        // Limit the numeric value to two decimal places
+        const decimalIndex = numericValue.indexOf('.');
+        let formattedValue = numericValue;
+        if (decimalIndex !== -1) {
+          formattedValue = numericValue.slice(0, decimalIndex + 1) + numericValue.slice(decimalIndex + 1).replace(/[^0-9]/g, '').slice(0, 2);
+        }
+      
+        const newPrice = parseFloat(formattedValue) || 0;
+      
         // Update the item's price in the items array
         const updatedItems = items.map(item => {
-            if (item._id === itemId) {
-                return {
-                    ...item,
-                    price: newPrice
-                };
-            }
-            return item;
+          if (item._id === itemId) {
+            return {
+              ...item,
+              price: formattedValue // Update with formatted value
+            };
+          }
+          return item;
         });
+      
         setitems(updatedItems);
-    };
+      };
 
     const onChangeDescription = (event, editor, itemId) => {
         const value = editor.getData();
@@ -862,7 +884,7 @@ export default function Createinvoice() {
 
                                                                         <td>
                                                                             <input
-                                                                                type="number"
+                                                                                type="text"
                                                                                 name={`price-${itemId}`}
                                                                                 className="form-control"
                                                                                 value={itemPrice}
@@ -916,7 +938,7 @@ export default function Createinvoice() {
                                                                 <p>Subtotal</p>
                                                                 <p>Discount</p>
                                                                 {/* <p>GST</p> */}
-                                                                <p className='pt-3'>GST {taxPercentage}%</p>
+                                                                <p className='pt-3'>{signUpData.name} {signUpData.percentage}%</p>
 
                                                                 <p>Total</p>
                                                             </div>

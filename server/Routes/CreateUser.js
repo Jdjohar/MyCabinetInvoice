@@ -1398,7 +1398,7 @@ router.post('/converttoinvoice/:estimateid', async (req, res) => {
             const lastInvoice = await Invoice.findOne().sort({ invoice_id: -1 });
             const lastId = lastInvoice ? lastInvoice.invoice_id : 0;
             const nextId = lastId + 1;
-
+            console.log(estimate);
             // Create a new Invoice based on the estimate details
             const newInvoice = new Invoice({
                 invoice_id: nextId,
@@ -1409,6 +1409,7 @@ router.post('/converttoinvoice/:estimateid', async (req, res) => {
                 duedate: estimate.date,
                 description: estimate.description,
                 items: estimate.items,
+                job: estimate.job,
                 subtotal: estimate.subtotal,
                 total: estimate.total,
                 userid: estimate.userid,
