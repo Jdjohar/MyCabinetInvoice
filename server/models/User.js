@@ -47,7 +47,15 @@ const UserSchema = new Schema({
       gstNumber: {
         type: String, // GST number field
       },
+      taxPercentage: {
+        type: String, // 
+        default: 0,
+      },
+      TaxName: {
+        type: String, // 
+        default: 'TAX',
+      },
       resetPasswordToken: String,
 });
 
-module.exports = mongoose.model('User',UserSchema)
+module.exports = mongoose.model('user',UserSchema)

@@ -13,7 +13,7 @@ const InvoiceSchema = new Schema({
     customeremail: {
         type: String,
     },
-     emailsent: {
+    emailsent: {
         type: String,
         default:'no'
     },
@@ -29,12 +29,6 @@ const InvoiceSchema = new Schema({
     description: {
         type: String,
     },
-    job: {
-        type: String,
-    },
-    discountTotal: {
-        type: String,
-    },
     items: [],
     subtotal: {
         type: Number,
@@ -48,6 +42,12 @@ const InvoiceSchema = new Schema({
         type: Number,
         default: 0,
     },
+    discountTotal: {
+        type: String,
+    },
+    TaxPer: {
+        type: String,
+    },
     information: {
         type: String,
     },
@@ -57,6 +57,10 @@ const InvoiceSchema = new Schema({
     taxpercentage: {
         type: Number,
         default: 0,
+    },
+    status: {
+        type: String,
+        default: 'Saved',
     },
     userid:{
         type: String,

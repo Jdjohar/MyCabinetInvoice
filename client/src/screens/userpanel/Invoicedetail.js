@@ -43,14 +43,7 @@ export default function Invoicedetail() {
   const [showAlert, setShowAlert] = useState(false);
   const [emails, setEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
-  const [content, setContent] = useState(`<p> > Quotation Is based on drawings provided and quote is valid for 2 weeks from the date of issue.
-      <br/>> Overhead Cabinets and Fridge Panels are of maximum 2380mm in Height.
-      <br/>> All Cabinets are made with A-Grade Australian made material in our factory in Ravenhall.
-      <br/>> Plumbing and Electrical Connection disconnect or replace is customer responsibility.
-      <br/>> There will be 3-5mm Gap between wall and panels is expectable.
-      <br/>> Travell Charges over 50km of radius form Ravenhall will be charged.
-      <br/>> Delivery to upstairs additional $100 to each floor will be added to final invoice.
-      <br/>> Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost.</p>`);
+  const [content, setContent] = useState(``);
   const [showModal, setShowModal] = useState(false);
   const [showEmailAlert, setShowEmailAlert] = useState(false);
   const [depositpercentage, setdepositPercentage] = useState('');
@@ -80,9 +73,9 @@ export default function Invoicedetail() {
 
   let navigate = useNavigate();
 
-  const roundOff = (amount) => {
-    return parseFloat(amount).toFixed(2);
-  };
+  const roundOff = (value) => {
+    return Math.round(value * 100) / 100;
+};
 
   const handlePercentageChange = (event) => {
     setdepositPercentage(event.target.value);
@@ -147,6 +140,34 @@ export default function Invoicedetail() {
             const responseData = await response.json();
             if (responseData.success) {
               setsavedDepositData('');
+              const setamountDue = roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount)
+              console.log("setamountDue Mark Depoist: ==============", setamountDue);
+  
+  
+              const updatedData = { 
+  
+                ...invoiceData,  
+                amountdue: setamountDue, 
+                status: `${
+                  setamountDue == 0
+                  ?
+                  "Paid"
+                  :
+                  "Partially Paid"
+                }`
+              
+              
+              }; // Update emailsent status
+          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authToken,
+            },
+            body: JSON.stringify(updatedData),
+          });
+  
+
               console.log('Payment added successfully!');
               // Fetch updated transaction data after payment addition
               await fetchtransactiondata();
@@ -157,6 +178,7 @@ export default function Invoicedetail() {
               // Update amount due by subtracting totalPaidAmount from total invoice amount
               const updatedAmountDue = invoiceData.total - totalPaidAmount;
               setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
+              
               // Close the modal after adding payment
               document.getElementById('closebutton').click();
               if (modalRef.current) {
@@ -617,8 +639,38 @@ export default function Invoicedetail() {
         if (response.ok) {
           const responseData = await response.json();
           if (responseData.success) {
-            console.log('Payment added successfully!');
+            console.log(responseData, 'Payment added successfully!');
+            console.log(roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount), 'invoiceData');
             // Fetch updated transaction data after payment addition
+
+            const setamountDue = roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount)
+            console.log("setamountDue: ==============", setamountDue);
+
+
+            const updatedData = { 
+
+              ...invoiceData,  
+              amountdue: setamountDue, 
+              status: `${
+                setamountDue == 0
+                ?
+                "Paid"
+                :
+                "Partially Paid"
+              }`
+            
+            
+            }; // Update emailsent status
+        await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+          method: 'POST',
+          headers: {
+            'Content-Type': 'application/json',
+            'Authorization': authToken,
+          },
+          body: JSON.stringify(updatedData),
+        });
+
+        
             await fetchtransactiondata();
 
             // Calculate total paid amount from transactions
@@ -1040,18 +1092,12 @@ thead{
     const authToken = localStorage.getItem('authToken');
     const contentAsPdf = await generatePdfFromHtml();
     try {
-      const finalContent = content.trim() || `<p> > Quotation Is based on drawings provided and quote is valid for 2 weeks from the date of issue.
-      <br/>> Overhead Cabinets and Fridge Panels are of maximum 2380mm in Height.
-      <br/>> All Cabinets are made with A-Grade Australian made material in our factory in Ravenhall.
-      <br/>> Plumbing and Electrical Connection disconnect or replace is customer responsibility.
-      <br/>> There will be 3-5mm Gap between wall and panels is expectable.
-      <br/>> Travell Charges over 50km of radius form Ravenhall will be charged.
-      <br/>> Delivery to upstairs additional $100 to each floor will be added to final invoice.
-      <br/>> Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost.</p>`; // If content is empty, use default value
+      const finalContent = content.trim() || ``; // If content is empty, use default value
       const response = await fetch('https://mycabinet.onrender.com/api/send-invoice-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': authToken,
         },
         body: JSON.stringify({
           to: emails,
@@ -1069,19 +1115,32 @@ thead{
       });
 
       if (response.ok) {
-        console.log('Email sent successfully!');
+        console.log(invoiceData, 'Email sent successfully!');
         // setShowModal(false);
         setShowEmailAlert(true);
-        // Update the database with emailsent status
-        const updatedData = { ...invoiceData, emailsent: 'yes' }; // Update emailsent status
-        await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': authToken,
-          },
-          body: JSON.stringify(updatedData),
-        });
+
+        if(invoiceData.status == 'Paid' || invoiceData.status == 'Partially Paid')
+        {
+          const updatedData = {invoiceData }
+          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authToken,
+            },
+            body: JSON.stringify(updatedData),
+          });
+        }else {
+          const updatedData = { ...invoiceData,status:"Send", emailsent: 'yes' }
+          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authToken,
+            },
+            body: JSON.stringify(updatedData),
+          });
+        }
         if (response.status === 401) {
           const json = await response.json();
           setAlertMessage(json.message);
@@ -1108,18 +1167,12 @@ thead{
     const authToken = localStorage.getItem('authToken');
     const contentAsPdf = await generatePdfFromHtml();
     try {
-      const finalContent = content.trim() || `<p> > Quotation Is based on drawings provided and quote is valid for 2 weeks from the date of issue.
-      <br/>> Overhead Cabinets and Fridge Panels are of maximum 2380mm in Height.
-      <br/>> All Cabinets are made with A-Grade Australian made material in our factory in Ravenhall.
-      <br/>> Plumbing and Electrical Connection disconnect or replace is customer responsibility.
-      <br/>> There will be 3-5mm Gap between wall and panels is expectable.
-      <br/>> Travell Charges over 50km of radius form Ravenhall will be charged.
-      <br/>> Delivery to upstairs additional $100 to each floor will be added to final invoice.
-      <br/>> Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost.</p>`; // If content is empty, use default value
+      const finalContent = content.trim() || ``; // If content is empty, use default value
       const response = await fetch('https://mycabinet.onrender.com/api/send-deposit-email', {
         method: 'POST',
         headers: {
           'Content-Type': 'application/json',
+          'Authorization': authToken,
         },
         body: JSON.stringify({
           to: emails,
@@ -1141,15 +1194,37 @@ thead{
         setShowSendEmailModal(false)
         setShowEmailAlert(true);
         // Update the database with emailsent status
-        const updatedData = { ...invoiceData, emailsent: 'yes' }; // Update emailsent status
-        await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': authToken,
-          },
-          body: JSON.stringify(updatedData),
-        });
+        if(invoiceData.status == 'Paid' || invoiceData.status == 'Partially Paid')
+        {
+          const updatedData = {invoiceData }
+          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authToken,
+            },
+            body: JSON.stringify(updatedData),
+          });
+        }else {
+          const updatedData = { ...invoiceData,status:"Send", emailsent: 'yes' }
+          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authToken,
+            },
+            body: JSON.stringify(updatedData),
+          });
+        }
+        // const updatedData = { ...invoiceData, emailsent: 'yes' }; // Update emailsent status
+        // await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+        //   method: 'POST',
+        //   headers: {
+        //     'Content-Type': 'application/json',
+        //     'Authorization': authToken,
+        //   },
+        //   body: JSON.stringify(updatedData),
+        // });
         if (response.status === 401) {
           const json = await response.json();
           setAlertMessage(json.message);
@@ -1346,15 +1421,15 @@ thead{
                                 </div>
                                 <address className='m-t-5 m-b-5'>
                                   <div className='mb-2'>
-                                    <div className=''>4/89</div>
-                                    <div className=''>Eucumbene Dr</div>
+                                    <div className=''>{signupdata.address}</div>
+                                    {/* <div className=''>Eucumbene Dr</div>
                                     <div className=''>Ravenhall VIC 3023</div>
-                                    <div className=''>AU</div>
+                                    <div className=''>AU</div> */}
                                   </div>
                                   <div>{signupdata.FirstName} {signupdata.User1_Mobile_Number}</div>
                                   <div>{signupdata.User2FirstName} {signupdata.User2_Mobile_Number}</div>
                                   <div>{signupdata.email}</div>
-                                  <div>ABN: {signupdata.gstNumber}</div>
+                                  <div>{signupdata.TaxName}: {signupdata.gstNumber}</div>
 
                                 </address>
                               </div>
@@ -1402,12 +1477,22 @@ thead{
                                   </div>
                                   <div className='col-6 col-md invoice-detail-right'>{formatCustomDate(invoiceData.duedate)}</div>
                                 </div> */}
-                                <div className='row text-md-end'>
-                                  <div className='col-6 col-md'>
+                                
+
+                                  {
+                                    invoiceData.job == "" ||  invoiceData.job == null
+                                    ?
+                                    ""
+                                    :
+                                    <div className='row text-md-end'>
+                                    <div className='col-6 col-md'>
                                     <strong>Job</strong>
                                   </div>
                                   <div className='col-6 col-md invoice-detail-right'>{invoiceData.job}</div>
-                                </div>
+                                  </div>
+                                  }
+                                 
+                               
 
                               </div>
                             </div>
@@ -1436,8 +1521,8 @@ thead{
                                         </div>
                                       </td>
                                       <td className="text-center d-none d-md-table-cell">{item.itemquantity}</td>
-                                      <td className="text-end d-none d-md-table-cell">{item.price}</td>
-                                      <td className='text-end'>{item.amount}</td>
+                                      <td className="text-end d-none d-md-table-cell">{roundOff(item.price)}</td>
+                                      <td className='text-end'>{roundOff(item.amount)}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -1451,29 +1536,29 @@ thead{
 
                                   <tbody>
                                     <tr>
-                                      <td className='d-none d-md-table-cell' rowspan="5"></td>
+                                      <td className='d-none d-md-table-cell' rowspan="10"></td>
                                       <td className='text-md-end' width="22%">Subtotal</td>
-                                      <td className='text-end' width="22%">${invoiceData.subtotal}</td>
+                                      <td className='text-end' width="22%">${roundOff(invoiceData.subtotal)}</td>
                                     </tr>
-                                   {
+                                    {
   invoiceData.discountTotal > 0 
   ?
 <tr>
 <td className='text-md-end' width="22%">Discount</td>
-                                      <td className='text-end' width="22%">${invoiceData.discountTotal}</td>
+                                      <td className='text-end' width="22%">${roundOff(invoiceData.discountTotal)}</td>
                                     </tr>
                                     :
                                     null
 }
                                     <tr>
 
-                                      <td className='text-md-end' width="22%">GST (10%)</td>
-                                      <td className='text-end' width="22%">${invoiceData.tax}</td>
+                                      <td className='text-md-end' width="22%">{signupdata.TaxName} ({signupdata.taxPercentage}%)</td>
+                                      <td className='text-end' width="22%">${roundOff(invoiceData.tax)}</td>
                                     </tr>
                                     <tr>
 
                                       <td className='text-md-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>Total</td>
-                                      <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>${invoiceData.total}</td>
+                                      <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>${roundOff(invoiceData.total)}</td>
                                     </tr>
                                     {transactions.map((transaction) => (
                                       <tr key={transaction._id}>
@@ -1535,7 +1620,7 @@ thead{
                               <p>Paid</p>
                             </div>
                             <div className="col-6 text-end">
-                              <p><CurrencySign />{invoiceData.total}</p>
+                              <p><CurrencySign />{roundOff(invoiceData.total)}</p>
                               {console.log(transactions)}
 
 
