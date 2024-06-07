@@ -75,7 +75,7 @@ export default function Estimate() {
     console.log(estimateid);
     try {
       const authToken = localStorage.getItem('authToken');
-      const response = await fetch(`http://localhost:3001/api/converttoinvoice/${estimateid}`, {
+      const response = await fetch(`https://mycabinet.onrender.com/api/converttoinvoice/${estimateid}`, {
         method: 'POST',
         headers: {
           'Authorization': authToken,
