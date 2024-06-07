@@ -3,7 +3,7 @@ const https = require('https');
 
 const backendUrl = 'https://mycabinet.onrender.com';
 
-const job = new cron.CronJob('*/25 * * * *', function () {
+const job = new cron.CronJob('*/14 * * * *', function () {
   // This function will be executed every 14 minutes.
   console.log('Restarting server');
 
