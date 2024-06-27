@@ -12,6 +12,13 @@ export default function Dashboard() {
   const invoiceid = location.state?.invoiceid;
   const [transactions, setTransactions] = useState([]);
   const [currentPage, setCurrentPage] = useState(0);
+  const [curMonTotalAmount, setCurMonTotalAmount] = useState(0);
+  const [curMonPaidAmount, setCurMonPaidAmount] = useState(0);
+  const [curMonUnpaidAmount, setCurMonUnpaidAmount] = useState(0);
+  const [overdueCount, setOverdueCount] = useState(0);
+  const [totalPaymentsReceived, setTotalPaymentsReceived] = useState(0);
+  const [totalInvoiceAmount, setTotalInvoiceAmount] = useState(0);
+  const [totalUnpaidAmount, setTotalUnpaidAmount] = useState(0);
   const entriesPerPage = 10;
   useEffect(() => {
     if (!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true") {
@@ -19,9 +26,16 @@ export default function Dashboard() {
     }
     fetchsignupdata();
     fetchData();
+    fetchCurMonReceivedAmount();
+    fetchTotalPaymentsReceived();
+    fetchOverdueInvoices();
     // setloading(true)
 
   }, [])
+
+  const roundOff = (value) => {
+    return Math.round(value * 100) / 100;
+};
 
   const getFilteredInvoices = () => {
     if (filterStatus === 'All') {
@@ -120,6 +134,82 @@ export default function Dashboard() {
       console.error('Error fetching data:', error);
     }
   };
+
+  const fetchCurMonReceivedAmount = async () => {
+    try {
+      const userid = localStorage.getItem("userid");
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`https://mycabinet.onrender.com/api/currentMonthReceivedAmount/${userid}`, {
+        headers: {
+          'Authorization': authToken,
+        }
+      });
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0,0);
+        return; // Stop further execution
+      }
+      else {
+        const json = await response.json();
+        setCurMonTotalAmount(json.curMonTotalAmount);
+        setCurMonPaidAmount(json.curMonPaidAmount);
+        setCurMonUnpaidAmount(json.curMonUnpaidAmount);
+      }
+    } catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  };
+
+  const fetchTotalPaymentsReceived = async () => {
+    try {
+        const authToken = localStorage.getItem('authToken');
+        const userId = localStorage.getItem('userid');
+        const response = await fetch(`https://mycabinet.onrender.com/api/totalPaymentReceived/${userId}`, {
+            headers: {
+                Authorization: authToken,
+            },
+        });
+        if (response.status === 401) {
+            const json = await response.json();
+            console.error(json.message);
+            return;
+        }
+        const json = await response.json();
+        setTotalPaymentsReceived(json.totalPaymentReceived);
+        setTotalInvoiceAmount(json.totalInvoiceAmount);
+        setTotalUnpaidAmount(json.totalUnpaidAmount);
+        setloading(false); // Consider if you need this here
+    } catch (error) {
+        console.error('Error fetching data:', error);
+    }
+};
+
+const fetchOverdueInvoices = async () => {
+  try {
+    const authToken = localStorage.getItem('authToken');
+    const userid = localStorage.getItem('userid');
+    const response = await fetch(`https://mycabinet.onrender.com/api/overdueInvoices/${userid}`, {
+      headers: { 'Authorization': authToken },
+    });
+    if (response.status === 401) {
+      const json = await response.json();
+      setAlertMessage(json.message);
+      setloading(false);
+      window.scrollTo(0, 0);
+      return;
+    } else {
+      const json = await response.json();
+      setOverdueCount(json.overdueCount);
+    }
+  } catch (error) {
+    console.error('Error fetching data:', error);
+  }
+};
+const handleOverdue = () => {
+  navigate('/userpanel/Overdue');
+};
 
   const getStatus = (invoice) => {
     // Filter transactions related to the current invoice
@@ -237,6 +327,36 @@ export default function Dashboard() {
                   </div>
                 </div>
               </div>
+
+<div className="row">
+  <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
+    <div className='box1 rounded adminborder py-4 px-4 m-2 '>
+      <p className='fs-6 fw-bold'>PAYMENTS RECEIVED</p>
+      <p className='fs-3 fw-bold'><CurrencySign />{roundOff(totalInvoiceAmount)}</p>
+      {/* <p className='fs-3 fw-bold'><CurrencySign /></p> */}
+      <div className='d-flex'>
+        <p className='pe-3'><span className='text-primary'>Paid</span> <CurrencySign />{roundOff(totalPaymentsReceived)}</p>
+        <p><span className='text-warning'>Unpaid</span> <CurrencySign />{roundOff(totalUnpaidAmount)}</p>  
+        {/* <p className='pe-3'><span className='text-primary'>Paid</span> <CurrencySign /></p>
+        <p><span className='text-warning'>Unpaid</span> <CurrencySign /></p>   */}
+      </div>
+      <div className='d-flex'>
+        <p className='pe-3'><span className='text-danger'>Overdue </span>{overdueCount} <span className='pointer' onClick={handleOverdue}>Invoices</span></p>
+        {/* <p className='pe-3'><span className='text-danger'>Overdue </span><span>Invoices</span></p> */}
+      </div>
+    </div>
+  </div>
+  <div className='col-12 col-sm-4 col-md-4 col-lg-4'>
+    <div className='box1 rounded adminborder py-4 px-4 m-2'>
+      <p className='fs-6 fw-bold'>{currentMonth.toUpperCase()} INVOICE AMOUNT</p>
+      <p className='fs-3 fw-bold'><CurrencySign /> {roundOff(curMonTotalAmount)}</p>
+      <div className='d-flex'>
+        <p className='pe-3'><span className='text-primary'>Paid</span> <CurrencySign />{roundOff(curMonPaidAmount)}</p>
+        <p><span className='text-warning'>Unpaid</span> <CurrencySign />{roundOff(curMonUnpaidAmount)}</p>  
+      </div>
+    </div>
+  </div>
+</div>
 
           
           <div className=''>
