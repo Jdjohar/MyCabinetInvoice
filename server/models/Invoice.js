@@ -7,6 +7,9 @@ const InvoiceSchema = new Schema({
     InvoiceNumber: { 
         type: String 
     },
+    noteimageUrl:{
+        type: String,
+    },
     customername: {
         type: String,
     },
