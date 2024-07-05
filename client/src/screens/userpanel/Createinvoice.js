@@ -126,7 +126,7 @@ export default function Createinvoice() {
                 navigate("/");
             }
             const getTaxOptions = localStorage.getItem("taxOptions")
-            console.log("getTaxOptions:===",JSON.parse(getTaxOptions)[0].name);
+            // console.log("getTaxOptions:===",JSON.parse(getTaxOptions)[0].name);
             setsignUpData(JSON.parse(getTaxOptions)[0])
             await fetchcustomerdata();
             await fetchitemdata();
