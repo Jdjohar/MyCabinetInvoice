@@ -6,7 +6,7 @@ import Usernavbar from './Usernavbar';
 import { ReactMultiEmail } from 'react-multi-email';
 import 'react-multi-email/dist/style.css'
 import html2pdf from 'html2pdf.js';
-import he from 'he';
+// import he from 'he';
 import CurrencySign from '../../components/CurrencySign ';
 import Alertauthtoken from '../../components/Alertauthtoken';
 // import { PDFViewer, pdf, PDFDownloadLink, Document, Image, Page, Text, Font, View, StyleSheet } from '@react-pdf/renderer';   

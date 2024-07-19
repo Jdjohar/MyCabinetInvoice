@@ -99,6 +99,11 @@ export default function Usernavbar() {
                         <img src={customers} width="24px" height='24px' /> <span className='ps-2'>Profile</span>
                       </Link>
                     </li>
+                    <li>
+                      <Link to="/userpanel/Report" className='nav-link scrollto w-100 icones text-black' >
+                        <img src={customers} width="24px" height='24px' /> <span className='ps-2'>Report</span>
+                      </Link>
+                    </li>
 
                     <li>
                       <a onClick={handleLogout} className=" pointer nav-link scrollto w-100 icones text-black">

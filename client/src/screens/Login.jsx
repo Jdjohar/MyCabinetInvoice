@@ -1,7 +1,7 @@
 import React,{useState,useEffect} from 'react';
 import {Link, useNavigate} from 'react-router-dom'
 import { ColorRing } from  'react-loader-spinner'
-import jwt_decode from "jwt-decode";
+// import jwt_decode from "jwt-decode";
 import './Login.css'
 
 export default function Login() {
@@ -124,11 +124,11 @@ const onchange = (event) => {
             <div className=' p-5 pb-4 mt-3'>
                 <p className='h4 fw-bold'>Sign In</p>
 
-                <div class="form-group mb-3 pt-3">
-                    <label class="label" for="name">Email</label>
+                <div class="form-group text-start mb-3 pt-3">
+                    <label class="label text-start" for="name">Email</label>
                     <input type="text" class="form-control" name="email" value={credentials.email}  onChange={onchange} placeholder="Email" required />
                 </div>
-                <div class="form-group mb-3">
+                <div class="form-group text-start mb-3">
                     <label class="label" for="password">Password</label>
                     <input type="password" class="form-control" name="password" value={credentials.password}  onChange={onchange} placeholder="Password" required />
                 </div>

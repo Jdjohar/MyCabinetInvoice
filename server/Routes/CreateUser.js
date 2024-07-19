@@ -98,6 +98,42 @@ router.get('/currentMonthReceivedAmount/:userId', async (req, res) => {
     }
 });
 
+router.get('/currentMonthReceivedAmount2/:userid', async (req, res) => {
+    try {
+        const userid = req.params.userid;
+        const { startOfMonth, endOfMonth } = req.query;
+
+        const formattedStartDate = moment(startOfMonth).format('YYYY-MM-DD');
+        const formattedEndDate = moment(endOfMonth).format('YYYY-MM-DD');
+
+        const result = await Transactions.aggregate([
+            {
+                $match: {
+                    userid: userid,
+                    paiddate: {
+                        $gte: formattedStartDate,
+                        $lte: formattedEndDate
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$paiddate",
+                    totalReceivedAmount: { $sum: "$paidamount" }
+                }
+            },
+            {
+                $sort: { _id: 1 } 
+            }
+        ]);
+
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.get('/totalPaymentReceived/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
@@ -1478,6 +1514,97 @@ router.get('/invoicedata/:userid', async (req, res) => {
         res.json(invoicedata);
     } catch (error) {
         console.error('Error fetching dashboard data:', error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.get('/customerwisedata/:customeremail', async (req, res) => {
+    try {
+        let customeremail = req.params.customeremail;customeremail
+        let authtoken = req.headers.authorization;
+        
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
+        
+        // Find invoice data for the specified customer email sorted by creation date in descending order
+        const invoicedata = await Invoice.find({ customeremail: customeremail }).sort({ createdAt: -1 });
+        
+        res.json(invoicedata);
+    } catch (error) {
+        console.error('Error fetching customer-wise data:', error);
+        
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.post('/converttoinvoice/:estimateid', async (req, res) => {
+    try {
+        const { estimateid } = req.params;
+        // Find the estimate by ID
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
+        const estimate = await Estimate.findById(estimateid);
+
+        if (!estimate) {
+            return res.status(404).json({ message: 'Estimate not found' });
+        }
+
+        // Check if the estimate is already converted
+        if (estimate.convertedToInvoice) {
+            return res.status(400).json({ message: 'Estimate already converted to invoice' });
+        } else {
+            estimate.convertedToInvoice = true;
+            const result = await Estimate.findByIdAndUpdate(estimateid, estimate, { new: true });
+
+            // Get the last used invoice_id
+            const lastInvoice = await Invoice.findOne().sort({ invoice_id: -1 });
+            const lastId = lastInvoice ? lastInvoice.invoice_id : 0;
+            const nextId = lastId + 1;
+
+            // Create a new Invoice based on the estimate details
+            const newInvoice = new Invoice({
+                invoice_id: nextId,
+                InvoiceNumber: `Invoice-${nextId}`,
+                customername: estimate.customername,
+                customeremail: estimate.customeremail,
+                date: estimate.date,
+                duedate: estimate.date,
+                description: estimate.description,
+                items: estimate.items,
+                subtotal: estimate.subtotal,
+                total: estimate.total,
+                userid: estimate.userid,
+                information: estimate.information,
+                tax: estimate.tax,
+                taxpercentage: estimate.taxpercentage,
+            });
+
+            // Save the new invoice to the database
+            await newInvoice.save();
+
+            // Mark the estimate as converted
+            // estimate.convertedToInvoice = true;
+            // await estimate.save();
+
+            res.status(200).json({ message: 'Estimate converted to invoice successfully', newInvoice });
+        }
+    } catch (error) {
+        console.error(error);
         // Handle token verification errors
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({ message: 'Unauthorized: Invalid token' });

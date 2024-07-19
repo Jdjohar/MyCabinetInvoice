@@ -100,6 +100,11 @@ export default function Usernav() {
                         <i class="fa-solid fa-house me-2 dashclr"></i> <span>Profile</span>
                       </Link>
                     </li>
+                    <li>
+                      <Link to="/userpanel/Report" className='nav-link scrollto w-100 icones text-black' >
+                      <i class="fa-solid fa-house me-2 dashclr"></i> <span className='ps-2'>Report</span>
+                      </Link>
+                    </li>
                     
                       <li>
                         <a onClick={handleLogout} className=" pointer nav-link scrollto icones text-black">
