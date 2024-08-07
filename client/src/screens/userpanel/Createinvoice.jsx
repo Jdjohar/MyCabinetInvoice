@@ -7,9 +7,6 @@ import Usernavbar from './Usernavbar';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Select from 'react-select';
-// import VirtualizedSelect from 'react-virtualized-select';
-// import 'react-virtualized-select/styles.css';
-// import 'react-virtualized/styles.css'
 import CurrencySign from '../../components/CurrencySign ';
 import { CountrySelect, StateSelect, CitySelect } from '@davzon/react-country-state-city';
 import "@davzon/react-country-state-city/dist/react-country-state-city.css";
@@ -71,6 +68,7 @@ export default function Createinvoice() {
     const [itemExistsMessage, setItemExistsMessage] = useState('');
     const [message, setmessage] = useState(false);
     const [alertShow, setAlertShow] = useState("");
+    const [SelectedCustomerId, setSelectedCustomerId] = useState("");
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
         name: '', email: '', phone: ''
     });
@@ -131,6 +129,7 @@ export default function Createinvoice() {
             await fetchcustomerdata();
             await fetchitemdata();
             await fetchLastInvoiceNumber();
+            await fetchsignupdata();
         };
         if (isNaN(discountTotal)) {
             setdiscountTotal(0);
@@ -187,6 +186,38 @@ export default function Createinvoice() {
             console.error('Error fetching last invoice number:', error);
         }
     };
+
+    const fetchsignupdata = async () => {
+        try {
+          const userid = localStorage.getItem("userid");
+          const authToken = localStorage.getItem('authToken');
+          const response = await fetch(`https://grithomes.onrender.com/api/getsignupdata/${userid}`, {
+            headers: {
+              'Authorization': authToken,
+            }
+          });
+    
+          if (response.status === 401) {
+            const json = await response.json();
+            setAlertMessage(json.message);
+            setloading(false);
+            window.scrollTo(0, 0);
+            return; // Stop further execution
+          }
+          else {
+            const json = await response.json();
+    
+            // if (Array.isArray(json)) {
+            // setTaxPercentage(json.taxPercentage);
+            // setsignUpData(json)
+            console.log("json: ",json.taxPercentage);
+            // }
+          }
+    
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      }
 
 
     const fetchcustomerdata = async () => {
@@ -295,6 +326,9 @@ export default function Createinvoice() {
 
     const onChangecustomer = (event) => {
         const selectedCustomerId = event.value;
+        console.log(selectedCustomerId, 'selectedCustomerId');
+        
+        setSelectedCustomerId(selectedCustomerId);
         const selectedCustomer = customers.find((customer) => customer._id === selectedCustomerId);
 
         if (selectedCustomer) {
@@ -308,7 +342,7 @@ export default function Createinvoice() {
             setSelectedCustomerDetails({
                 name: selectedCustomer.name,
                 email: selectedCustomer.email,
-                phone: selectedCustomer.number
+                number: selectedCustomer.number
             });
             setIsCustomerSelected(true);
         }
@@ -316,29 +350,86 @@ export default function Createinvoice() {
         setSearchcustomerResults([...searchcustomerResults, event]);
     };
 
-    const handleNameChange = (event) => {
-        const selectedName = event.target.value;
-        const selectedCustomer = customers.find(customer => customer.name === selectedName);
-        if (selectedCustomer) {
-            setEditedName(selectedName);
-            setEditedEmail(selectedCustomer.email);
+    // const onChangecustomer = (event) => {
+    //     const selectedCustomerId = event.value;
+    //     const selectedCustomer = customers.find((customer) => customer._id === selectedCustomerId);
+
+    //     if (selectedCustomer) {
+    //         setInvoiceData({
+    //             ...invoiceData,
+    //             customername: selectedCustomer.name,
+    //             customeremail: selectedCustomer.email,
+    //             customerphone: selectedCustomer.number,
+    //         });
+
+    //         setSelectedCustomerDetails({
+    //             name: selectedCustomer.name,
+    //             email: selectedCustomer.email,
+    //             phone: selectedCustomer.number
+    //         });
+    //         setIsCustomerSelected(true);
+    //     }
+
+    //     setSearchcustomerResults([...searchcustomerResults, event]);
+    // };
+
+    const handleNameChange = (e) => {
+        const selectedName = e.target.value;
+        setEditedName(selectedName);
+    
+        const customer = customers.find(c => c.name === selectedName);
+        if (customer) {
+            setSelectedCustomerId(customer._id);
+            setEditedEmail(customer.email); 
+            setEditedPhone(customer.number);  
         }
     };
 
+    // const handleNameChange = (event) => {
+    //     const selectedName = event.target.value;
+    //     const selectedCustomer = customers.find(customer => customer.name === selectedName);
+    //     if (selectedCustomer) {
+    //         setEditedName(selectedName);
+    //         setEditedEmail(selectedCustomer.email);
+    //     }
+    // };
+
     const handleEditCustomer = () => {
+        if (!SelectedCustomerId) {
+            console.error('Unable to determine SelectedCustomerId');
+            return;
+        }
+    
         const updatedCustomerDetails = {
             name: editedName,
             email: editedEmail,
-            phone: editedPhone
+            number: editedPhone
         };
 
         setSelectedCustomerDetails({
             name: editedName,
             email: editedEmail,
-            phone: editedPhone
+            number: editedPhone
         });
-        console.log("Updated customer details:", updatedCustomerDetails);
+    
+        console.log(SelectedCustomerId, 'edited SelectedCustomerId');
+        console.log('Updated customer details:', updatedCustomerDetails);
     };
+
+    // const handleEditCustomer = () => {
+    //     const updatedCustomerDetails = {
+    //         name: editedName,
+    //         email: editedEmail,
+    //         phone: editedPhone
+    //     };
+
+    //     setSelectedCustomerDetails({
+    //         name: editedName,
+    //         email: editedEmail,
+    //         phone: editedPhone
+    //     });
+    //     console.log("Updated customer details:", updatedCustomerDetails);
+    // };
 
     const calculateDiscountedAmount = (price, quantity, discount) => {
         const totalAmount = price * quantity;
@@ -439,6 +530,9 @@ export default function Createinvoice() {
         try {
             const userid = localStorage.getItem('userid'); // Assuming you have user ID stored in local storage
             const authToken = localStorage.getItem('authToken');
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             const invoiceItems = searchitemResults.map((item) => {
                 const selectedItem = items.find((i) => i._id === item.value);
                 const itemPrice = selectedItem?.price || 0;
@@ -460,6 +554,8 @@ export default function Createinvoice() {
                 };
             });
 
+            const selectedCustomer = customers.find((customer) => customer._id === SelectedCustomerId);
+
             // Summing up subtotal, total, and amount due for the entire invoice
             const subtotal = invoiceItems.reduce((acc, curr) => acc + curr.amount, 0);
             const total = calculateTotal();
@@ -470,9 +566,9 @@ export default function Createinvoice() {
 
             const data = {
                 userid: userid,
-                customername: invoiceData.customername,
-                customeremail: invoiceData.customeremail,
-                customerphone: invoiceData.customerphone,
+                customername: selectedCustomer.name,
+                customeremail: selectedCustomer.email,
+                customerphone:  selectedCustomer.number,
                 invoice_id: invoiceData.invoice_id,
                 InvoiceNumber: invoiceData.InvoiceNumber,
                 purchaseorder: invoiceData.purchaseorder,
@@ -960,7 +1056,7 @@ export default function Createinvoice() {
                                                             })}
 
                                                             {itemExistsMessage && (
-                                                                <div className="alert alert-warning" role="alert">
+                                                                <div className="alert alert-warning mt-3" role="alert">
                                                                     {itemExistsMessage}
                                                                 </div>
                                                             )}
@@ -1132,6 +1228,10 @@ export default function Createinvoice() {
                                 <div className="mb-3">
                                     <label htmlFor="customerEmail" className="form-label">Email</label>
                                     <input type="email" className="form-control" id="customerEmail" value={editedEmail} onChange={(e) => setEditedEmail(e.target.value)} />
+                                </div>
+                                <div className="mb-3">
+                                    <label htmlFor="customerPhone" className="form-label">Phone Number</label>
+                                    <input type="number" className="form-control" id="customerPhone" value={editedPhone} onChange={(e) => setEditedPhone(e.target.value)} />
                                 </div>
                             </div>
                             <div className="modal-footer">

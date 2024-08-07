@@ -6,12 +6,14 @@ import Usernav from './Usernav';
 import Usernavbar from './Usernavbar';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import Select from 'react-select';
 // import VirtualizedSelect from 'react-virtualized-select';
 // import 'react-virtualized-select/styles.css';
 // import 'react-virtualized/styles.css'
+import Select from 'react-select';
 import CurrencySign from '../../components/CurrencySign ';
 import Alertauthtoken from '../../components/Alertauthtoken';
+import SignatureModal from '../../components/SignatureModal';
+
 
 class MyCustomUploadAdapter {
     constructor(loader) {
@@ -58,7 +60,6 @@ function MyCustomUploadAdapterPlugin(editor) {
 }
 
 export default function Editestimate() {
-    
     const [ loading, setloading ] = useState(true);
     const [customers, setcustomers] = useState([]);
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
@@ -69,17 +70,22 @@ export default function Editestimate() {
     const [searchitemResults, setSearchitemResults] = useState([]);
     const [quantityMap, setQuantityMap] = useState({});
     const [discountMap, setDiscountMap] = useState({});
+    const [itemExistsMessage, setItemExistsMessage] = useState('');
     const [discountTotal, setdiscountTotal] = useState(0);
     const [taxPercentage, setTaxPercentage] = useState(0);
     const [estimateData, setestimateData] = useState({
         _id: '', customername: '',itemname: '',customeremail: '',EstimateNumber: '',purchaseorder: '',
-        date: new Date(),description: '',itemquantity: '', price: '',discount: '',
+        date: new Date(),description: '',itemquantity: '', price: '',discount: '',discountTotal:'',
         amount: '',tax: '',taxpercentage:'',subtotal: '',total: '',amountdue: '',information: '', items:[]
     });
     const location = useLocation();
     const estimateid = location.state?.estimateid;
     const [editorData, setEditorData] = useState("<p></p>");
     const [alertMessage, setAlertMessage] = useState('');
+    const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+    const [hasSignature, setHasSignature] = useState(false);
+    const [isAddSignatureSwitchOn, setIsAddSignatureSwitchOn] = useState(false);
+    const [isCustomerSignSwitchOn, setIsCustomerSignSwitchOn] = useState(false);
 
     useEffect(() => {
         if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
@@ -90,6 +96,7 @@ export default function Editestimate() {
             fetchdata();
             fetchcustomerdata();
             fetchitemdata();
+            fetchSignatureStatus();
         }
         if (isNaN(discountTotal)) {
             setdiscountTotal(0);
@@ -97,9 +104,81 @@ export default function Editestimate() {
     }, [estimateid])
     let navigate = useNavigate();
 
+    const fetchSignatureStatus = async () => {
+        try {
+            const ownerId = localStorage.getItem('userid');
+            const response = await fetch(`https://mycabinet.onrender.com/api/check-signature/${ownerId}`);
+            const data = await response.json();
+            setHasSignature(data.hasSignature);
+            setIsAddSignatureSwitchOn(data.hasSignature); 
+            setIsCustomerSignSwitchOn(data.hasSignature);
+        } catch (error) {
+            console.error('Error checking signature:', error);
+        }
+    };
+
+    const handleSignatureSwitch = async (event) => {
+        if (event.target.checked) {
+            try {
+                const ownerId = localStorage.getItem('userid');
+                const response = await fetch(`https://mycabinet.onrender.com/api/check-signature/${ownerId}`);
+                const data = await response.json();
+                setHasSignature(data.hasSignature);
+
+                if (!data.hasSignature) {
+                    setIsSignatureModalOpen(true);
+                }
+                setIsAddSignatureSwitchOn(true); // Automatically activate "Add My Signature"
+                setIsCustomerSignSwitchOn(true); // Automatically activate "Customer to Sign"
+            } catch (error) {
+                console.error('Error checking signature:', error);
+            }
+        } else {
+            setIsAddSignatureSwitchOn(false);
+            setIsCustomerSignSwitchOn(false);
+            setHasSignature(false); // Ensure switches are hidden
+        }
+    };
+
+    const handleAddSignatureSwitch = (event) => {
+        setIsAddSignatureSwitchOn(event.target.checked);
+        if (!event.target.checked && !isCustomerSignSwitchOn) {
+            setHasSignature(false);
+        }
+    };
+
+    const handleCustomerSignSwitch = (event) => {
+        setIsCustomerSignSwitchOn(event.target.checked);
+        if (!event.target.checked && !isAddSignatureSwitchOn) {
+            setHasSignature(false);
+        }
+    };
+
+    const saveSignature = async (signatureData) => {
+        try {
+            const ownerId = localStorage.getItem('userid');
+            const email = localStorage.getItem('userEmail');
+            const companyname = localStorage.getItem('companyname');
+            await fetch('https://mycabinet.onrender.com/api/ownersignature', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ signature: signatureData, ownerId, email, companyname }),
+            });
+            setHasSignature(true);
+            setIsSignatureModalOpen(false);
+        } catch (error) {
+            console.error('Error saving signature:', error);
+        }
+    };
+
+    const roundOff = (value) => {
+        return Math.round(value * 100) / 100;
+    };
+
     const fetchdata = async () => {
         try {
-            const userid =  localStorage.getItem("userid");
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/geteditestimateData/${estimateid}`, {
                 headers: {
@@ -118,11 +197,19 @@ export default function Editestimate() {
             
                 if (json.Success) {
                     setestimateData(json.estimates);
-                    setdiscountTotal(json.invoices.discountTotal);
-                } else {
-                    console.error('Error fetching estimateData:', json.message);
-                }
-                console.log(estimateData);  
+                    setdiscountTotal(json.estimates.discountTotal);
+                    // setdiscountTotal(json.invoices.discountTotal);
+
+                    // Debugging: log the fetched data
+                    console.log('Fetched Estimate Data:', json.estimates);
+
+                    setIsAddSignatureSwitchOn((json.estimates.isAddSignature).toString() == "true"); // Default to false if undefined
+                    setIsCustomerSignSwitchOn((json.estimates.isCustomerSign).toString() == "true"); // Default to false if undefined
+
+                    // Debugging: log the state after setting
+                    console.log('isAddSignatureSwitchOn:', json.estimates.isAddSignature);
+                    console.log('isCustomerSignSwitchOn:', json.estimates.isCustomerSign);
+                } 
             }
             
         } catch (error) {
@@ -214,13 +301,14 @@ export default function Editestimate() {
         try {
             const updatedestimateData = {
                 ...estimateData,
-                subtotal: calculateSubtotal(), // Update subtotal
-                total: calculateTotal(), // Update total
-                amountdue: calculateTotal(), // Update amountdue
-                items: estimateData.items, // Include estimateData.items
-                // searchitemResults: searchitemResults 
+                subtotal: calculateSubtotal(), 
+                total: calculateTotal(),
+                amountdue: calculateTotal(), 
+                items: estimateData.items, 
                 tax: calculateTaxAmount(), 
                 discountTotal: discountTotal,
+                isAddSignature: isAddSignatureSwitchOn, 
+                isCustomerSign: isCustomerSignSwitchOn,
             };
             const authToken = localStorage.getItem('authToken');
     
@@ -284,8 +372,20 @@ export default function Editestimate() {
     };
 
     const onChangeitem = (selectedItem) => {
-        addSelectedItemToEstimate(selectedItem);
+        // Check if the selected item already exists in invoiceData.items
+        const itemExists = estimateData.items && estimateData.items.some(item => item.itemId === selectedItem.value);
+        if (itemExists) {
+            setItemExistsMessage('This item is already added!');
+        } else {
+            setItemExistsMessage('');
+            // Call the function to add the selected item to invoiceData.items
+            addSelectedItemToEstimate(selectedItem);
+        }
     };
+
+    // const onChangeitem = (selectedItem) => {
+    //     addSelectedItemToEstimate(selectedItem);
+    // };
 
     const handleEditorChange = (event, editor) => {
         const data = editor.getData();
@@ -505,18 +605,72 @@ export default function Editestimate() {
 
     const handlePriceChange = (event, itemId) => {
         const { value } = event.target;
+        const numericValue = value.replace(/[^0-9.]/g, ''); // Remove any non-numeric characters except decimal point
+      
+        // Limit the numeric value to two decimal places
+        const decimalIndex = numericValue.indexOf('.');
+        let formattedValue = numericValue;
+        if (decimalIndex !== -1) {
+          formattedValue = numericValue.slice(0, decimalIndex + 1) + numericValue.slice(decimalIndex + 1).replace(/[^0-9]/g, '').slice(0, 2);
+        }
+      
+        const newPrice = parseFloat(formattedValue) || 0;
+      
         const updatedItems = estimateData.items.map((item) => {
-            if (item.itemId === itemId) {
-                const newPrice = parseFloat(value);
-                const quantity = item.itemquantity || 1;
-                const discount = item.discount || 0;
-                const discountedAmount = calculateDiscountedAmount(newPrice, quantity, discount);
-                return { ...item, price: newPrice, amount: discountedAmount };
-            }
-            return item;
+          if (item.itemId === itemId) {
+            const newAmount = newPrice * item.itemquantity;
+            return {
+              ...item,
+              price: formattedValue, // Update with formatted value
+              amount: roundOff(newAmount),
+            };
+          }
+          return item;
         });
-        setestimateData({ ...estimateData, items: updatedItems });
-    };
+      
+        setestimateData((prevData) => ({
+          ...prevData,
+          items: updatedItems,
+        }));
+      };
+      
+
+      const handlePriceBlur = (event, itemId) => {
+        const { value } = event.target;
+        const newPrice = parseFloat(value) || 0;
+        
+        const updatedItems = estimateData.items.map((item) => {
+          if (item.itemId === itemId) {
+            const newAmount = newPrice * item.itemquantity;
+            return {
+              ...item,
+              price: roundOff(newPrice), // Format to two decimal places
+              amount: roundOff(newAmount),
+            };
+          }
+          return item;
+        });
+      
+        setestimateData((prevData) => ({
+          ...prevData,
+          items: updatedItems,
+        }));
+      };
+
+    // const handlePriceChange = (event, itemId) => {
+    //     const { value } = event.target;
+    //     const updatedItems = estimateData.items.map((item) => {
+    //         if (item.itemId === itemId) {
+    //             const newPrice = parseFloat(value);
+    //             const quantity = item.itemquantity || 1;
+    //             const discount = item.discount || 0;
+    //             const discountedAmount = calculateDiscountedAmount(newPrice, quantity, discount);
+    //             return { ...item, price: newPrice, amount: discountedAmount };
+    //         }
+    //         return item;
+    //     });
+    //     setestimateData({ ...estimateData, items: updatedItems });
+    // };
     
     const handleDescriptionChange = (editor, itemId) => {
         const value = editor.getData();
@@ -574,7 +728,7 @@ export default function Editestimate() {
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb mb-0">
                                         <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Estimate</a></li>
+                                        <li class="breadcrumb-item"><a href="/userpanel/Estimate" className='txtclr text-decoration-none'>Estimate</a></li>
                                         <li class="breadcrumb-item active" aria-current="page">Edit Estimate</li>
                                     </ol>
                                 </nav>
@@ -586,246 +740,119 @@ export default function Editestimate() {
                                 {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
                             </div>
                         </div>
-                        <div className='box1 rounded adminborder p-4 m-2 mb-5'>
-                            <div className='row me-2'>
-                                <div className="col-5">
-                                        <div className="customerdetail p-3">
-                                            <ul>
-                                                <li className='fw-bold fs-4'>{estimateData.customername}</li>
-                                            </ul>
-                                            <p>{estimateData.customeremail}</p>
-                                        </div>
-                                </div>    
-                                <div className="col-7">
-                                    <div className="row">
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="invoicenumbr" className="form-label">
-                                                Estimate Number
-                                                </label>
-                                                <input
-                                                type="text"
-                                                name="EstimateNumber"
-                                                className="form-control"
-                                                value={estimateData.EstimateNumber} 
-                                                onChange={onchange}
-                                                // placeholder="Invoice Number"
-                                                id="invoicenumbr"
-                                                required
-                                                disabled
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="purchaseoder" className="form-label">
-                                                    Purchase Order (PO) #
-                                                </label>
-                                                <input
-                                                type="text"
-                                                name="purchaseorder"
-                                                className="form-control"
-                                                value={estimateData.purchaseorder}
-                                                onChange={onchange}
-                                                id="purchaseoder"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="Date" className="form-label">
-                                                Date
-                                                </label>
-                                                <input
-                                                type="date"
-                                                name="date"
-                                                className="form-control"
-                                                value={new Date(estimateData.date).toISOString().split('T')[0]} 
-                                                onChange={onchange}
-                                                // placeholder="Date"
-                                                id="Date"
-                                                required
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="job" className="form-label">
-                                                Job
-                                                </label>
-                                                <input
-                                                type="text"
-                                                name="job"
-                                                className="form-control"
-                                                value={estimateData.job} 
-                                                onChange={onchange}
-                                                // placeholder="Date"
-                                                id="job"
-                                                required
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>    
-                            </div>
-
-                            <div className='box1 rounded adminborder p-4 m-2'>
-                                <div className="row pt-3">
-                                    <div className="col-6">
-                                        <p>ITEM</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>QUANTITY</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>PRICE</p>
-                                    </div>
-                                    {/* <div className="col-2">
-                                        <p>DISCOUNT</p>
-                                    </div> */}
-                                    <div className="col-2">
-                                        <p>AMOUNT</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                {estimateData.items && estimateData.items.map((item) => (
-                                    <div className='row' key={item.itemId}>
-                                    <div className="col-6 ">
-                                        <div className="mb-3 d-flex align-items-baseline justify-content-between">
-                                            <p>{item.itemname}</p>
-                                            <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item.itemId)}>
-                                            {/* <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(estimateData.itemId)}> */}
- 
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="col-2">
-                                        <div className="mb-3">
-                                        <input
-                                            type="number"
-                                            name="quantity"
-                                            className="form-control"
-                                            value={item.itemquantity}
-                                            onChange={(event) => handleQuantityChange (event, item.itemId)}
-                                            id={`quantity-${item.itemId}`}
-                                            required
-                                        />
-                                        </div>
-                                    </div>
-                                    <div className="col-2">
-                                        <div className="mb-3">
-                                            {/* <input
-                                                type="number"
-                                                name="price"
-                                                className="form-control"
-                                                value={item.price}
-                                                id="price"
-                                                required
-                                                readOnly
-                                            /> */}
-                                            <input
-                                                type="number"
-                                                name="price"
-                                                className="form-control"
-                                                value={item.price}
-                                                onChange={(event) => handlePriceChange(event, item.itemId)} // Add onChange handler
-                                                id={`price-${item.itemId}`}
-                                                required
-                                            />
-                                        </div>
-                                    </div>
-                                    {/* <div className="col-2">
-                                        <p><CurrencySign />{item.discount}</p>
-                                    </div> */}
-                                    <div className="col-2">
-                                        <p><CurrencySign />{item.amount}</p>
-                                    </div>
-                                    {/* <div className="col-5">
-                                                <div class="mb-3">
-                                                    <label htmlFor="description" className="form-label">Description</label>
-                                                    <textarea
-                                                        class="form-control"
-                                                        name='description'
-                                                        id='description'
-                                                        placeholder='Item Description'
-                                                        value={item.description}
-                                                        rows="3"
-                                                        readOnly
-                                                    >
-                                                    </textarea>
+                        <div className="row">
+                            <div className="col-lg-9 col-12 order-2 order-lg-1">
+                                <div className='box1 rounded adminborder p-4 m-2 mb-5'>
+                                    <div className='row me-2'>
+                                        <div className="col-5">
+                                                <div className="customerdetail p-3">
+                                                    <ul>
+                                                        <li className='fw-bold fs-4'>{estimateData.customername}</li>
+                                                    </ul>
+                                                    <p>{estimateData.customeremail}</p>
                                                 </div>
-                                    </div> */}
-                                    <div className="col-6">
-                                        <div className="mb-3">
-                                            <label htmlFor={`description-${item.itemId}`} className="form-label">Description</label>
-                                            {/* <textarea
-                                                className="form-control"
-                                                name={`description-${item.itemId}`}
-                                                id={`description-${item.itemId}`}
-                                                placeholder="Item Description"
-                                                value={item.description}
-                                                onChange={(event) => handleDescriptionChange(event, item.itemId)} // Add onChange handler
-                                                rows="3"
-                                            /> */}
-                                            <CKEditor
-                                                        editor={ ClassicEditor }
-                                                        data={item.description}
-                                                        // onReady={ editor => {
-                                                        //     console.log( 'Editor is ready to use!', editor );
-                                                        // } }
-                                                        
-                                                        onChange={( event, editor ) => {
-                                                            handleDescriptionChange(editor, item.itemId);
-                                                        }
-                                                        }
-                                                        onBlur={ ( event, editor ) => {
-                                                            console.log( 'Blur.', editor );
-                                                        } }
-                                                        onFocus={ ( event, editor ) => {
-                                                            console.log( 'Focus.', editor );
-                                                        } }
-                                                    />
-                                        </div>
-                                    </div>
-                                            
-                                            {/* <div className="col-3">
-                                                <div class="mb-3">
-                                                    <label htmlFor="Discount" className="form-label">Discount</label>
-                                                    <input
-                                                        type='number'
-                                                        name='discount'
-                                                        className='form-control'
-                                                        value={item.discount}
-                                                        onChange={(event) => onDiscountpreitemChange(event, item.itemId)}
-                                                        placeholder='Discount'
-                                                        id={`discount-${item.itemId}`}
-                                                        min="0"
-                                                    />
+                                        </div>    
+                                        <div className="col-7">
+                                            <div className="row">
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="invoicenumbr" className="form-label">
+                                                        Estimate Number
+                                                        </label>
+                                                        <input
+                                                        type="text"
+                                                        name="EstimateNumber"
+                                                        className="form-control"
+                                                        value={estimateData.EstimateNumber} 
+                                                        onChange={onchange}
+                                                        // placeholder="Invoice Number"
+                                                        id="invoicenumbr"
+                                                        required
+                                                        disabled
+                                                        />
+                                                    </div>
                                                 </div>
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="purchaseoder" className="form-label">
+                                                            Purchase Order (PO) #
+                                                        </label>
+                                                        <input
+                                                        type="text"
+                                                        name="purchaseorder"
+                                                        className="form-control"
+                                                        value={estimateData.purchaseorder}
+                                                        onChange={onchange}
+                                                        id="purchaseoder"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="Date" className="form-label">
+                                                        Date
+                                                        </label>
+                                                        <input
+                                                        type="date"
+                                                        name="date"
+                                                        className="form-control"
+                                                        value={new Date(estimateData.date).toISOString().split('T')[0]} 
+                                                        onChange={onchange}
+                                                        // placeholder="Date"
+                                                        id="Date"
+                                                        required
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="job" className="form-label">
+                                                        Job
+                                                        </label>
+                                                        <input
+                                                        type="text"
+                                                        name="job"
+                                                        className="form-control"
+                                                        value={estimateData.job} 
+                                                        onChange={onchange}
+                                                        // placeholder="Date"
+                                                        id="job"
+                                                        required
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>    
+                                    </div>
+
+                                    <div className='box1 rounded adminborder p-4 m-2'>
+                                        <div className="row pt-3">
+                                            <div className="col-6">
+                                                <p>ITEM</p>
+                                            </div>
+                                            <div className="col-2">
+                                                <p>QUANTITY</p>
+                                            </div>
+                                            <div className="col-2">
+                                                <p>PRICE</p>
+                                            </div>
+                                            {/* <div className="col-2">
+                                                <p>DISCOUNT</p>
                                             </div> */}
-                                    
-                                    </div>
-                                        ))}
-                                {searchitemResults.map((item) => {
-                                    const selectedItem = items.find((i) => i._id === item.value);
-                                    const itemPrice = selectedItem?.price || 0;
-                                    const itemId = item.value;
-                                    const quantity = quantityMap[itemId] || 1;
-                                    const discount = discountMap[itemId] || 0;
-                                    const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
-                                    const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
-                                    // style: 'currency',
-                                    // currency: 'INR',
-                                    });
+                                            <div className="col-2">
+                                                <p>AMOUNT</p>
+                                            </div>
+                                        </div>
 
-                                    return (
-                                        <div className='row'  key={item.itemId}>
+                                        <div>
+                                        {estimateData.items && estimateData.items.map((item) => (
+                                            <div className='row' key={item.itemId}>
                                             <div className="col-6 ">
                                                 <div className="mb-3 d-flex align-items-baseline justify-content-between">
-                                                    <p>{item.label}</p>
-                                                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
+                                                    <p>{item.itemname}</p>
+                                                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item.itemId)}>
+                                                    {/* <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(estimateData.itemId)}> */}
+        
                                                         <i className="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -834,194 +861,332 @@ export default function Editestimate() {
                                                 <div className="mb-3">
                                                 <input
                                                     type="number"
-                                                    name={`quantity-${itemId}`}
+                                                    name="quantity"
                                                     className="form-control"
-                                                    value={quantity}
-                                                    onChange={(event) => onChangeQuantity(event, itemId)}
-                                                    id={`quantity-${itemId}`}
+                                                    value={item.itemquantity}
+                                                    onChange={(event) => handleQuantityChange (event, item.itemId)}
+                                                    id={`quantity-${item.itemId}`}
                                                     required
                                                 />
                                                 </div>
                                             </div>
                                             <div className="col-2">
                                                 <div className="mb-3">
+                                                    {/* <input
+                                                        type="number"
+                                                        name="price"
+                                                        className="form-control"
+                                                        value={item.price}
+                                                        id="price"
+                                                        required
+                                                        readOnly
+                                                    /> */}
                                                     <input
                                                         type="number"
                                                         name="price"
                                                         className="form-control"
-                                                        value={itemPrice}
-                                                        id="price"
+                                                        value={item.price}
+                                                        onChange={(event) => handlePriceChange(event, item.itemId)} // Add onChange handler
+                                                        onBlur={(event) => handlePriceBlur(event, item.itemId)}
+                                                        id={`price-${item.itemId}`}
                                                         required
-                                                        readOnly
                                                     />
                                                 </div>
                                             </div>
-                                            {/* <div className="col-2 text-center">
-                                                <p><CurrencySign />{discount.toFixed(2)}</p>
+                                            {/* <div className="col-2">
+                                                <p><CurrencySign />{item.discount}</p>
                                             </div> */}
-                                            <div className="col-2 text-center">
-                                                <p><CurrencySign />{formattedTotalAmount}</p>
+                                            <div className="col-2">
+                                                <p><CurrencySign />{item.amount}</p>
                                             </div>
+                                            {/* <div className="col-5">
+                                                        <div class="mb-3">
+                                                            <label htmlFor="description" className="form-label">Description</label>
+                                                            <textarea
+                                                                class="form-control"
+                                                                name='description'
+                                                                id='description'
+                                                                placeholder='Item Description'
+                                                                value={item.description}
+                                                                rows="3"
+                                                                readOnly
+                                                            >
+                                                            </textarea>
+                                                        </div>
+                                            </div> */}
                                             <div className="col-6">
-                                                <div class="mb-3">
-                                                    <label htmlFor="description" className="form-label">Description</label>
+                                                <div className="mb-3">
+                                                    <label htmlFor={`description-${item.itemId}`} className="form-label">Description</label>
                                                     {/* <textarea
-                                                        class="form-control"
-                                                        name='description'
-                                                        id={`item-description-${itemId}`}
-                                                        placeholder='Item Description'
+                                                        className="form-control"
+                                                        name={`description-${item.itemId}`}
+                                                        id={`description-${item.itemId}`}
+                                                        placeholder="Item Description"
+                                                        value={item.description}
+                                                        onChange={(event) => handleDescriptionChange(event, item.itemId)} // Add onChange handler
                                                         rows="3"
-                                                        value={selectedItem?.description || ''}
-                                                        readOnly
-                                                    >
-                                                    </textarea> */}
+                                                    /> */}
                                                     <CKEditor
-                                                        editor={ ClassicEditor }
-                                                        data={estimateData.description}
-                                                        // onReady={ editor => {
-                                                        //     console.log( 'Editor is ready to use!', editor );
-                                                        // } }
-                                                        
-                                                        onChange={handledescChange}
-                                                        onBlur={ ( event, editor ) => {
-                                                            console.log( 'Blur.', editor );
-                                                        } }
-                                                        onFocus={ ( event, editor ) => {
-                                                            console.log( 'Focus.', editor );
-                                                        } }
+                                                                editor={ ClassicEditor }
+                                                                data={item.description}
+                                                                // onReady={ editor => {
+                                                                //     console.log( 'Editor is ready to use!', editor );
+                                                                // } }
+                                                                
+                                                                onChange={( event, editor ) => {
+                                                                    handleDescriptionChange(editor, item.itemId);
+                                                                }
+                                                                }
+                                                                onBlur={ ( event, editor ) => {
+                                                                    console.log( 'Blur.', editor );
+                                                                } }
+                                                                onFocus={ ( event, editor ) => {
+                                                                    console.log( 'Focus.', editor );
+                                                                } }
+                                                            />
+                                                </div>
+                                            </div>
+                                            </div>
+                                                ))}
+                                                
+                                            {itemExistsMessage && (
+                                                <div className="alert alert-warning mt-3" role="alert">
+                                                    {itemExistsMessage}
+                                                </div>
+                                            )}
+                                        {/* {searchitemResults.map((item) => {
+                                            const selectedItem = items.find((i) => i._id === item.value);
+                                            const itemPrice = selectedItem?.price || 0;
+                                            const itemId = item.value;
+                                            const quantity = quantityMap[itemId] || 1;
+                                            const discount = discountMap[itemId] || 0;
+                                            const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
+                                            const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
+                                           
+                                            });
+
+                                            return (
+                                                <div className='row'  key={item.itemId}>
+                                                    <div className="col-6 ">
+                                                        <div className="mb-3 d-flex align-items-baseline justify-content-between">
+                                                            <p>{item.label}</p>
+                                                            <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
+                                                                <i className="fas fa-trash"></i>
+                                                            </button>
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-2">
+                                                        <div className="mb-3">
+                                                        <input
+                                                            type="number"
+                                                            name={`quantity-${itemId}`}
+                                                            className="form-control"
+                                                            value={quantity}
+                                                            onChange={(event) => onChangeQuantity(event, itemId)}
+                                                            id={`quantity-${itemId}`}
+                                                            required
+                                                        />
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-2">
+                                                        <div className="mb-3">
+                                                            <input
+                                                                type="number"
+                                                                name="price"
+                                                                className="form-control"
+                                                                value={itemPrice}
+                                                                id="price"
+                                                                required
+                                                                readOnly
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                    <div className="col-2 text-center">
+                                                        <p><CurrencySign />{formattedTotalAmount}</p>
+                                                    </div>
+                                                    <div className="col-6">
+                                                        <div class="mb-3">
+                                                            <label htmlFor="description" className="form-label">Description</label>
+                                                            
+                                                            <CKEditor
+                                                                editor={ ClassicEditor }
+                                                                data={estimateData.description}
+                                                                
+                                                                onChange={handledescChange}
+                                                                onBlur={ ( event, editor ) => {
+                                                                    console.log( 'Blur.', editor );
+                                                                } }
+                                                                onFocus={ ( event, editor ) => {
+                                                                    console.log( 'Focus.', editor );
+                                                                } }
+                                                            />
+                                                        </div>
+                                                    </div>
+                                                </div>
+                );
+            })} */}
+                                        </div>
+                                        <hr />
+
+                                        <div className="row pt-3">
+                                            <div className="col-7">
+                                                <div className="search-container forms">
+                                                    <p className='fs-20 mb-0'>Select Item</p>
+                                                    {/* <VirtualizedSelect
+                                                        id="searchitems" 
+                                                        name="itemname"
+                                                        className="form-control zindex op pl-0"
+                                                        placeholder=""
+                                                        onChange={onChangeitem}
+                                                        options={ items.map((item,index)=>
+                                                            ({label: item.itemname, value: item._id})
+                                                                
+                                                        )}
+
+                                                        >
+                                                    </VirtualizedSelect>  */}
+                                                    <Select
+                                                        value={searchitemResults}
+                                                        onChange={onChangeitem}
+                                                        options={items.map(item => ({
+                                                            value: item._id,
+                                                            label: item.itemname,
+                                                        }))}
+                                                        placeholder=""
                                                     />
                                                 </div>
                                             </div>
-                                            
-                                            {/* <div className="col-3">
-                                                <div class="mb-3">
-                                                    <label htmlFor="Discount" className="form-label">Discount</label>
-                                                    <input
-                                                        type='number'
-                                                        name={`discount-${itemId}`}
-                                                        className='form-control'
-                                                        value={discount}
-                                                        onChange={(event) => onDiscountChange(event, itemId)}
-                                                        placeholder='Discount'
-                                                        id={`discount-${itemId}`}
-                                                        min="0"
-                                                    />
-                                                </div>
-                                            </div> */}
-                                        </div>
-        );
-      })}
-                                </div>
-                                <hr />
-
-                                <div className="row pt-3">
-                                    <div className="col-7">
-                                        <div className="search-container forms">
-                                            <p className='fs-20 mb-0'>Select Item</p>
-                                            {/* <VirtualizedSelect
-                                                id="searchitems" 
-                                                name="itemname"
-                                                className="form-control zindex op pl-0"
-                                                placeholder=""
-                                                onChange={onChangeitem}
-                                                options={ items.map((item,index)=>
-                                                    ({label: item.itemname, value: item._id})
+                                            <div className="col-5">
+                                                <div className="row">
+                                                    <div className="col-6">
+                                                        <p>Subtotal</p>
+                                                        <p className="mb-4">Discount</p>
+                                                        <p>GST {estimateData.taxpercentage}%</p>
+                                                        <p>Total</p>
+                                                    </div>
+                                                    <div className="col-6">
+                                                        <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
+                                                            // style: 'currency',
+                                                            // currency: 'INR',
+                                                        })}</p>
+                                                        <div className="col-6">
                                                         
-                                                )}
+                                                    </div>
+                                                    <div className="mb-3">
+                                                            <input
+                                                                type="number"
+                                                                name="totaldiscount"
+                                                                className="form-control"
+                                                                value={discountTotal}
+                                                                onChange={handleDiscountChange} // Ensure proper event binding
+                                                                placeholder="Enter Discount Total"
+                                                                id="discountInput"
+                                                                min="0"
+                                                            />
+                                                        </div>
+                                                        <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
+                                                            // style: 'currency',
+                                                            // currency: 'INR',
+                                                        })}</p>
+                                                        
+                                                        
+                                                        <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                            // style: 'currency',
+                                                            // currency: 'INR',
+                                                            })}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <hr />
+                                        <div className="row pt-3">
+                                            <div className="col-7"></div>
+                                            <div className="col-5">
+                                                <div className="row">
+                                                    <div className="col-6">
+                                                        <p>Amount due</p>
+                                                    </div>
+                                                    <div className="col-6">
+                                                        <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                            // style: 'currency',
+                                                            // currency: 'INR',
+                                                            })}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                                >
-                                            </VirtualizedSelect>  */}
-                                            <Select
-                                                value={searchitemResults}
-                                                onChange={onChangeitem}
-                                                options={items.map(item => ({
-                                                    value: item._id,
-                                                    label: item.itemname,
-                                                }))}
-                                                placeholder=""
+                                    <div className='box1 rounded adminborder m-2 mt-5'>
+                                        <CKEditor
+                                            editor={ ClassicEditor }
+                                            data={estimateData.information}
+                                            // onReady={ editor => {
+                                            //     console.log( 'Editor is ready to use!', editor );
+                                            // } }
+                                            config={{ extraPlugins: [MyCustomUploadAdapterPlugin] }}
+                                            onChange={handleEditorChange}
+                                            onBlur={ ( event, editor ) => {
+                                                console.log( 'Blur.', editor );
+                                            } }
+                                            onFocus={ ( event, editor ) => {
+                                                console.log( 'Focus.', editor );
+                                            } }
+                                        />
+                                    </div>
+                                </div>
+                            </div>
+                            <div className="col-lg-3 col-12 order-1 order-lg-2">
+                                <div className='box1 rounded adminborder p-4 my-2 mx-0 mb-5'>
+                                    <div className="form-check form-switch">
+                                        <div>
+                                            <label className="form-check-label" htmlFor="signatureSwitch">Signature</label>
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                role="switch"
+                                                id="signatureSwitch"
+                                                onChange={handleSignatureSwitch}
+                                                checked={hasSignature}
                                             />
                                         </div>
-                                    </div>
-                                    <div className="col-5">
-                                        <div className="row">
-                                            <div className="col-6">
-                                                <p>Subtotal</p>
-                                                <p className="mb-4">Discount</p>
-                                                <p>GST {estimateData.taxpercentage}%</p>
-                                                <p>Total</p>
-                                            </div>
-                                            <div className="col-6">
-                                                <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
-                                                })}</p>
-                                                <div className="col-6">
-                                                
-                                            </div>
-                                            <div className="mb-3">
+                                        {hasSignature && (
+                                            <>
+                                                <div>
+                                                    <label className="form-check-label" htmlFor="addSignatureSwitch">Add My Signature</label>
                                                     <input
-                                                        type="number"
-                                                        name="totaldiscount"
-                                                        className="form-control"
-                                                        value={discountTotal}
-                                                        onChange={handleDiscountChange} // Ensure proper event binding
-                                                        placeholder="Enter Discount Total"
-                                                        id="discountInput"
-                                                        min="0"
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        role="switch"
+                                                        id="addSignatureSwitch"
+                                                        checked={isAddSignatureSwitchOn}
+                                                        onChange={handleAddSignatureSwitch}
                                                     />
                                                 </div>
-                                                <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
-                                                })}</p>
-                                                
-                                                
-                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
-                                                    })}</p>
-                                            </div>
-                                        </div>
+                                                <div>
+                                                    <label className="form-check-label" htmlFor="customerSignSwitch">Customer to Sign</label>
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        role="switch"
+                                                        id="customerSignSwitch"
+                                                        checked={isCustomerSignSwitchOn}
+                                                        onChange={handleCustomerSignSwitch}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
                                     </div>
                                 </div>
-                                <hr />
-                                <div className="row pt-3">
-                                    <div className="col-7"></div>
-                                    <div className="col-5">
-                                        <div className="row">
-                                            <div className="col-6">
-                                                <p>Amount due</p>
-                                            </div>
-                                            <div className="col-6">
-                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
-                                                    })}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                            </div>
-
-                            <div className='box1 rounded adminborder m-2 mt-5'>
-                                <CKEditor
-                                    editor={ ClassicEditor }
-                                    data={estimateData.information}
-                                    // onReady={ editor => {
-                                    //     console.log( 'Editor is ready to use!', editor );
-                                    // } }
-                                    
-                                    onChange={handleEditorChange}
-                                    config={{ extraPlugins: [MyCustomUploadAdapterPlugin] }}
-                                    onBlur={ ( event, editor ) => {
-                                        console.log( 'Blur.', editor );
-                                    } }
-                                    onFocus={ ( event, editor ) => {
-                                        console.log( 'Focus.', editor );
-                                    } }
-                                />
+                                {isSignatureModalOpen && (
+                                    <SignatureModal
+                                        onSave={saveSignature}
+                                        onClose={() => setIsSignatureModalOpen(false)}
+                                    />
+                                )}
                             </div>
                         </div>
+                        
 
                         {/* </form> */}
                     </div>

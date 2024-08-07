@@ -69,6 +69,7 @@ export default function Editinvoice() {
     const [searchitemResults, setSearchitemResults] = useState([]);
     const [quantityMap, setQuantityMap] = useState({});
     const [discountMap, setDiscountMap] = useState({});
+    const [itemExistsMessage, setItemExistsMessage] = useState('');
     const [discountTotal, setdiscountTotal] = useState(0);
     const [taxPercentage, setTaxPercentage] = useState(0);
     const [invoiceData, setInvoiceData] = useState({
@@ -107,6 +108,13 @@ export default function Editinvoice() {
     }, [invoiceid]);
 
     let navigate = useNavigate();
+
+    const roundOff1 = (amount) => {
+        return parseFloat(amount).toFixed(2);
+      };
+      const roundOff = (value) => {
+        return Math.round(value * 100) / 100;
+      };
 
     // const fetchdata = async () => {
     //     try {
@@ -323,15 +331,22 @@ export default function Editinvoice() {
             console.log('Item already added to the invoice');
         }
     };
-    
 
-    // const onChangeitem=(event)=>{
-    //     setSearchitemResults([...searchitemResults,event]);
-    // }
     const onChangeitem = (selectedItem) => {
-        // Call the function to add the selected item to invoiceData.items
-        addSelectedItemToInvoice(selectedItem);
+        // Check if the selected item already exists in invoiceData.items
+        const itemExists = invoiceData.items && invoiceData.items.some(item => item.itemId === selectedItem.value);
+        if (itemExists) {
+            setItemExistsMessage('This item is already added!');
+        } else {
+            setItemExistsMessage('');
+            // Call the function to add the selected item to invoiceData.items
+            addSelectedItemToInvoice(selectedItem);
+        }
     };
+    // const onChangeitem = (selectedItem) => {
+    //     // Call the function to add the selected item to invoiceData.items
+    //     addSelectedItemToInvoice(selectedItem);
+    // };
 
     const handleEditorChange = (event, editor) => {
         const data = editor.getData();
@@ -404,6 +419,12 @@ export default function Editinvoice() {
                     const errorMessage = await response.text();
                     throw new Error(`Failed to delete item: ${errorMessage}`);
                 }
+
+                const updatedItems = invoiceData.items.filter(item => item.itemId !== itemId);
+                setInvoiceData(prevData => ({
+                    ...prevData,
+                    items: updatedItems,
+                }));
     
             // Update UI or perform other actions upon successful deletion
             // fetchdata();
@@ -552,23 +573,77 @@ export default function Editinvoice() {
 
     const handlePriceChange = (event, itemId) => {
         const { value } = event.target;
-        const newPrice = parseFloat(value) || 0;
+        const numericValue = value.replace(/[^0-9.]/g, ''); // Remove any non-numeric characters except decimal point
+      
+        // Limit the numeric value to two decimal places
+        const decimalIndex = numericValue.indexOf('.');
+        let formattedValue = numericValue;
+        if (decimalIndex !== -1) {
+          formattedValue = numericValue.slice(0, decimalIndex + 1) + numericValue.slice(decimalIndex + 1).replace(/[^0-9]/g, '').slice(0, 2);
+        }
+      
+        const newPrice = parseFloat(formattedValue) || 0;
+      
         const updatedItems = invoiceData.items.map((item) => {
           if (item.itemId === itemId) {
             const newAmount = newPrice * item.itemquantity;
             return {
               ...item,
-              price: newPrice,
-              amount: newAmount,
+              price: formattedValue, // Update with formatted value
+              amount: roundOff(newAmount),
             };
           }
           return item;
         });
+      
         setInvoiceData((prevData) => ({
           ...prevData,
           items: updatedItems,
         }));
       };
+      
+
+      const handlePriceBlur = (event, itemId) => {
+        const { value } = event.target;
+        const newPrice = parseFloat(value) || 0;
+        
+        const updatedItems = invoiceData.items.map((item) => {
+          if (item.itemId === itemId) {
+            const newAmount = newPrice * item.itemquantity;
+            return {
+              ...item,
+              price: roundOff(newPrice), // Format to two decimal places
+              amount: roundOff(newAmount),
+            };
+          }
+          return item;
+        });
+      
+        setInvoiceData((prevData) => ({
+          ...prevData,
+          items: updatedItems,
+        }));
+      };
+
+    // const handlePriceChange = (event, itemId) => {
+    //     const { value } = event.target;
+    //     const newPrice = parseFloat(value) || 0;
+    //     const updatedItems = invoiceData.items.map((item) => {
+    //       if (item.itemId === itemId) {
+    //         const newAmount = newPrice * item.itemquantity;
+    //         return {
+    //           ...item,
+    //           price: newPrice,
+    //           amount: newAmount,
+    //         };
+    //       }
+    //       return item;
+    //     });
+    //     setInvoiceData((prevData) => ({
+    //       ...prevData,
+    //       items: updatedItems,
+    //     }));
+    //   };
       
     //   const handleDescriptionChange = (event, itemId) => {
     //     const { value } = event.target;
@@ -824,6 +899,7 @@ export default function Editinvoice() {
                                                         id={`price-${item.itemId}`}
                                                         required
                                                         onChange={(event) => handlePriceChange(event, item.itemId)}
+                                                        onBlur={(event) => handlePriceBlur(event, item.itemId)}
                                                     />
                                         </div>
                                     </div>
@@ -861,25 +937,16 @@ export default function Editinvoice() {
                                                     />
                                                 </div>
                                             </div>
-                                            
-                                            {/* <div className="col-3">
-                                                <div class="mb-3">
-                                                    <label htmlFor="Discount" className="form-label">Discount</label>
-                                                    <input
-                                                        type='number'
-                                                        name='discount'
-                                                        className='form-control'
-                                                        value={item.discount}
-                                                        onChange={(event) => onDiscountpreitemChange(event, item.itemId)}
-                                                        placeholder='Discount'
-                                                        id={`discount-${item.itemId}`}
-                                                        min="0"
-                                                    />
-                                                </div>
-                                            </div> */}
                                     
                                     </div>
                                         ))}
+                                        <div className='col-lg-6 col-12'>
+                                        {itemExistsMessage && (
+                                            <div className="alert alert-warning mt-3" role="alert">
+                                                {itemExistsMessage}
+                                            </div>
+                                        )}
+                                        </div>
                                 {/* {searchitemResults.map((item) => {
                                     const selectedItem = items.find((i) => i._id === item.value);
                                     const itemPrice = selectedItem?.price || 0;
@@ -981,19 +1048,6 @@ export default function Editinvoice() {
                                     <div className="col-7">
                                         <div className="search-container forms">
                                             <p className='fs-20 mb-0'>Select Item</p>
-                                            {/* <VirtualizedSelect
-                                                id="searchitems" 
-                                                name="itemname"
-                                                className="form-control zindex op pl-0"
-                                                placeholder=""
-                                                onChange={onChangeitem}
-                                                options={ items.map((item,index)=>
-                                                    ({label: item.itemname, value: item._id})
-                                                        
-                                                )}
-
-                                                >
-                                            </VirtualizedSelect>  */}
                                             <Select
                                                 className="form-control zindex op pl-0"
                                                 value={searchitemResults}
@@ -1017,8 +1071,6 @@ export default function Editinvoice() {
                                             </div>
                                             <div className="col-6">
                                                 <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
                                                 })}</p>
                                                 <div className="col-6">
                                                 {/* <div class="mb-3">
@@ -1052,8 +1104,6 @@ export default function Editinvoice() {
                                                     />
                                                 </div>
                                                 <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
                                                     })}</p>
                                             </div>
                                         </div>

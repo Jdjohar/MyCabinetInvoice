@@ -7,6 +7,7 @@ import Usernavbar from './Usernavbar';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
 import Select from 'react-select';
+// import 'react-select/dist/react-select.css'; 
 // import VirtualizedSelect from 'react-virtualized-select';
 // import 'react-virtualized-select/styles.css';
 // import 'react-virtualized/styles.css'
@@ -14,6 +15,8 @@ import CurrencySign from '../../components/CurrencySign ';
 import { CountrySelect, StateSelect, CitySelect } from '@davzon/react-country-state-city';
 import "@davzon/react-country-state-city/dist/react-country-state-city.css";
 import Alertauthtoken from '../../components/Alertauthtoken';
+import SignatureModal from '../../components/SignatureModal';
+
 
 class MyCustomUploadAdapter {
     constructor(loader) {
@@ -70,20 +73,22 @@ export default function Createestimate() {
     const [itemExistsMessage, setItemExistsMessage] = useState('');
     const [message, setmessage] = useState(false);
     const [alertShow, setAlertShow] = useState("");
+    const [SelectedCustomerId, setSelectedCustomerId] = useState("");
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
         name: '', email: ''
     });
     const [isCustomerSelected, setIsCustomerSelected] = useState(false);
     const [editedName, setEditedName] = useState('');
     const [editedEmail, setEditedEmail] = useState('');
-    const [taxPercentage, setTaxPercentage] = useState(10);
+    const [taxPercentage, setTaxPercentage] = useState(0);
+    const [signUpData, setsignUpData] = useState(0);
     const [discountTotal, setdiscountTotal] = useState(0);
     const [estimateData, setestimateData] = useState({
         customername: '', itemname: '', customeremail: '', estimate_id: '', EstimateNumber: '', purchaseorder: '',
         job: '', date: format(new Date(), 'yyyy-MM-dd'), description: '', itemquantity: '', price: '', discount: '',
-        amount: '', tax: '',discountTotal:'', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
+        amount: '', tax: '', discountTotal: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
-    
+
     // const [editorData, setEditorData] = useState("<p></p>");
     const [editorData, setEditorData] = useState(`
         <p>
@@ -98,28 +103,37 @@ export default function Createestimate() {
     `);
     const [noteimageUrl, setnoteImageUrl] = useState(''); 
     const [alertMessage, setAlertMessage] = useState('');
-    
-  const [credentials, setCredentials] = useState({
-    name: '',
-    email: '',
-    number: '',
-    citydata: '',
-    statedata: '',
-    countrydata: '',
-    information: '',
-    address1: '',
-    address2: '',
-    post: '',
-  });
+    const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+    const [hasSignature, setHasSignature] = useState(false);
+    const [ownerId, setOwnerId] = useState('');
+    const [isAddSignatureSwitchOn, setIsAddSignatureSwitchOn] = useState(false);
+    const [isCustomerSignSwitchOn, setIsCustomerSignSwitchOn] = useState(false);
+
+    const [credentials, setCredentials] = useState({
+        name: '',
+        email: '',
+        number: '',
+        citydata: '',
+        statedata: '',
+        countrydata: '',
+        information: '',
+        address1: '',
+        address2: '',
+        post: '',
+    });
 
     useEffect(() => {
         const fetchData = async () => {
             if (!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") === "true") {
                 navigate("/");
             }
+            const getTaxOptions = localStorage.getItem("taxOptions")
+            // console.log("getTaxOptions:===",JSON.parse(getTaxOptions)[0].name);
+            setsignUpData(JSON.parse(getTaxOptions)[0])
             await fetchcustomerdata();
             await fetchitemdata();
             await fetchLastEstimateNumber();
+            await fetchsignupdata();
         };
         if (isNaN(discountTotal)) {
             setdiscountTotal(0);
@@ -128,17 +142,77 @@ export default function Createestimate() {
         setloading(false);
     }, [])
     let navigate = useNavigate();
-    
+
 
     const [countryid, setcountryid] = useState(false);
     const [stateid, setstateid] = useState(false);
     const [cityid, setcityid] = useState(false);
-  
+
     const [country, setcountry] = useState(false);
     const [state, setstate] = useState(false);
     const [city, setcity] = useState(false);
 
     const [message1, setMessage1] = useState(false);
+
+    const handleSignatureSwitch = async (event) => {
+        if (event.target.checked) {
+            try {
+                const ownerId = localStorage.getItem('userid');
+                const response = await fetch(`https://mycabinet.onrender.com/api/check-signature/${ownerId}`);
+                const data = await response.json();
+                setHasSignature(data.hasSignature);
+
+                if (!data.hasSignature) {
+                    setIsSignatureModalOpen(true);
+                }
+                setIsAddSignatureSwitchOn(true); // Automatically activate "Add My Signature"
+                setIsCustomerSignSwitchOn(true); // Automatically activate "Customer to Sign"
+            } catch (error) {
+                console.error('Error checking signature:', error);
+            }
+        } else {
+            setIsAddSignatureSwitchOn(false);
+            setIsCustomerSignSwitchOn(false);
+            setHasSignature(false); // Ensure switches are hidden
+        }
+    };
+
+    const handleAddSignatureSwitch = (event) => {
+        setIsAddSignatureSwitchOn(event.target.checked);
+        if (!event.target.checked && !isCustomerSignSwitchOn) {
+            setHasSignature(false);
+        }
+    };
+
+    const handleCustomerSignSwitch = (event) => {
+        setIsCustomerSignSwitchOn(event.target.checked);
+        if (!event.target.checked && !isAddSignatureSwitchOn) {
+            setHasSignature(false);
+        }
+    };
+
+    const saveSignature = async (signatureData) => {
+        try {
+            const ownerId = localStorage.getItem('userid');
+            const email = localStorage.getItem('userEmail');
+            const companyname = localStorage.getItem('companyname');
+            await fetch('https://mycabinet.onrender.com/api/ownersignature', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ signature: signatureData, ownerId, email, companyname }),
+            });
+            setHasSignature(true);
+            setIsSignatureModalOpen(false);
+        } catch (error) {
+            console.error('Error saving signature:', error);
+        }
+    };
+
+    const roundOff = (value) => {
+        return Math.round(value * 100) / 100;
+      };
 
     const fetchLastEstimateNumber = async () => {
         try {
@@ -146,18 +220,18 @@ export default function Createestimate() {
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/lastEstimateNumber/${userid}`, {
                 headers: {
-                  'Authorization': authToken,
+                    'Authorization': authToken,
                 }
-              });
+            });
 
-              if (response.status === 401) {
+            if (response.status === 401) {
                 const json = await response.json();
                 setAlertMessage(json.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
-              }
-              else{
+            }
+            else {
                 const json = await response.json();
 
                 // let nextEstimateNumber = 1;
@@ -169,8 +243,8 @@ export default function Createestimate() {
                     EstimateNumber: `Estimate-${json.lastEstimateId + 1}`,
                     estimate_id: json.lastEstimateId + 1,
                 });
-              }
-            
+            }
+
         } catch (error) {
             console.error('Error fetching last estimate number:', error);
         }
@@ -183,29 +257,61 @@ export default function Createestimate() {
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`, {
                 headers: {
-                  'Authorization': authToken,
+                    'Authorization': authToken,
                 }
-              });
+            });
 
-              if (response.status === 401) {
+            if (response.status === 401) {
                 const json = await response.json();
                 setAlertMessage(json.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
-              }
-              else{
-               const json = await response.json();
+            }
+            else {
+                const json = await response.json();
 
                 if (Array.isArray(json)) {
                     setcustomers(json);
-                } 
-              }
-            
+                }
+            }
+
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
+    
+    const fetchsignupdata = async () => {
+        try {
+          const userid = localStorage.getItem("userid");
+          const authToken = localStorage.getItem('authToken');
+          const response = await fetch(`https://mycabinet.onrender.com/api/getsignupdata/${userid}`, {
+            headers: {
+              'Authorization': authToken,
+            }
+          });
+    
+          if (response.status === 401) {
+            const json = await response.json();
+            setAlertMessage(json.message);
+            setloading(false);
+            window.scrollTo(0, 0);
+            return; // Stop further execution
+          }
+          else {
+            const json = await response.json();
+    
+            // if (Array.isArray(json)) {
+            // setTaxPercentage(json.taxPercentage);
+            // setsignUpData(json)
+            console.log("json: ",json.taxPercentage);
+            // }
+          }
+    
+        } catch (error) {
+          console.error('Error fetching data:', error);
+        }
+      }
 
     const fetchitemdata = async () => {
         try {
@@ -213,37 +319,47 @@ export default function Createestimate() {
             const authToken = localStorage.getItem('authToken');
             const response = await fetch(`https://mycabinet.onrender.com/api/itemdata/${userid}`, {
                 headers: {
-                  'Authorization': authToken,
+                    'Authorization': authToken,
                 }
-              });
+            });
 
-              if (response.status === 401) {
+            if (response.status === 401) {
                 const json = await response.json();
                 setAlertMessage(json.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
-              }
-              else{
+            }
+            else {
                 const json = await response.json();
 
                 if (Array.isArray(json)) {
                     setitems(json);
                 }
-              }
-            
+            }
+
         } catch (error) {
             console.error('Error fetching data:', error);
         }
     }
 
-    // const onChangecustomer=(event)=>{
-    //     setSearchcustomerResults([...searchcustomerResults,event]);
-    // }
-
     const onChangeitem = (event) => {
-        setSearchitemResults([...searchitemResults, event]);
-    }
+        const newItemId = event.value;
+        const newItemLabel = event.label;
+
+        const isItemExists = searchitemResults.some((item) => item.value === newItemId);
+
+        if (!isItemExists) {
+            setSearchitemResults([...searchitemResults, { value: newItemId, label: newItemLabel }]);
+            setItemExistsMessage(''); // Clear any existing message
+        } else {
+            setItemExistsMessage('This item is already added!');
+        }
+    };
+
+    // const onChangeitem = (event) => {
+    //     setSearchitemResults([...searchitemResults, event]);
+    // }
 
     const handleEditorChange = (event, editor) => {
         const data = editor.getData();
@@ -282,6 +398,7 @@ export default function Createestimate() {
 
     const onChangecustomer = (event) => {
         const selectedCustomerId = event.value;
+        setSelectedCustomerId(selectedCustomerId);
         const selectedCustomer = customers.find((customer) => customer._id === selectedCustomerId);
 
         if (selectedCustomer) {
@@ -301,16 +418,32 @@ export default function Createestimate() {
         setSearchcustomerResults([...searchcustomerResults, event]);
     };
 
-    const handleNameChange = (event) => {
-        const selectedName = event.target.value;
-        const selectedCustomer = customers.find(customer => customer.name === selectedName);
-        if (selectedCustomer) {
-            setEditedName(selectedName);
-            setEditedEmail(selectedCustomer.email);
+    const handleNameChange = (e) => {
+        const selectedName = e.target.value;
+        setEditedName(selectedName);
+    
+        const customer = customers.find(c => c.name === selectedName);
+        if (customer) {
+            setSelectedCustomerId(customer._id);
+            setEditedEmail(customer.email); 
         }
     };
 
+    // const handleNameChange = (event) => {
+    //     const selectedName = event.target.value;
+    //     const selectedCustomer = customers.find(customer => customer.name === selectedName);
+    //     if (selectedCustomer) {
+    //         setEditedName(selectedName);
+    //         setEditedEmail(selectedCustomer.email);
+    //     }
+    // };
+
     const handleEditCustomer = () => {
+        if (!SelectedCustomerId) {
+            console.error('Unable to determine SelectedCustomerId');
+            return;
+        }
+    
         const updatedCustomerDetails = {
             name: editedName,
             email: editedEmail,
@@ -318,10 +451,26 @@ export default function Createestimate() {
 
         setSelectedCustomerDetails({
             name: editedName,
-            email: editedEmail
+            email: editedEmail,
         });
-        console.log("Updated customer details:", updatedCustomerDetails);
+    
+        console.log(SelectedCustomerId, 'edited SelectedCustomerId');
+        console.log('Updated customer details:', updatedCustomerDetails);
+    
     };
+
+    // const handleEditCustomer = () => {
+    //     const updatedCustomerDetails = {
+    //         name: editedName,
+    //         email: editedEmail,
+    //     };
+
+    //     setSelectedCustomerDetails({
+    //         name: editedName,
+    //         email: editedEmail
+    //     });
+    //     console.log("Updated customer details:", updatedCustomerDetails);
+    // };
 
     const calculateDiscountedAmount = (price, quantity, discount) => {
         const totalAmount = price * quantity;
@@ -397,12 +546,12 @@ export default function Createestimate() {
     const calculateTaxAmount = () => {
         const subtotal = calculateSubtotal();
         const totalDiscountedAmount = subtotal - discountTotal; // Apply overall discount first
-    
+
         // Calculate tax amount on the discounted amount
-        const taxAmount = (totalDiscountedAmount * taxPercentage) / 100;
+        const taxAmount = (totalDiscountedAmount * signUpData.percentage) / 100;
         // const taxAmount = ((subtotal-discountTotal) * taxPercentage) / 100;
         // console.log("taxAmount:", taxAmount, "subtotal:", subtotal, "discountTotal:",discountTotal);
-        return taxAmount;
+        return roundOff(taxAmount);
     };
 
     // Function to calculate total amount
@@ -411,7 +560,7 @@ export default function Createestimate() {
         const taxAmount = calculateTaxAmount();
         const discountAmount = discountTotal;
         const totalAmount = subtotal + taxAmount - discountAmount;
-        return totalAmount;
+        return roundOff(totalAmount);
     };
 
     const handleSubmit = async (e) => {
@@ -419,6 +568,9 @@ export default function Createestimate() {
         try {
             const userid = localStorage.getItem('userid'); // Assuming you have user ID stored in local storage
             const authToken = localStorage.getItem('authToken');
+
+            await new Promise(resolve => setTimeout(resolve, 100));
+
             const estimateItems = searchitemResults.map((item) => {
                 const selectedItem = items.find((i) => i._id === item.value);
                 const itemPrice = selectedItem?.price || 0;
@@ -440,6 +592,8 @@ export default function Createestimate() {
                 };
             });
 
+            const selectedCustomer = customers.find((customer) => customer._id === SelectedCustomerId);
+
             // Summing up subtotal, total, and amount due for the entire estimate
             const subtotal = estimateItems.reduce((acc, curr) => acc + curr.amount, 0);
             const total = calculateTotal();
@@ -450,22 +604,24 @@ export default function Createestimate() {
 
             const data = {
                 userid: userid,
-                customername: estimateData.customername,
-                customeremail: estimateData.customeremail,
+                customername: selectedCustomer.name,
+                customeremail: selectedCustomer.email,
                 estimate_id: estimateData.estimate_id,
                 EstimateNumber: estimateData.EstimateNumber,
                 purchaseorder: estimateData.purchaseorder,
                 job: estimateData.job || 'No Job',
-                discountTotal: discountTotal || 'No Discount',
+                discountTotal: discountTotal || 0,
                 information: editorData,
                 date: estimateData.date,
                 items: estimateItems,
                 subtotal: subtotal,
                 total: total,
                 tax: taxAmount,
-                taxpercentage: taxPercentageValue,
+                taxpercentage: signUpData.percentage,
                 amountdue: amountdue,
                 noteimageUrl: noteimageUrl,
+                isAddSignature: isAddSignatureSwitchOn, 
+                isCustomerSign: isCustomerSignSwitchOn,
             };
 
 
@@ -482,10 +638,10 @@ export default function Createestimate() {
                 const responseData = await response.json();
                 setAlertMessage(responseData.message);
                 setloading(false);
-                window.scrollTo(0,0);
+                window.scrollTo(0, 0);
                 return; // Stop further execution
             }
-            else{
+            else {
                 if (response.ok) {
                     const responseData = await response.json();
                     if (responseData.success) {
@@ -500,10 +656,10 @@ export default function Createestimate() {
                     setmessage(true);
                     setAlertShow(responseData.error)
                     console.error('Failed to save the estimate.');
-                } 
+                }
             }
 
-            
+
         } catch (error) {
             console.error('Error creating estimate:', error);
         }
@@ -532,29 +688,29 @@ export default function Createestimate() {
     const onChangePrice = (event, itemId) => {
         const { value } = event.target;
         const numericValue = value.replace(/[^0-9.]/g, ''); // Remove any non-numeric characters except decimal point
-      
+
         // Limit the numeric value to two decimal places
         const decimalIndex = numericValue.indexOf('.');
         let formattedValue = numericValue;
         if (decimalIndex !== -1) {
-          formattedValue = numericValue.slice(0, decimalIndex + 1) + numericValue.slice(decimalIndex + 1).replace(/[^0-9]/g, '').slice(0, 2);
+            formattedValue = numericValue.slice(0, decimalIndex + 1) + numericValue.slice(decimalIndex + 1).replace(/[^0-9]/g, '').slice(0, 2);
         }
-      
+
         const newPrice = parseFloat(formattedValue) || 0;
-      
+
         // Update the item's price in the items array
         const updatedItems = items.map(item => {
-          if (item._id === itemId) {
-            return {
-              ...item,
-              price: formattedValue // Update with formatted value
-            };
-          }
-          return item;
+            if (item._id === itemId) {
+                return {
+                    ...item,
+                    price: formattedValue // Update with formatted value
+                };
+            }
+            return item;
         });
-      
+
         setitems(updatedItems);
-      };
+    };
     const onChangeDescription = (event, editor, itemId) => {
         const value = editor.getData();
 
@@ -578,74 +734,74 @@ export default function Createestimate() {
         let userid = localStorage.getItem('userid');
         const authToken = localStorage.getItem('authToken');
         const response = await fetch('https://mycabinet.onrender.com/api/addcustomer', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': authToken,
-          },
-          body: JSON.stringify({
-            userid: userid,
-            name: credentials.name,
-            email: credentials.email,
-            information: credentials.information,
-            number: credentials.number,
-            city: city,
-            state: state,
-            country: country,
-            citydata: credentials.citydata,
-            statedata: credentials.statedata,
-            countrydata: credentials.countrydata,
-            cityid: cityid,
-            stateid: stateid,
-            countryid: countryid,
-            address1: credentials.address1,
-            address2: credentials.address2,
-            post: credentials.post,
-          }),
+            method: 'POST',
+            headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken,
+            },
+            body: JSON.stringify({
+                userid: userid,
+                name: credentials.name,
+                email: credentials.email,
+                information: credentials.information,
+                number: credentials.number,
+                city: city,
+                state: state,
+                country: country,
+                citydata: credentials.citydata,
+                statedata: credentials.statedata,
+                countrydata: credentials.countrydata,
+                cityid: cityid,
+                stateid: stateid,
+                countryid: countryid,
+                address1: credentials.address1,
+                address2: credentials.address2,
+                post: credentials.post,
+            }),
         });
 
         if (response.status === 401) {
-          const json = await response.json();
-          setAlertMessage(json.message);
-          setloading(false);
-          window.scrollTo(0,0);
-          return; // Stop further execution
+            const json = await response.json();
+            setAlertMessage(json.message);
+            setloading(false);
+            window.scrollTo(0, 0);
+            return; // Stop further execution
         }
-        else{
-           const json = await response.json();
+        else {
+            const json = await response.json();
             console.log(json);
-        
-            if (json.Success) {
-            setCredentials({
-                name: '',
-                email: '',
-                number: '',
-                citydata: '',
-                statedata: '',
-                countrydata: '',
-                information: '',
-                address1: '',
-                address2: '',
-                post: '',
-            });
-        
-            setMessage1(true);
-            setAlertShow(json.message);
-            window.location.reload();
-            //   navigate('/userpanel/Customerlist');
-            }
-        
-            else{
-                alert("This Customer Email already exist")
-            } 
-        }
-    
-        
-      };
 
-      const onchangeaddcustomer = (event) => {
+            if (json.Success) {
+                setCredentials({
+                    name: '',
+                    email: '',
+                    number: '',
+                    citydata: '',
+                    statedata: '',
+                    countrydata: '',
+                    information: '',
+                    address1: '',
+                    address2: '',
+                    post: '',
+                });
+
+                setMessage1(true);
+                setAlertShow(json.message);
+                window.location.reload();
+                //   navigate('/userpanel/Customerlist');
+            }
+
+            else {
+                alert("This Customer Email already exist")
+            }
+        }
+
+
+    };
+
+    const onchangeaddcustomer = (event) => {
         setCredentials({ ...credentials, [event.target.name]: event.target.value });
-      };
+    };
 
 
     return (
@@ -695,351 +851,400 @@ export default function Createestimate() {
                                                 {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
                                             </div>
                                         </div>
-                                        <div className='box1 rounded adminborder p-4 m-2 mb-5'>
-                                            <div className='row me-2'>
-                                                <div className="col-md-6 col-lg-5 col-12">
-                                                    {isCustomerSelected ? (
-                                                        <div className="customerdetail p-3">
-                                                            <ul>
-                                                                <li className='fw-bold fs-4'>{selectedCustomerDetails.name}</li>
-                                                                <li>
-                                                                    <a href="" className='text-decoration-none' data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</a>
-                                                                </li>
-                                                            </ul>
-                                                            <p>{selectedCustomerDetails.email}</p>
+                                        <div className="row">
+                                            <div className="col-lg-9 col-12 order-2 order-lg-1"> 
+                                                <div className='box1 rounded adminborder p-4 m-2 mb-5'>
+                                                    <div className='row me-2'>
+                                                        <div className="col-md-6 col-lg-7 col-12">
+                                                            {isCustomerSelected ? (
+                                                                <div className="customerdetail p-3">
+                                                                    <ul>
+                                                                        <li className='fw-bold fs-4'>{selectedCustomerDetails.name}</li>
+                                                                        <li>
+                                                                            <a href="" className='text-decoration-none' data-bs-toggle="modal" data-bs-target="#exampleModal">Edit</a>
+                                                                        </li>
+                                                                    </ul>
+                                                                    <p>{selectedCustomerDetails.email}</p>
+                                                                </div>
+                                                            ) : (
+                                                                <div className="search-container forms">
+                                                                    <p className='fs-20 mb-0'>Select Customers</p>
+                                                                    <div className="row">
+                                                                        <div className="col-8">
+                                                                            {/*<VirtualizedSelect
+                                                                                id="searchitems"
+                                                                                name="customername"
+                                                                                className="form-control zindex op pl-0"
+                                                                                placeholder=""
+                                                                                onChange={onChangecustomer}
+                                                                                required
+                                                                                options={customers.map((customer, index) =>
+                                                                                    ({ label: customer.name, value: customer._id })
+                                                                                )}
+                                                                            />*/}
+                                                                            <Select
+                                                                                value={searchcustomerResults}
+                                                                                onChange={onChangecustomer}
+                                                                                options={customers.map(customer => ({
+                                                                                    value: customer._id,
+                                                                                    label: customer.name,
+                                                                                }))}
+                                                                                placeholder=""
+                                                                                required
+                                                                            />
+                                                                        </div> 
+                                                                        <div className="col-3">
+                                                                            <a role='button' className="btn btn-success btn-sm me-2 text-white mt-1" data-bs-toggle="modal" data-bs-target="#exampleModal1">
+                                                                                <i class="fa-solid fa-plus"></i>
+                                                                            </a>
+                                                                        </div>
+                                                                    </div>
+                                                                </div>
+                                                            )}
                                                         </div>
-                                                    ) : (
-                                                        <div className="search-container forms">
-                                                            <p className='fs-20 mb-0'>Select Customers</p>
+                                                        <div className="col-lg-5 col-md-6">
                                                             <div className="row">
-                                                                <div className="col-6">
+                                                                {message == true ? (
+                                                                    <div className="alert alert-warning alert-dismissible fade show" role="alert">
+                                                                        <strong>{alertShow}</strong>
+                                                                        <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
+                                                                    </div>
+                                                                ) : (
+                                                                    ""
+                                                                )}
+                                                                <div className="col-lg-12">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="estimatenumbr" className="form-label">
+                                                                            Estimate Number
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name="EstimateNumber"
+                                                                            className="form-control"
+                                                                            value={estimateData.EstimateNumber}
+                                                                            onChange={onchange}
+                                                                            // placeholder="estimate Number"
+                                                                            id="estimatenumbr"
+                                                                            required
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-12">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="purchaseoder" className="form-label">
+                                                                            Purchase Order (PO) #
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name="purchaseorder"
+                                                                            className="form-control"
+                                                                            onChange={onchange}
+                                                                            id="purchaseoder"
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-12">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="Date" className="form-label">
+                                                                            Date
+                                                                        </label>
+                                                                        <input
+                                                                            type="date"
+                                                                            name="date"
+                                                                            className="form-control"
+                                                                            value={estimateData.date}
+                                                                            onChange={onchange}
+                                                                            // placeholder="Date"
+                                                                            id="Date"
+                                                                            required
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                                <div className="col-lg-12">
+                                                                    <div className="mb-3">
+                                                                        <label htmlFor="Job" className="form-label">
+                                                                            Job
+                                                                        </label>
+                                                                        <input
+                                                                            type="text"
+                                                                            name="job"
+                                                                            className="form-control"
+                                                                            value={estimateData.job}
+                                                                            onChange={onchange}
+                                                                            // placeholder="Date"
+                                                                            id="job"
+                                                                            required
+                                                                        />
+                                                                    </div>
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                                                    </div>
+
+                                                    <div className='box1 rounded adminborder p-4 m-2'>
+                                                        <div className="table-responsive">
+                                                            <table className="table">
+                                                                <thead>
+                                                                    <tr>
+                                                                        <th scope="col">ITEM</th>
+                                                                        <th scope="col">QUANTITY</th>
+                                                                        <th scope="col">PRICE</th>
+                                                                        {/* <th scope="col">DISCOUNT</th> */}
+                                                                        <th scope="col">AMOUNT</th>
+                                                                    </tr>
+                                                                </thead>
+                                                                <tbody>
+                                                                    {searchitemResults.map((item) => {
+                                                                        const selectedItem = items.find((i) => i._id === item.value);
+                                                                        const itemPrice = selectedItem?.price || 0;
+                                                                        const itemId = item.value;
+                                                                        const quantity = quantityMap[itemId] || 1;
+                                                                        const discount = discountMap[itemId] || 0;
+
+                                                                        const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
+                                                                        const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
+                                                                            // style: 'currency',
+                                                                            // currency: 'INR',
+                                                                        });
+
+                                                                        return (
+                                                                            <tr key={item.value}>
+                                                                                <td scope="col">
+                                                                                    <div className="mb-3 d-flex align-items-baseline justify-content-between">
+                                                                                        <p>{item.label}</p>
+                                                                                        <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
+                                                                                            <i className="fas fa-trash"></i>
+                                                                                        </button>
+                                                                                    </div>
+                                                                                    <div className="row">
+                                                                                        <div className="col">
+                                                                                            <label htmlFor={`item-description-${itemId}`} className="form-label">Description</label>
+
+                                                                                            <CKEditor
+                                                                                                editor={ClassicEditor}
+                                                                                                data={selectedItem?.description || ''}
+                                                                                                name={`description-${itemId}`}
+                                                                                                onChange={(event, editor) => onChangeDescription(event, editor, itemId)}
+                                                                                                onBlur={(event, editor) => {
+                                                                                                    console.log('Blur.', editor);
+                                                                                                }}
+                                                                                                onFocus={(event, editor) => {
+                                                                                                    console.log('Focus.', editor);
+                                                                                                }}
+                                                                                            />
+
+                                                                                        </div>
+
+                                                                                    </div>
+                                                                                </td>
+                                                                                <td>
+                                                                                    <input
+                                                                                        type="number"
+                                                                                        name={`quantity-${itemId}`}
+                                                                                        className="form-control"
+                                                                                        value={quantity}
+                                                                                        onChange={(event) => onChangeQuantity(event, itemId)}
+                                                                                        id={`quantity-${itemId}`}
+                                                                                        required
+                                                                                    />
+                                                                                </td>
+                                                                                <td>
+                                                                
+                                                                                    <input
+                                                                                        type="text"
+                                                                                        name={`price-${itemId}`}
+                                                                                        className="form-control"
+                                                                                        value={itemPrice}
+                                                                                        onChange={(event) => onChangePrice(event, itemId)}
+                                                                                        id={`price-${itemId}`}
+                                                                                        required
+                                                                                    />
+
+                                                                                </td>
+                                                                                {/* <td className="text-center">
+                                                                                    <p><CurrencySign />{discountTotal.toFixed(2)}</p>
+                                                                                </td> */}
+                                                                                <td className="text-center">
+                                                                                    <p><CurrencySign />{formattedTotalAmount}</p>
+                                                                                </td>
+                                                                            </tr>
+                                                                        );
+                                                                    })}
+
+                                                                    {itemExistsMessage && (
+                                                                        <div className="alert alert-warning mt-3" role="alert">
+                                                                            {itemExistsMessage}
+                                                                        </div>
+                                                                    )}
+                                                                </tbody>
+                                                            </table>
+                                                        </div>
+
+                                                        <div className="row pt-3">
+                                                            <div className="col-lg-6 col-md-12">
+                                                                <div className="search-container forms">
+                                                                    <p className='fs-20 mb-0'>Select Item</p>
                                                                     {/* <VirtualizedSelect
                                                                         id="searchitems"
-                                                                        name="customername"
+                                                                        name="itemname"
                                                                         className="form-control zindex op pl-0"
                                                                         placeholder=""
-                                                                        onChange={onChangecustomer}
-                                                                        required
-                                                                        options={customers.map((customer, index) =>
-                                                                            ({ label: customer.name, value: customer._id })
+                                                                        onChange={onChangeitem}
+                                                                        options={items.map((item, index) =>
+                                                                            ({ label: item.itemname, value: item._id })
+
                                                                         )}
-                                                                    /> */}
+
+                                                                    >
+                                                                    </VirtualizedSelect> */}
                                                                     <Select
-                                                                        value={searchcustomerResults}
-                                                                        onChange={onChangecustomer}
-                                                                        options={customers.map(customer => ({
-                                                                            value: customer._id,
-                                                                            label: customer.name,
+                                                                        value={searchitemResults}
+                                                                        onChange={onChangeitem}
+                                                                        options={items.map(item => ({
+                                                                            value: item._id,
+                                                                            label: item.itemname,
                                                                         }))}
                                                                         placeholder=""
                                                                     />
                                                                 </div>
-                                                                <div className="col-3">
-                                                                    <a role='button' className="btn btn-success btn-sm me-2 text-white mt-2" data-bs-toggle="modal" data-bs-target="#exampleModal1">
-                                                                        <i class="fa-solid fa-plus"></i>
-                                                                    </a>
-                                                                </div>
                                                             </div>
-                                                        </div>
-                                                    )}
-                                                </div>
-                                                <div className="col-lg-7 col-md-6">
-                                                    <div className="row">
-                                                        {message == true ? (
-                                                            <div className="alert alert-warning alert-dismissible fade show" role="alert">
-                                                                <strong>{alertShow}</strong>
-                                                                <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button>
-                                                            </div>
-                                                        ) : (
-                                                            ""
-                                                        )}
-                                                        <div className="col-lg-6">
-                                                            <div className="mb-3">
-                                                                <label htmlFor="estimatenumbr" className="form-label">
-                                                                    Estimate Number
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    name="EstimateNumber"
-                                                                    className="form-control"
-                                                                    value={estimateData.EstimateNumber}
-                                                                    onChange={onchange}
-                                                                    // placeholder="estimate Number"
-                                                                    id="estimatenumbr"
-                                                                    required
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-6">
-                                                            <div className="mb-3">
-                                                                <label htmlFor="purchaseoder" className="form-label">
-                                                                    Purchase Order (PO) #
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    name="purchaseorder"
-                                                                    className="form-control"
-                                                                    onChange={onchange}
-                                                                    id="purchaseoder"
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-6">
-                                                            <div className="mb-3">
-                                                                <label htmlFor="Date" className="form-label">
-                                                                    Date
-                                                                </label>
-                                                                <input
-                                                                    type="date"
-                                                                    name="date"
-                                                                    className="form-control"
-                                                                    value={estimateData.date}
-                                                                    onChange={onchange}
-                                                                    // placeholder="Date"
-                                                                    id="Date"
-                                                                    required
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                        <div className="col-lg-6">
-                                                            <div className="mb-3">
-                                                                <label htmlFor="Job" className="form-label">
-                                                                    Job
-                                                                </label>
-                                                                <input
-                                                                    type="text"
-                                                                    name="job"
-                                                                    className="form-control"
-                                                                    value={estimateData.job}
-                                                                    onChange={onchange}
-                                                                    // placeholder="Date"
-                                                                    id="job"
-                                                                    required
-                                                                />
-                                                            </div>
-                                                        </div>
-                                                    </div>
-                                                </div>
-                                            </div>
+                                                            <div className="col-lg-6 col-md-12">
+                                                                <div className="row">
+                                                                    <div className="col-6 col-md-3">
+                                                                        <p>Subtotal</p>
+                                                                        <p>Discount</p>
+                                                                        {/* <p>GST</p> */}
+                                                                        <p className='pt-3'>{signUpData.name} {signUpData.percentage}%</p>
 
-                                            <div className='box1 rounded adminborder p-4 m-2'>
-                                                <div className="table-responsive">
-                                                    <table className="table">
-                                                        <thead>
-                                                            <tr>
-                                                                <th scope="col">ITEM</th>
-                                                                <th scope="col">QUANTITY</th>
-                                                                <th scope="col">PRICE</th>
-                                                                {/* <th scope="col">DISCOUNT</th> */}
-                                                                <th scope="col">AMOUNT</th>
-                                                            </tr>
-                                                        </thead>
-                                                        <tbody>
-                                                            {searchitemResults.map((item) => {
-                                                                const selectedItem = items.find((i) => i._id === item.value);
-                                                                const itemPrice = selectedItem?.price || 0;
-                                                                const itemId = item.value;
-                                                                const quantity = quantityMap[itemId] || 1;
-                                                                const discount = discountMap[itemId] || 0;
-
-                                                                const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
-                                                                const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
-                                                                    // style: 'currency',
-                                                                    // currency: 'INR',
-                                                                });
-
-                                                                return (
-                                                                    <tr key={item.value}>
-                                                                        <td>
-                                                                            <div className="mb-3 d-flex align-items-baseline justify-content-between">
-                                                                                <p>{item.label}</p>
-                                                                                <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
-                                                                                    <i className="fas fa-trash"></i>
-                                                                                </button>
-                                                                            </div>
-                                                                            <div className="row">
-                                                                                <div className="col">
-                                                                                    <label htmlFor={`item-description-${itemId}`} className="form-label">Description</label>
-                                                                                   
-                                                                                    <CKEditor
-                                                                                        editor={ClassicEditor}
-                                                                                        data={selectedItem?.description || ''}
-                                                                                        name={`description-${itemId}`}
-                                                                                        onChange={(event, editor) => onChangeDescription(event, editor, itemId)}
-                                                                                        onBlur={(event, editor) => {
-                                                                                            console.log('Blur.', editor);
-                                                                                        }}
-                                                                                        onFocus={(event, editor) => {
-                                                                                            console.log('Focus.', editor);
-                                                                                        }}
-                                                                                    />
-                                                                          
-                                                                                </div>
-                                                                              
-                                                                            </div>
-                                                                        </td>
-                                                                        <td>
+                                                                        <p>Total</p>
+                                                                    </div>
+                                                                    <div className="col-6 col-md-9">
+                                                                        <p className="mb-3"><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
+                                                                            // style: 'currency',
+                                                                            // currency: 'INR',
+                                                                        })}</p>
+                                                                        <div className="mb-3">
                                                                             <input
                                                                                 type="number"
-                                                                                name={`quantity-${itemId}`}
+                                                                                name="totaldiscount"
                                                                                 className="form-control"
-                                                                                value={quantity}
-                                                                                onChange={(event) => onChangeQuantity(event, itemId)}
-                                                                                id={`quantity-${itemId}`}
-                                                                                required
+                                                                                value={discountTotal}
+                                                                                onChange={handleDiscountChange} // Ensure proper event binding
+                                                                                placeholder="Enter Discount Total"
+                                                                                id="discountInput"
+                                                                                min="0"
                                                                             />
-                                                                        </td>
-                                                                        <td>
-                                                                            {/* <input
-                                    type="number"
-                                    name="price"
-                                    className="form-control"
-                                    value={itemPrice}
-                                    id="price"
-                                    required
-                                    disabled
-                                /> */}
+                                                                        </div>
+                                                                        {/* <div className="mb-3">
                                                                             <input
-                                                                                type="text"
-                                                                                name={`price-${itemId}`}  // Use a unique identifier for each item
+                                                                                type="number"
+                                                                                name="tax"
                                                                                 className="form-control"
-                                                                                value={itemPrice}
-                                                                                onChange={(event) => onChangePrice(event, itemId)} // Add onChange handler for price
-                                                                                id={`price-${itemId}`}
-                                                                                required
+                                                                                value={taxPercentage}
+                                                                                onChange={handleTaxChange}
+                                                                                placeholder="Enter GST Percentage"
+                                                                                id="taxInput"
+                                                                                min="0"
                                                                             />
-                                                                        </td>
-                                                                        {/* <td className="text-center">
-                                                                            <p><CurrencySign />{discountTotal.toFixed(2)}</p>
-                                                                        </td> */}
-                                                                        <td className="text-center">
-                                                                            <p><CurrencySign />{formattedTotalAmount}</p>
-                                                                        </td>
-                                                                    </tr>
-                                                                );
-                                                            })}
-                                                        </tbody>
-                                                    </table>
-                                                </div>
+                                                                        </div> */}
+                                                                        <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
+                                                                            // style: 'currency',
+                                                                            // currency: 'INR',
+                                                                        })}</p>
 
-                                                <div className="row pt-3">
-                                                    <div className="col-lg-6 col-md-12">
-                                                        <div className="search-container forms">
-                                                            <p className='fs-20 mb-0'>Select Item</p>
-                                                            {/* <VirtualizedSelect
-                                                                id="searchitems"
-                                                                name="itemname"
-                                                                className="form-control zindex op pl-0"
-                                                                placeholder=""
-                                                                onChange={onChangeitem}
-                                                                options={items.map((item, index) =>
-                                                                    ({ label: item.itemname, value: item._id })
-
-                                                                )}
-
-                                                            >
-                                                            </VirtualizedSelect> */}
-                                                            <Select
-                                                                value={searchitemResults}
-                                                                onChange={onChangeitem}
-                                                                options={items.map(item => ({
-                                                                    value: item._id,
-                                                                    label: item.itemname,
-                                                                }))}
-                                                                placeholder=""
-                                                            />
-                                                        </div>
-                                                    </div>
-                                                    <div className="col-lg-6 col-md-12">
-                                                        <div className="row">
-                                                            <div className="col-6 col-md-3">
-                                                                <p>Subtotal</p>
-                                                                <p>Discount</p>
-                                                                {/* <p>GST</p> */}
-                                                                <p className='pt-3'>GST {taxPercentage}%</p>
-                                                                
-                                                                <p>Total</p>
-                                                            </div>
-                                                            <div className="col-6 col-md-9">
-                                                                <p className="mb-3"><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
-                                                                    // style: 'currency',
-                                                                    // currency: 'INR',
-                                                                })}</p>
-                                                                <div className="mb-3">
-                                                                    <input
-                                                                        type="number"
-                                                                        name="totaldiscount"
-                                                                        className="form-control"
-                                                                        value={discountTotal}
-                                                                        onChange={handleDiscountChange} // Ensure proper event binding
-                                                                        placeholder="Enter Discount Total"
-                                                                        id="discountInput"
-                                                                        min="0"
-                                                                    />
+                                                                        <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                                            // style: 'currency',
+                                                                            // currency: 'INR',
+                                                                        })}</p>
+                                                                    </div>
                                                                 </div>
-                                                                {/* <div className="mb-3">
-                                                                    <input
-                                                                        type="number"
-                                                                        name="tax"
-                                                                        className="form-control"
-                                                                        value={taxPercentage}
-                                                                        onChange={handleTaxChange}
-                                                                        placeholder="Enter GST Percentage"
-                                                                        id="taxInput"
-                                                                        min="0"
-                                                                    />
-                                                                </div> */}
-                                                                <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
-                                                                    // style: 'currency',
-                                                                    // currency: 'INR',
-                                                                })}</p>
-                                                                
-                                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
-                                                                    // style: 'currency',
-                                                                    // currency: 'INR',
-                                                                })}</p>
+                                                            </div>
+                                                        </div>
+                                                        <hr />
+                                                        <div className="row pt-3">
+                                                            <div className="col-lg-6 col-md-12"></div>
+                                                            <div className="col-lg-6 col-md-12">
+                                                                <div className="row">
+                                                                    <div className="col-6 col-md-3">
+                                                                        <p>Amount due</p>
+                                                                    </div>
+                                                                    <div className="col-6 col-md-9">
+                                                                        <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                                            // style: 'currency',
+                                                                            // currency: 'INR',
+                                                                        })}</p>
+                                                                    </div>
+                                                                </div>
                                                             </div>
                                                         </div>
                                                     </div>
-                                                </div>
-                                                <hr />
-                                                <div className="row pt-3">
-                                                    <div className="col-lg-6 col-md-12"></div>
-                                                    <div className="col-lg-6 col-md-12">
-                                                        <div className="row">
-                                                            <div className="col-6 col-md-3">
-                                                                <p>Amount due</p>
-                                                            </div>
-                                                            <div className="col-6 col-md-9">
-                                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
-                                                                    // style: 'currency',
-                                                                    // currency: 'INR',
-                                                                })}</p>
-                                                            </div>
-                                                        </div>
+
+                                                    <div className='box1 rounded adminborder m-2 mt-5'>
+                                                        <CKEditor
+                                                            editor={ClassicEditor}
+                                                            data={editorData}
+                                                            onChange={handleEditorChange}
+                                                            config={{
+                                                                extraPlugins: [MyCustomUploadAdapterPlugin],
+                                                            }}
+                                                            onBlur={(event, editor) => {
+                                                                console.log('Blur.', editor);
+                                                            }}
+                                                            onFocus={(event, editor) => {
+                                                                console.log('Focus.', editor);
+                                                            }}
+                                                        />
                                                     </div>
                                                 </div>
                                             </div>
-
-
-
-
-
-                                            <div className='box1 rounded adminborder m-2 mt-5'>
-                                                <CKEditor
-                                                    editor={ClassicEditor}
-                                                    data={editorData}
-                                                    onChange={handleEditorChange}
-                                                    config={{
-                                                        extraPlugins: [MyCustomUploadAdapterPlugin],
-                                                    }}
-                                                    onBlur={(event, editor) => {
-                                                        console.log('Blur.', editor);
-                                                    }}
-                                                    onFocus={(event, editor) => {
-                                                        console.log('Focus.', editor);
-                                                    }}
-                                                />
+                                            <div className="col-lg-3 col-12 order-1 order-lg-2">
+                                                <div className='box1 rounded adminborder p-4 my-2 mx-0 mb-5'>
+                                                    <div className="form-check form-switch">
+                                                        <div>
+                                                            <label className="form-check-label" htmlFor="signatureSwitch">Signature</label>
+                                                            <input
+                                                                className="form-check-input"
+                                                                type="checkbox"
+                                                                role="switch"
+                                                                id="signatureSwitch"
+                                                                onChange={handleSignatureSwitch}
+                                                                checked={hasSignature}
+                                                            />
+                                                        </div>
+                                                        {hasSignature && (
+                                                            <>
+                                                                <div>
+                                                                    <label className="form-check-label" htmlFor="addSignatureSwitch">Add My Signature</label>
+                                                                    <input
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="addSignatureSwitch"
+                                                                        checked={isAddSignatureSwitchOn}
+                                                                        onChange={handleAddSignatureSwitch}
+                                                                    />
+                                                                </div>
+                                                                <div>
+                                                                    <label className="form-check-label" htmlFor="customerSignSwitch">Customer to Sign</label>
+                                                                    <input
+                                                                        className="form-check-input"
+                                                                        type="checkbox"
+                                                                        role="switch"
+                                                                        id="customerSignSwitch"
+                                                                        checked={isCustomerSignSwitchOn}
+                                                                        onChange={handleCustomerSignSwitch}
+                                                                    />
+                                                                </div>
+                                                            </>
+                                                        )}
+                                                    </div>
+                                                </div>
+                                                {isSignatureModalOpen && (
+                                                    <SignatureModal
+                                                        onSave={saveSignature}
+                                                        onClose={() => setIsSignatureModalOpen(false)}
+                                                    />
+                                                )}
                                             </div>
                                         </div>
 
@@ -1082,213 +1287,213 @@ export default function Createestimate() {
 
                         {/* add customer */}
 
-<form action="">
-            <div className="modal fade" id="exampleModal1" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
-                <div className="modal-dialog modal-lg">
-                    <div className="modal-content">
-                        <div className="modal-header">
-                            <h1 className="modal-title fs-5" id="exampleModalLabel">Add Customer</h1>
-                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
-                        </div>
-                        <div className="modal-body">
-                        <div className="row">
-                            <div className="col-12 col-sm-6 col-lg-4">
-                                <div className="mb-3">
-                                <label htmlFor="exampleInputtext1" className="form-label">
-                                Customer Name
-                                </label>
-                                <input
-                                type="text"
-                                className="form-control"
-                                name="name"
-                                value={credentials.name}
-                                onChange={onchangeaddcustomer}
-                                placeholder="Customer Name"
-                                id="exampleInputtext1"
-                                required
-                                />
+                        <form action="">
+                            <div className="modal fade" id="exampleModal1" tabIndex="-1" aria-labelledby="exampleModalLabel" aria-hidden="true">
+                                <div className="modal-dialog modal-lg">
+                                    <div className="modal-content">
+                                        <div className="modal-header">
+                                            <h1 className="modal-title fs-5" id="exampleModalLabel">Add Customer</h1>
+                                            <button type="button" className="btn-close" data-bs-dismiss="modal" aria-label="Close"></button>
+                                        </div>
+                                        <div className="modal-body">
+                                            <div className="row">
+                                                <div className="col-12 col-sm-6 col-lg-4">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="exampleInputtext1" className="form-label">
+                                                            Customer Name
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            className="form-control"
+                                                            name="name"
+                                                            value={credentials.name}
+                                                            onChange={onchangeaddcustomer}
+                                                            placeholder="Customer Name"
+                                                            id="exampleInputtext1"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-4">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="exampleInputEmail1" className="form-label">
+                                                            Contact Email
+                                                        </label>
+                                                        <input
+                                                            type="email"
+                                                            className="form-control"
+                                                            name="email"
+                                                            value={credentials.email}
+                                                            onChange={onchangeaddcustomer}
+                                                            placeholder="Contact Email"
+                                                            id="email"
+                                                            aria-describedby="emailHelp"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-4">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="Number" className="form-label">
+                                                            Phone Number
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            name="number"
+                                                            className="form-control"
+                                                            onChange={onchangeaddcustomer}
+                                                            placeholder="Phone Number"
+                                                            id="phonenumber"
+                                                            required
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-12 col-lg-12">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="information" className="form-label">
+                                                            Additional Information
+                                                        </label>
+                                                        <textarea
+                                                            type="text"
+                                                            className="form-control"
+                                                            name="information"
+                                                            onChange={onchangeaddcustomer}
+                                                            placeholder="Information"
+                                                            id="information"
+
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="Address1" className="form-label">
+                                                            Address 1
+                                                        </label>
+                                                        <input
+                                                            type="message"
+                                                            name="address1"
+                                                            onChange={onchangeaddcustomer}
+                                                            className="form-control"
+                                                            placeholder="Address 1"
+                                                            id="Address1"
+
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="Address2" className="form-label">
+                                                            Address 2
+                                                        </label>
+                                                        <input
+                                                            type="message"
+                                                            name="address2"
+                                                            onChange={onchangeaddcustomer}
+                                                            className="form-control"
+                                                            placeholder="Address 2"
+                                                            id="Address2"
+
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="Country" className="form-label">
+                                                            Country
+                                                        </label>
+                                                        <CountrySelect
+                                                            name="country"
+                                                            value={credentials.countryid}
+                                                            onChange={(val) => {
+                                                                console.log(val);
+                                                                setcountryid(val.id);
+                                                                setcountry(val.name);
+                                                                // setCredentials({ ...credentials, country: val.name })
+                                                                // setCredentials({ ...credentials, countryid: val.id })
+                                                                setCredentials({ ...credentials, countrydata: JSON.stringify(val) })
+
+                                                            }}
+                                                            valueType="short"
+                                                            class="form-control"
+                                                            placeHolder="Select Country"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="State" className="form-label">
+                                                            State
+                                                        </label>
+                                                        <StateSelect
+                                                            name="state"
+                                                            countryid={countryid} // Set the country selected in the CountryDropdown
+                                                            onChange={(val) => {
+                                                                console.log(val);
+                                                                setstateid(val.id);
+                                                                setstate(val.name);
+                                                                // setCredentials({ ...credentials, state: val.name })
+                                                                // setCredentials({ ...credentials, stateid: val.id })
+                                                                setCredentials({ ...credentials, statedata: JSON.stringify(val) })
+                                                            }}
+                                                            placeHolder="Select State"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="City" className="form-label">
+                                                            City
+                                                        </label>
+                                                        <CitySelect
+                                                            countryid={countryid}
+                                                            stateid={stateid}
+                                                            onChange={(val) => {
+                                                                console.log(val);
+                                                                setcityid(val.id);
+                                                                setcity(val.name);
+                                                                // setCredentials({ ...credentials, city: val.name })
+                                                                // setCredentials({ ...credentials, cityid: val.id })
+                                                                setCredentials({ ...credentials, citydata: JSON.stringify(val) })
+                                                            }}
+                                                            placeHolder="Select City"
+                                                        />
+                                                    </div>
+                                                </div>
+
+                                                <div className="col-12 col-sm-6 col-lg-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="post" className="form-label">
+                                                            Post Code
+                                                        </label>
+                                                        <input
+                                                            type="text"
+                                                            name="post"
+                                                            onChange={onchangeaddcustomer}
+                                                            className="form-control"
+                                                            placeholder="Post Code"
+                                                            id="post"
+
+                                                        />
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                        <div className="modal-footer">
+                                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                                            <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={handleAddCustomer}>Add Customer</button>
+                                        </div>
+                                    </div>
+                                </div>
                             </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-4">
-                          <div className="mb-3">
-                            <label htmlFor="exampleInputEmail1" className="form-label">
-                              Contact Email
-                            </label>
-                            <input
-                              type="email"
-                              className="form-control"
-                              name="email"
-                              value={credentials.email}
-                              onChange={onchangeaddcustomer}
-                              placeholder="Contact Email"
-                              id="email"
-                              aria-describedby="emailHelp"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-4">
-                          <div className="mb-3">
-                            <label htmlFor="Number" className="form-label">
-                              Phone Number
-                            </label>
-                            <input
-                              type="text"
-                              name="number"
-                              className="form-control"
-                              onChange={onchangeaddcustomer}
-                              placeholder="Phone Number"
-                              id="phonenumber"
-                              required
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-12 col-lg-12">
-                          <div className="mb-3">
-                            <label htmlFor="information" className="form-label">
-                            Additional Information
-                            </label>
-                            <textarea
-                              type="text"
-                              className="form-control"
-                              name="information"
-                              onChange={onchangeaddcustomer}
-                              placeholder="Information"
-                              id="information"
-                              
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-6">
-                          <div className="mb-3">
-                            <label htmlFor="Address1" className="form-label">
-                              Address 1
-                            </label>
-                            <input
-                              type="message"
-                              name="address1"
-                              onChange={onchangeaddcustomer}
-                              className="form-control"
-                              placeholder="Address 1"
-                              id="Address1"
-                              
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-6">
-                          <div className="mb-3">
-                            <label htmlFor="Address2" className="form-label">
-                              Address 2
-                            </label>
-                            <input
-                              type="message"
-                              name="address2"
-                              onChange={onchangeaddcustomer}
-                              className="form-control"
-                              placeholder="Address 2"
-                              id="Address2"
-                              
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-6">
-                          <div className="mb-3">
-                            <label htmlFor="Country" className="form-label">
-                              Country
-                            </label>
-                            <CountrySelect
-                              name="country"
-                              value={credentials.countryid}
-                              onChange={(val) => {
-                                console.log(val);
-                                setcountryid(val.id);
-                                setcountry(val.name);
-                                    // setCredentials({ ...credentials, country: val.name })
-                                    // setCredentials({ ...credentials, countryid: val.id })
-                                    setCredentials({ ...credentials, countrydata: JSON.stringify(val) })
-                                  
-                              }}
-                              valueType="short"
-                              class="form-control" 
-                              placeHolder="Select Country"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-6">
-                          <div className="mb-3">
-                            <label htmlFor="State" className="form-label">
-                              State
-                            </label>
-                            <StateSelect
-                                name="state"
-                                countryid={countryid} // Set the country selected in the CountryDropdown
-                                onChange={(val) => {
-                                    console.log(val);
-                                    setstateid(val.id);
-                                    setstate(val.name);
-                                    // setCredentials({ ...credentials, state: val.name })
-                                    // setCredentials({ ...credentials, stateid: val.id })
-                                    setCredentials({ ...credentials, statedata: JSON.stringify(val) })
-                                }}
-                                placeHolder="Select State"
-                                />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-6">
-                          <div className="mb-3">
-                            <label htmlFor="City" className="form-label">
-                              City
-                            </label>
-                            <CitySelect
-                                countryid={countryid}
-                                stateid={stateid}
-                                onChange={(val) => {
-                                console.log(val);
-                                setcityid(val.id);
-                                setcity(val.name);
-                                // setCredentials({ ...credentials, city: val.name })
-                                // setCredentials({ ...credentials, cityid: val.id })
-                                setCredentials({ ...credentials, citydata: JSON.stringify(val) })
-                                }}
-                                placeHolder="Select City"
-                            />
-                          </div>
-                        </div>
-
-                        <div className="col-12 col-sm-6 col-lg-6">
-                          <div className="mb-3">
-                            <label htmlFor="post" className="form-label">
-                            Post Code
-                            </label>
-                            <input
-                              type="text"
-                              name="post"
-                              onChange={onchangeaddcustomer}
-                              className="form-control"
-                              placeholder="Post Code"
-                              id="post"
-                           
-                            />
-                          </div>
-                        </div>
-                      </div>
-                        </div>
-                        <div className="modal-footer">
-                            <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                            <button type="button" className="btn btn-primary" data-bs-dismiss="modal" onClick={handleAddCustomer}>Add Customer</button>
-                        </div>
-                    </div>
-                </div>
-            </div>
-</form>
+                        </form>
                     </div>
 
 

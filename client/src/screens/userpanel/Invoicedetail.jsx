@@ -755,6 +755,21 @@ export default function Invoicedetail() {
           clear:both;
         }
 
+        .invoice-body-text{
+          width: 100%;
+          height: auto;
+        }
+        .information-content {
+          height: auto;
+          overflow: hidden;
+        }
+
+        .information-content img {
+          width: 50%;
+          max-width: 100%;
+          height: auto;
+        }
+
         .invoice-contentcol-6{
           width:25% !important;
           float:left
@@ -1422,6 +1437,8 @@ thead{
                                 <address className='m-t-5 m-b-5'>
                                   <div className='mb-2'>
                                     <div className=''>{signupdata.address}</div>
+                                      {signupdata.city ? JSON.parse(signupdata.city).name+',' : ' '}
+                                      {signupdata.state ? JSON.parse(signupdata.state).name : ' '}
                                     {/* <div className=''>Eucumbene Dr</div>
                                     <div className=''>Ravenhall VIC 3023</div>
                                     <div className=''>AU</div> */}
@@ -1429,7 +1446,14 @@ thead{
                                   <div>{signupdata.FirstName} {signupdata.User1_Mobile_Number}</div>
                                   <div>{signupdata.User2FirstName} {signupdata.User2_Mobile_Number}</div>
                                   <div>{signupdata.email}</div>
-                                  <div>{signupdata.TaxName}: {signupdata.gstNumber}</div>
+                                  <div>
+                                    {signupdata.gstNumber == ''
+                                      ?
+                                      ""
+                                      :
+                                      signupdata.gstNumber
+                                    }
+                                    </div>
 
                                 </address>
                               </div>
@@ -1521,8 +1545,8 @@ thead{
                                         </div>
                                       </td>
                                       <td className="text-center d-none d-md-table-cell">{item.itemquantity}</td>
-                                      <td className="text-end d-none d-md-table-cell">{roundOff(item.price)}</td>
-                                      <td className='text-end'>{roundOff(item.amount)}</td>
+                                      <td className="text-end d-none d-md-table-cell"><CurrencySign />{roundOff(item.price)}</td>
+                                      <td className='text-end'><CurrencySign />{roundOff(item.amount)}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -1538,32 +1562,46 @@ thead{
                                     <tr>
                                       <td className='d-none d-md-table-cell' rowspan="10"></td>
                                       <td className='text-md-end' width="22%">Subtotal</td>
-                                      <td className='text-end' width="22%">${roundOff(invoiceData.subtotal)}</td>
+                                      <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.subtotal)}</td>
                                     </tr>
                                     {
-  invoiceData.discountTotal > 0 
-  ?
-<tr>
-<td className='text-md-end' width="22%">Discount</td>
-                                      <td className='text-end' width="22%">${roundOff(invoiceData.discountTotal)}</td>
-                                    </tr>
+                                      invoiceData.discountTotal > 0 
+                                        ?
+                                      <tr>
+                                        <td className='text-md-end' width="22%">Discount</td>
+                                        <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.discountTotal)}</td>
+                                      </tr>
+                                      :
+                                      null
+                                    }
+                                     
+                                    {
+                                    signupdata.taxPercentage == 0 
+                                    ?
+                                    <tr></tr>
                                     :
-                                    null
-}
                                     <tr>
+                                    <td className='text-md-end' width="22%">
+                                    {signupdata.TaxName} ({signupdata.taxPercentage}%)
+                                    
+                                    </td>
+                                    <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.tax)}</td>
+                                    </tr>
+                                    }
+                                    {/* <tr>
 
                                       <td className='text-md-end' width="22%">{signupdata.TaxName} ({signupdata.taxPercentage}%)</td>
-                                      <td className='text-end' width="22%">${roundOff(invoiceData.tax)}</td>
-                                    </tr>
+                                      <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.tax)}</td>
+                                    </tr> */}
                                     <tr>
 
                                       <td className='text-md-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>Total</td>
-                                      <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>${roundOff(invoiceData.total)}</td>
+                                      <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}><CurrencySign />{roundOff(invoiceData.total)}</td>
                                     </tr>
                                     {transactions.map((transaction) => (
                                       <tr key={transaction._id}>
                                         <td className='text-md-end' width="22%">{transaction.method == "deposit" ? "Deposit" : "Paid"} on {formatCustomDate(transaction.paiddate)}</td>
-                                        <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>${transaction.paidamount}</td>
+                                        <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}><CurrencySign />{transaction.paidamount}</td>
                                       </tr>
                                     ))}
                                   </tbody>
@@ -1586,9 +1624,10 @@ thead{
 
                           </div>
 
-                          <div className='invoice-body'>
+                          <div className='invoice-body invoice-body-text'>
                             <div className='mt-1'>
-                              <span>{invoiceData.information == '' ? '' : 'Note:'}</span> <div dangerouslySetInnerHTML={{ __html: invoiceData.information }} />
+                              <span>{invoiceData.information == '' ? '' : 'Note:'}</span> 
+                              <div className='information-content' dangerouslySetInnerHTML={{ __html: invoiceData.information }} />
 
                             </div>
                           </div>
@@ -1596,10 +1635,6 @@ thead{
 
 
                         </div>
-
-
-
-
                       </div>
 
                       <div className="col-12 col-sm-12 col-md-12 col-lg-4">
