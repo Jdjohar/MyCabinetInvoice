@@ -777,7 +777,7 @@ thead{
           // 'Authorization': authToken, // Uncomment if authToken is required
         },
         body: JSON.stringify({
-          customersign: signatureData,
+            customersign: signatureData.customersign,
           estimateId: estimateId,
           userid: estimateData?.userid || '',
           customerName: estimateData?.customername || '',
