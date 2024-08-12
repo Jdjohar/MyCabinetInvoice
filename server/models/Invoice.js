@@ -50,6 +50,7 @@ const InvoiceSchema = new Schema({
     },
     discountTotal: {
         type: String,
+        default: 0,
     },
     TaxPer: {
         type: String,
