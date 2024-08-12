@@ -1988,6 +1988,7 @@ router.post('/converttoinvoice/:estimateid', async (req, res) => {
                 tax: estimate.tax,
                 taxpercentage: estimate.taxpercentage,
                 job: estimate.job,
+                discountTotal: estimate.discountTotal,
             });
 
             // Save the new invoice to the database
