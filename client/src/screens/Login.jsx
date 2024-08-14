@@ -19,49 +19,7 @@ export default function Login() {
       navigate("/userpanel/Userdashboard");
     }
   })
-//   const handleSubmit = async(e) => {
-//     e.preventDefault();
-//     setloginbtnloader(true);
-//     const response = await fetch("https://mycabinet.onrender.com/api/login",{
-//         method:'POST',
-//         headers: {
-//             'Content-Type':'application/json'
-//         },
-//         body:JSON.stringify({email:credentials.email,password:credentials.password})
-//     });
 
-//     const json = await response.json();
-
-//     console.log(json, 'sd');
-
-//     if(!json.Success){
-//         // alert('Enter vaild  Credentails');
-//         setmessage(true);
-//         setAlertShow(json.errors)
-//         setloginbtnloader(false);
-
-//     }
-//     if(json.Success){
-//       localStorage.setItem("authToken", json.authToken)
-//       localStorage.setItem("userid", json.userid)
-//       localStorage.setItem("username", json.username)
-//       localStorage.setItem("userEmail", credentials.email)
-//       localStorage.setItem("isTeamMember", json.isTeamMember)
-//       localStorage.setItem("startTime", json.startTime)
-//       console.log(localStorage.getItem("authToken"), "Data")
-//         // navigate("/userpanel/Userdashboard");
-//         if (json.isTeamMember == true) {
-//           // Redirect to the team member dashboard
-//           navigate('/Teammemberpanel/Teammenberdashboard');
-//         } else if (json.isTeamMember == false){
-//           // Redirect to the user dashboard
-//           navigate('/userpanel/Userdashboard');
-//         }
-//     }
-//     else{
-//       alert("Login with correct details")
-//     }
-// }
 
 const handleSubmit = async (e) => {
   e.preventDefault();
@@ -92,6 +50,8 @@ const handleSubmit = async (e) => {
       localStorage.setItem("isTeamMember", json.isTeamMember);
       localStorage.setItem("startTime", json.startTime);
       localStorage.setItem("currencyType", json.CurrencyType);
+      console.log("taxOptions", `[{"id":"${json.TaxName}!${json.taxPercentage}","name":"${json.TaxName}","percentage":${json.taxPercentage}}]`);
+      localStorage.setItem("taxOptions", `[{"id":"${json.TaxName}!${json.taxPercentage}","name":"${json.TaxName}","percentage":${json.taxPercentage}}]`);
 
       if (json.isTeamMember) {
         navigate('/Teammemberpanel/Teammenberdashboard');

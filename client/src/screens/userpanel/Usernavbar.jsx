@@ -23,6 +23,7 @@ export default function Usernavbar() {
     localStorage.removeItem('isTeamMember');
     localStorage.removeItem('startTime');
     localStorage.removeItem('currencyType');
+    localStorage.removeItem('taxOptions');
     navigate('/');
   };
   useEffect(() => {

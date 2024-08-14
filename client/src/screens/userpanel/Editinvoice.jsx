@@ -605,6 +605,7 @@ export default function Editinvoice() {
         const subtotal = calculateSubtotal();
         const totalDiscountedAmount = subtotal - discountTotal; 
         const taxAmount = (totalDiscountedAmount * invoiceData.taxpercentage) / 100;
+        console.log(subtotal, discountTotal, "totalDiscountedAmount",taxAmount, "Tax Amount");
         return taxAmount;
     };
     
