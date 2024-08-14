@@ -31,6 +31,7 @@ import Overdue from './screens/userpanel/Overdue';
 import Reports from './screens/userpanel/Reports'
 import Customerwiseinvoice from './screens/userpanel/Customerwiseinvoice'
 import Customersign from './screens/userpanel/Customersign';
+import Customersigninvoice from './screens/userpanel/Customersigninvoice';
 import Signature from './screens/userpanel/Signature';
 import Esign from './screens/userpanel/Esign';
 import Completedocument from './screens/userpanel/Completedocument';
@@ -77,6 +78,7 @@ function App() {
             <Route exact path='/userpanel/Report' element={<Reports/>} />
             <Route exact path='/userpanel/Customerwiseinvoice' element={<Customerwiseinvoice/>} />
             <Route exact path='/customersign' element={<Customersign/>} />
+            <Route exact path='/customersigninvoice' element={<Customersigninvoice/>} />
             <Route exact path='/completedocument' element={<Completedocument/>} />
             <Route exact path='/userpanel/Signature' element={<Signature/>} />
             <Route exact path='/userpanel/E-sign' element={<Esign/>} />

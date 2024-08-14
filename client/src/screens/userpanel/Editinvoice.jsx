@@ -6,12 +6,13 @@ import Usernav from './Usernav';
 import Usernavbar from './Usernavbar';
 import { CKEditor } from '@ckeditor/ckeditor5-react';
 import ClassicEditor from '@ckeditor/ckeditor5-build-classic';
-import Select from 'react-select';
 // import VirtualizedSelect from 'react-virtualized-select';
 // import 'react-virtualized-select/styles.css';
 // import 'react-virtualized/styles.css'
+import Select from 'react-select';
 import CurrencySign from '../../components/CurrencySign ';
 import Alertauthtoken from '../../components/Alertauthtoken';
+import SignatureModal from '../../components/SignatureModal';
 
 class MyCustomUploadAdapter {
     constructor(loader) {
@@ -58,7 +59,6 @@ function MyCustomUploadAdapterPlugin(editor) {
 }
 
 export default function Editinvoice() {
-    
     const [ loading, setloading ] = useState(true);
     const [customers, setcustomers] = useState([]);
     const [selectedCustomerDetails, setSelectedCustomerDetails] = useState({
@@ -80,20 +80,14 @@ export default function Editinvoice() {
     const location = useLocation();
     const invoiceid = location.state?.invoiceid;
     const [editorData, setEditorData] = useState("<p></p>");
+    const [noteimageUrl, setnoteImageUrl] = useState(''); 
     const [alertMessage, setAlertMessage] = useState('');
+    const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);
+    const [hasSignature, setHasSignature] = useState(false);
+    const [isAddSignatureSwitchOn, setIsAddSignatureSwitchOn] = useState(false);
+    const [isCustomerSignSwitchOn, setIsCustomerSignSwitchOn] = useState(false);
 
-    // useEffect(() => {
-    //     if(!localStorage.getItem("authToken") || localStorage.getItem("isTeamMember") == "true")
-    //     {
-    //       navigate("/");
-    //     }
-    //     if (invoiceid) {
-    //         fetchdata();
-    //         fetchcustomerdata();
-    //         fetchitemdata();
-    //     }
-    // }, [invoiceid])
-
+   
     useEffect(() => {
         if (!localStorage.getItem('authToken') || localStorage.getItem('isTeamMember') === 'true') {
             navigate('/');
@@ -101,6 +95,7 @@ export default function Editinvoice() {
             fetchInvoiceData();
             fetchitemdata();
             fetchcustomerdata();
+            fetchSignatureStatus();
         }
         if (isNaN(discountTotal)) {
             setdiscountTotal(0);
@@ -109,44 +104,84 @@ export default function Editinvoice() {
 
     let navigate = useNavigate();
 
+    
+
+    const fetchSignatureStatus = async () => {
+        try {
+            const ownerId = localStorage.getItem('userid');
+            const response = await fetch(`https://mycabinet.onrender.com/api/check-signature/${ownerId}`);
+            const data = await response.json();
+            setHasSignature(data.hasSignature);
+            setIsAddSignatureSwitchOn(data.hasSignature); 
+            setIsCustomerSignSwitchOn(data.hasSignature);
+        } catch (error) {
+            console.error('Error checking signature:', error);
+        }
+    };
+
+    const handleSignatureSwitch = async (event) => {
+        if (event.target.checked) {
+            try {
+                const ownerId = localStorage.getItem('userid');
+                const response = await fetch(`https://mycabinet.onrender.com/api/check-signature/${ownerId}`);
+                const data = await response.json();
+                setHasSignature(data.hasSignature);
+
+                if (!data.hasSignature) {
+                    setIsSignatureModalOpen(true);
+                }
+                setIsAddSignatureSwitchOn(true); // Automatically activate "Add My Signature"
+                setIsCustomerSignSwitchOn(true); // Automatically activate "Customer to Sign"
+            } catch (error) {
+                console.error('Error checking signature:', error);
+            }
+        } else {
+            setIsAddSignatureSwitchOn(false);
+            setIsCustomerSignSwitchOn(false);
+            setHasSignature(false); // Ensure switches are hidden
+        }
+    };
+
+    const handleAddSignatureSwitch = (event) => {
+        setIsAddSignatureSwitchOn(event.target.checked);
+        if (!event.target.checked && !isCustomerSignSwitchOn) {
+            setHasSignature(false);
+        }
+    };
+
+    const handleCustomerSignSwitch = (event) => {
+        setIsCustomerSignSwitchOn(event.target.checked);
+        if (!event.target.checked && !isAddSignatureSwitchOn) {
+            setHasSignature(false);
+        }
+    };
+
+    const saveSignature = async (signatureData) => {
+        try {
+            const ownerId = localStorage.getItem('userid');
+            const email = localStorage.getItem('userEmail');
+            const companyname = localStorage.getItem('companyname');
+            await fetch('https://mycabinet.onrender.com/api/ownersignature', {
+                method: 'POST',
+                headers: {
+                    'Content-Type': 'application/json',
+                },
+                body: JSON.stringify({ signature: signatureData, ownerId, email, companyname }),
+            });
+            setHasSignature(true);
+            setIsSignatureModalOpen(false);
+        } catch (error) {
+            console.error('Error saving signature:', error);
+        }
+    };
+
     const roundOff1 = (amount) => {
         return parseFloat(amount).toFixed(2);
       };
       const roundOff = (value) => {
         return Math.round(value * 100) / 100;
       };
-
-    // const fetchdata = async () => {
-    //     try {
-    //         const userid =  localStorage.getItem("userid");
-    //         const authToken = localStorage.getItem('authToken');
-    //         const response = await fetch(`https://mycabinet.onrender.com/api/geteditinvoicedata/${invoiceid}`, {
-    //             headers: {
-    //               'Authorization': authToken,
-    //             }
-    //         });
-    //           if (response.status === 401) {
-    //             const json = await response.json();
-    //             setAlertMessage(json.message);
-    //             setloading(false);
-    //             window.scrollTo(0,0);
-    //             return; // Stop further execution
-    //           }
-    //           else{
-    //             const json = await response.json();
-            
-    //             if (json.Success) {
-    //                 setInvoiceData(json.invoices);
-    //             } else {
-    //                 console.error('Error fetching invoicedata:', json.message);
-    //             }
-    //             console.log(invoiceData);
-    //           }
-            
-    //     } catch (error) {
-    //         console.error('Error fetching invoicedata:', error);
-    //     }
-    // };
+    
 
     const fetchInvoiceData = async () => {
         try {
@@ -268,6 +303,8 @@ export default function Editinvoice() {
                 // searchitemResults: searchitemResults 
                 tax: calculateTaxAmount(), 
                 discountTotal: discountTotal,
+                isAddSignature: isAddSignatureSwitchOn, 
+                isCustomerSign: isCustomerSignSwitchOn,
             };
     
             const authToken = localStorage.getItem('authToken');
@@ -332,6 +369,20 @@ export default function Editinvoice() {
         }
     };
 
+    // const onChangeitem = (event) => {
+    //     const newItemId = event.value;
+    //     const newItemLabel = event.label;
+
+    //     const isItemExists = searchitemResults.some((item) => item.value === newItemId);
+
+    //     if (!isItemExists) {
+    //         setSearchitemResults([...searchitemResults, { value: newItemId, label: newItemLabel }]);
+    //         setItemExistsMessage(''); // Clear any existing message
+    //     } else {
+    //         setItemExistsMessage('This item is already added!');
+    //     }
+    // };
+
     const onChangeitem = (selectedItem) => {
         // Check if the selected item already exists in invoiceData.items
         const itemExists = invoiceData.items && invoiceData.items.some(item => item.itemId === selectedItem.value);
@@ -343,6 +394,7 @@ export default function Editinvoice() {
             addSelectedItemToInvoice(selectedItem);
         }
     };
+
     // const onChangeitem = (selectedItem) => {
     //     // Call the function to add the selected item to invoiceData.items
     //     addSelectedItemToInvoice(selectedItem);
@@ -624,37 +676,7 @@ export default function Editinvoice() {
           items: updatedItems,
         }));
       };
-
-    // const handlePriceChange = (event, itemId) => {
-    //     const { value } = event.target;
-    //     const newPrice = parseFloat(value) || 0;
-    //     const updatedItems = invoiceData.items.map((item) => {
-    //       if (item.itemId === itemId) {
-    //         const newAmount = newPrice * item.itemquantity;
-    //         return {
-    //           ...item,
-    //           price: newPrice,
-    //           amount: newAmount,
-    //         };
-    //       }
-    //       return item;
-    //     });
-    //     setInvoiceData((prevData) => ({
-    //       ...prevData,
-    //       items: updatedItems,
-    //     }));
-    //   };
       
-    //   const handleDescriptionChange = (event, itemId) => {
-    //     const { value } = event.target;
-    //     setInvoiceData((prevData) => ({
-    //       ...prevData,
-    //       items: prevData.items.map((item) =>
-    //         item.itemId === itemId ? { ...item, description: value } : item
-    //       ),
-    //     }));
-    //   };
-
     const handleDescriptionChange = (editor, itemId) => {
         const value = editor.getData();
         const updatedItems = invoiceData.items.map((item) => {
@@ -725,8 +747,8 @@ export default function Editinvoice() {
                                 <p className='fs-35 fw-bold'>Invoice</p>
                                 <nav aria-label="breadcrumb">
                                     <ol class="breadcrumb mb-0">
-                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Invoice</a></li>
+                                        <li class="breadcrumb-item"><a href="/userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                        <li class="breadcrumb-item"><a href="/userpanel/Invoice" className='txtclr text-decoration-none'>Invoice</a></li>
                                         <li class="breadcrumb-item active" aria-current="page">Edit Invoice</li>
                                     </ol>
                                 </nav>
@@ -738,233 +760,129 @@ export default function Editinvoice() {
                                 {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
                             </div>
                         </div>
-                        <div className='box1 rounded adminborder p-4 m-2 mb-5'>
-                            <div className='row me-2'>
-                                <div className="col-5">
-                                        <div className="customerdetail p-3">
-                                            <ul>
-                                                <li className='fw-bold fs-4'>{invoiceData.customername}</li>
-                                            </ul>
-                                            <p>{invoiceData.customeremail}</p>
-                                        </div>
-                                </div>    
-                                <div className="col-7">
-                                    <div className="row">
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="invoicenumbr" className="form-label">
-                                                    Invoice Number
-                                                </label>
-                                                <input
-                                                type="text"
-                                                name="InvoiceNumber"
-                                                className="form-control"
-                                                value={invoiceData.InvoiceNumber} 
-                                                onChange={onchange}
-                                                // placeholder="Invoice Number"
-                                                id="invoicenumbr"
-                                                required
-                                                disabled
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="purchaseoder" className="form-label">
-                                                    Purchase Order (PO) #
-                                                </label>
-                                                <input
-                                                type="text"
-                                                name="purchaseorder"
-                                                className="form-control"
-                                                value={invoiceData.purchaseorder}
-                                                onChange={onchange}
-                                                id="purchaseoder"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="Date" className="form-label">
-                                                Date
-                                                </label>
-                                                <input
-                                                type="date"
-                                                name="date"
-                                                className="form-control"
-                                                value={new Date(invoiceData.date).toISOString().split('T')[0]} 
-                                                onChange={onchange}
-                                                // placeholder="Date"
-                                                id="Date"
-                                                required
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="job" className="form-label">
-                                                Job
-                                                </label>
-                                                <input
-                                                type="text"
-                                                name="job"
-                                                className="form-control"
-                                                value={invoiceData.job} 
-                                                onChange={onchange}
-                                                // placeholder="Date"
-                                                id="job"
-                                                />
-                                            </div>
-                                        </div>
-                                        <div className="col-6">
-                                            <div className="mb-3">
-                                                <label htmlFor="duedate" className="form-label">
-                                                    Due Date
-                                                </label>
-                                                <input
-                                                type="date"
-                                                name="duedate"
-                                                className="form-control"
-                                                value={new Date(invoiceData.duedate).toISOString().split('T')[0]} 
-                                                onChange={onchange}
-                                                id="duedate"
-                                                />
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>    
-                            </div>
-
-                            <div className='box1 rounded adminborder p-4 m-2'>
-                                <div className="row pt-3">
-                                    <div className="col-6">
-                                        <p>ITEM</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>QUANTITY</p>
-                                    </div>
-                                    <div className="col-2">
-                                        <p>PRICE</p>
-                                    </div>
-                                    {/* <div className="col-2">
-                                        <p>DISCOUNT</p>
-                                    </div> */}
-                                    <div className="col-2">
-                                        <p>AMOUNT</p>
-                                    </div>
-                                </div>
-
-                                <div>
-                                    {console.log(invoiceData, "invoiceData")}
-                                {invoiceData.items && invoiceData.items.map((item) => (
-                                    <div className='row' key={item.itemId}>
-                                    <div className="col-6 ">
-                                        <div className="mb-3 d-flex align-items-baseline justify-content-between">
-                                            <p>{item.itemname}</p>
-                                            <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item.itemId)}>
-                                            {/* <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(invoiceData.itemId)}> */}
- 
-                                                <i className="fas fa-trash"></i>
-                                            </button>
-                                        </div>
-                                    </div>
-                                    <div className="col-2">
-                                        <div className="mb-3">
-                                        <input
-                                            type="number"
-                                            name="quantity"
-                                            className="form-control"
-                                            value={item.itemquantity}
-                                            onChange={(event) => handleQuantityChange (event, item.itemId)}
-                                            id={`quantity-${item.itemId}`}
-                                            required
-                                        />
-                                        </div>
-                                    </div>
-                                    <div className="col-2">
-                                        <div className="mb-3">
-                                            {/* <input
-                                                type="number"
-                                                name="price"
-                                                className="form-control"
-                                                value={item.price}
-                                                id="price"
-                                                required
-                                            /> */}
-                                            <input
-                                                        type="number"
-                                                        name="price"
+                        <div className="row">
+                            <div className="col-lg-9 col-12 order-2 order-lg-1">
+                                <div className='box1 rounded adminborder p-4 m-2 mb-5'>
+                                    <div className='row me-2'>
+                                        <div className="col-5">
+                                                <div className="customerdetail p-3">
+                                                    <ul>
+                                                        <li className='fw-bold fs-4'>{invoiceData.customername}</li>
+                                                    </ul>
+                                                    <p>{invoiceData.customeremail}</p>
+                                                </div>
+                                        </div>    
+                                        <div className="col-7">
+                                            <div className="row">
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="invoicenumbr" className="form-label">
+                                                            Invoice Number
+                                                        </label>
+                                                        <input
+                                                        type="text"
+                                                        name="InvoiceNumber"
                                                         className="form-control"
-                                                        value={item.price}
-                                                        id={`price-${item.itemId}`}
+                                                        value={invoiceData.InvoiceNumber} 
+                                                        onChange={onchange}
+                                                        // placeholder="Invoice Number"
+                                                        id="invoicenumbr"
                                                         required
-                                                        onChange={(event) => handlePriceChange(event, item.itemId)}
-                                                        onBlur={(event) => handlePriceBlur(event, item.itemId)}
-                                                    />
-                                        </div>
-                                    </div>
-                                    {/* <div className="col-2">
-                                        <p><CurrencySign />{item.discount}</p>
-                                    </div> */}
-                                    <div className="col-2">
-                                        <p><CurrencySign />{item.amount}</p>
-                                    </div>
-                                    <div className="col-6">
-                                                <div class="mb-3">
-                                                    <label htmlFor="description" className="form-label">Description</label>
-                                                    {/* <textarea
+                                                        disabled
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="purchaseoder" className="form-label">
+                                                            Purchase Order (PO) #
+                                                        </label>
+                                                        <input
+                                                        type="text"
+                                                        name="purchaseorder"
                                                         className="form-control"
-                                                        name="description"
-                                                        id={`description-${item.itemId}`}
-                                                        placeholder="Item Description"
-                                                        rows="3"
-                                                        value={item.description}
-                                                        onChange={(event) => handleDescriptionChange(event, item.itemId)}
-                                                    /> */}
-                                                    <CKEditor
-                                                        editor={ClassicEditor}
-                                                        data={item.description} // Make sure item.description is a valid string
-                                                        onChange={(event, editor) => {
-                                                            // Ensure handleDescriptionChange receives editor instance
-                                                            handleDescriptionChange(editor, item.itemId);
-                                                        }}
-                                                        onBlur={(event, editor) => {
-                                                            console.log('Blur.', editor);
-                                                        }}
-                                                        onFocus={(event, editor) => {
-                                                            console.log('Focus.', editor);
-                                                        }}
-                                                    />
+                                                        value={invoiceData.purchaseorder}
+                                                        onChange={onchange}
+                                                        id="purchaseoder"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="Date" className="form-label">
+                                                        Date
+                                                        </label>
+                                                        <input
+                                                        type="date"
+                                                        name="date"
+                                                        className="form-control"
+                                                        value={new Date(invoiceData.date).toISOString().split('T')[0]} 
+                                                        onChange={onchange}
+                                                        // placeholder="Date"
+                                                        id="Date"
+                                                        required
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="job" className="form-label">
+                                                        Job
+                                                        </label>
+                                                        <input
+                                                        type="text"
+                                                        name="job"
+                                                        className="form-control"
+                                                        value={invoiceData.job} 
+                                                        onChange={onchange}
+                                                        // placeholder="Date"
+                                                        id="job"
+                                                        />
+                                                    </div>
+                                                </div>
+                                                <div className="col-6">
+                                                    <div className="mb-3">
+                                                        <label htmlFor="duedate" className="form-label">
+                                                            Due Date
+                                                        </label>
+                                                        <input
+                                                        type="date"
+                                                        name="duedate"
+                                                        className="form-control"
+                                                        value={new Date(invoiceData.duedate).toISOString().split('T')[0]} 
+                                                        onChange={onchange}
+                                                        id="duedate"
+                                                        />
+                                                    </div>
                                                 </div>
                                             </div>
-                                    
+                                        </div>    
                                     </div>
-                                        ))}
-                                        <div className='col-lg-6 col-12'>
-                                        {itemExistsMessage && (
-                                            <div className="alert alert-warning mt-3" role="alert">
-                                                {itemExistsMessage}
-                                            </div>
-                                        )}
-                                        </div>
-                                {/* {searchitemResults.map((item) => {
-                                    const selectedItem = items.find((i) => i._id === item.value);
-                                    const itemPrice = selectedItem?.price || 0;
-                                    const itemId = item.value;
-                                    const quantity = quantityMap[itemId] || 1;
-                                    const discount = discountMap[itemId] || 0;
-                                    const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
-                                    const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
-                                    
-                                    });
-                                    console.log(selectedItem);
 
-                                    return (
-                                        <div className='row'  key={item.itemId}>
-                                            <div className="col-4 ">
+                                    <div className='box1 rounded adminborder p-4 m-2'>
+                                        <div className="row pt-3">
+                                            <div className="col-6">
+                                                <p>ITEM</p>
+                                            </div>
+                                            <div className="col-2">
+                                                <p>QUANTITY</p>
+                                            </div>
+                                            <div className="col-2">
+                                                <p>PRICE</p>
+                                            </div>
+                                            <div className="col-2">
+                                                <p>AMOUNT</p>
+                                            </div>
+                                        </div>
+
+                                        <div>
+                                            {console.log(invoiceData, "invoiceData")}
+                                        {invoiceData.items && invoiceData.items.map((item) => (
+                                            <div className='row' key={item.itemId}>
+                                            <div className="col-6 ">
                                                 <div className="mb-3 d-flex align-items-baseline justify-content-between">
-                                                    <p>{item.label}</p>
-                                                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
+                                                    <p>{item.itemname}</p>
+                                                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteClick(item.itemId)}> 
                                                         <i className="fas fa-trash"></i>
                                                     </button>
                                                 </div>
@@ -973,178 +891,274 @@ export default function Editinvoice() {
                                                 <div className="mb-3">
                                                 <input
                                                     type="number"
-                                                    name={`quantity-${itemId}`}
+                                                    name="quantity"
                                                     className="form-control"
-                                                    value={quantity}
-                                                    onChange={(event) => onChangeQuantity(event, itemId)}
-                                                    id={`quantity-${itemId}`}
+                                                    value={item.itemquantity}
+                                                    onChange={(event) => handleQuantityChange (event, item.itemId)}
+                                                    id={`quantity-${item.itemId}`}
                                                     required
                                                 />
                                                 </div>
                                             </div>
                                             <div className="col-2">
                                                 <div className="mb-3">
+                                                
                                                     <input
-                                                        type="number"
-                                                        name="price"
-                                                        className="form-control"
-                                                        value={item.price}
-                                                        id={`price-${item.itemId}`}
-                                                        required
-                                                        onChange={(event) => handlePriceChange(event, item.itemId)}
-                                                    />
+                                                                type="text"
+                                                                name="price"
+                                                                className="form-control"
+                                                                value={item.price}
+                                                                id={`price-${item.itemId}`}
+                                                                required
+                                                                onChange={(event) => handlePriceChange(event, item.itemId)}
+                                                                onBlur={(event) => handlePriceBlur(event, item.itemId)}
+                                                            />
                                                 </div>
                                             </div>
-                                            <div className="col-2 text-center">
-                                                <p><CurrencySign />{discount.toFixed(2)}</p>
+                                        
+                                            <div className="col-2">
+                                                <p><CurrencySign />{item.amount}</p>
                                             </div>
-                                            <div className="col-2 text-center">
-                                                <p><CurrencySign />{formattedTotalAmount}</p>
+                                            <div className="col-6">
+                                                        <div class="mb-3">
+                                                            <label htmlFor="description" className="form-label">Description</label>
+                                                        
+                                                            <CKEditor
+                                                                editor={ClassicEditor}
+                                                                data={item.description} // Make sure item.description is a valid string
+                                                                onChange={(event, editor) => {
+                                                                    handleDescriptionChange(editor, item.itemId);
+                                                                }}
+                                                                onBlur={(event, editor) => {
+                                                                    console.log('Blur.', editor);
+                                                                }}
+                                                                onFocus={(event, editor) => {
+                                                                    console.log('Focus.', editor);
+                                                                }}
+                                                            />
+                                                        </div>
+                                                    </div>
+                                            </div>
+                                                ))}
+                                                <div className='col-lg-6 col-12'>
+                                                {itemExistsMessage && (
+                                                    <div className="alert alert-warning mt-3" role="alert">
+                                                        {itemExistsMessage}
+                                                    </div>
+                                                )}
+                                                </div>
+                                                
+                                                {/* {searchitemResults.map((item) => {
+                                                    const selectedItem = items.find((i) => i._id === item.value);
+                                                    const itemPrice = selectedItem?.price || 0;
+                                                    const itemId = item.value;
+                                                    const quantity = quantityMap[itemId] || 1;
+                                                    const discount = discountMap[itemId] || 0;
+                                                    const discountedAmount = calculateDiscountedAmount(itemPrice, quantity, discount);
+                                                    const formattedTotalAmount = Number(discountedAmount).toLocaleString('en-IN', {
+                                                    
+                                                    });
+
+                                                    return (
+                                                        <div className='row'  key={item.itemId}>
+                                                            <div className="col-6 ">
+                                                                <div className="mb-3 d-flex align-items-baseline justify-content-between">
+                                                                    <p>{item.label}</p>
+                                                                    <button type="button" className="btn btn-danger btn-sm me-2" onClick={() => onDeleteItem(item.value)}>
+                                                                        <i className="fas fa-trash"></i>
+                                                                    </button>
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-2">
+                                                                <div className="mb-3">
+                                                                <input
+                                                                    type="number"
+                                                                    name={`quantity-${itemId}`}
+                                                                    className="form-control"
+                                                                    value={quantity}
+                                                                    onChange={(event) => onChangeQuantity(event, itemId)}
+                                                                    id={`quantity-${itemId}`}
+                                                                    required
+                                                                />
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-2">
+                                                                <div className="mb-3">
+                                                                    <input
+                                                                        type="number"
+                                                                        name="price"
+                                                                        className="form-control"
+                                                                        value={itemPrice}
+                                                                        id="price"
+                                                                        required
+                                                                        readOnly
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                            <div className="col-2 text-center">
+                                                                <p><CurrencySign />{formattedTotalAmount}</p>
+                                                            </div>
+                                                            <div className="col-6">
+                                                                <div class="mb-3">
+                                                                    <label htmlFor="description" className="form-label">Description</label>
+                                                                    <CKEditor
+                                                                        editor={ ClassicEditor }
+                                                                        data={invoiceData.description}
+                                                                        onChange={handledescChange}
+                                                                        onBlur={ ( event, editor ) => {
+                                                                            console.log( 'Blur.', editor );
+                                                                        } }
+                                                                        onFocus={ ( event, editor ) => {
+                                                                            console.log( 'Focus.', editor );
+                                                                        } }
+                                                                    />
+                                                                </div>
+                                                            </div>
+                                                        </div>
+                        );
+                                                })} */}
+
+                                        </div>
+                                        <hr />
+
+                                        <div className="row pt-3">
+                                            <div className="col-7">
+                                                <div className="search-container forms">
+                                                    <p className='fs-20 mb-0'>Select Item</p>
+                                                    <Select
+                                                        className="form-control zindex op pl-0"
+                                                        value={searchitemResults}
+                                                        onChange={onChangeitem}
+                                                        options={items.map(item => ({
+                                                            value: item._id,
+                                                            label: item.itemname,
+                                                        }))}
+                                                        placeholder=""
+                                                    />
+                                                </div>
                                             </div>
                                             <div className="col-5">
-                                                <div class="mb-3">
-                                                    <label htmlFor="description" className="form-label">Description</label>
-                                                    
-                                                    <CKEditor
-                                                        editor={ ClassicEditor }
-                                                        data={selectedItem.description}
+                                                <div className="row">
+                                                    <div className="col-6">
+                                                        <p>Subtotal</p>
+                                                        <p>GST {invoiceData.taxpercentage}%</p>
+                                                        <p>Discount</p>
+                                                        <p>Total</p>
+                                                    </div>
+                                                    <div className="col-6">
+                                                        <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
+                                                        })}</p>
+                                                        <div className="col-6">
+                                                    </div>
+                                                        <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
+                                                        })}</p>
                                                         
-                                                        onChange={( event, editor ) => {
-                                                            handleDescriptionChange(editor, item.itemId);
-                                                        }
-                                                        }
-                                                        onBlur={ ( event, editor ) => {
-                                                            console.log( 'Blur.', editor );
-                                                        } }
-                                                        onFocus={ ( event, editor ) => {
-                                                            console.log( 'Focus.', editor );
-                                                        } }
-                                                    />
-                                                </div>
-                                            </div>
-                                            
-                                            <div className="col-3">
-                                                <div class="mb-3">
-                                                    <label htmlFor="Discount" className="form-label">Discount</label>
-                                                    <input
-                                                        type='number'
-                                                        name={`discount-${itemId}`}
-                                                        className='form-control'
-                                                        value={discount}
-                                                        onChange={(event) => onDiscountChange(event, itemId)}
-                                                        placeholder='Discount'
-                                                        id={`discount-${itemId}`}
-                                                        min="0"
-                                                    />
+                                                        <div className="mb-3">
+                                                            <input
+                                                                type="number"
+                                                                name="totaldiscount"
+                                                                className="form-control"
+                                                                value={discountTotal}
+                                                                onChange={handleDiscountChange} 
+                                                                placeholder="Enter Discount Total"
+                                                                id="discountInput"
+                                                                min="0"
+                                                            />
+                                                        </div>
+                                                        <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                            })}</p>
+                                                    </div>
                                                 </div>
                                             </div>
                                         </div>
-        );
-      })} */}
-                                </div>
-                                <hr />
+                                        <hr />
+                                        <div className="row pt-3">
+                                            <div className="col-7"></div>
+                                            <div className="col-5">
+                                                <div className="row">
+                                                    <div className="col-6">
+                                                        <p>Amount due</p>
+                                                    </div>
+                                                    <div className="col-6">
+                                                        <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
+                                                        
+                                                            })}</p>
+                                                    </div>
+                                                </div>
+                                            </div>
+                                        </div>
+                                    </div>
 
-                                <div className="row pt-3">
-                                    <div className="col-7">
-                                        <div className="search-container forms">
-                                            <p className='fs-20 mb-0'>Select Item</p>
-                                            <Select
-                                                className="form-control zindex op pl-0"
-                                                value={searchitemResults}
-                                                onChange={onChangeitem}
-                                                options={items.map(item => ({
-                                                    value: item._id,
-                                                    label: item.itemname,
-                                                }))}
-                                                placeholder=""
-                                            />
-                                        </div>
-                                    </div>
-                                    <div className="col-5">
-                                        <div className="row">
-                                            <div className="col-6">
-                                                <p>Subtotal</p>
-                                                {/* <p>GST</p> */}
-                                                <p>GST {invoiceData.taxpercentage}%</p>
-                                                <p>Discount</p>
-                                                <p>Total</p>
-                                            </div>
-                                            <div className="col-6">
-                                                <p><CurrencySign />{calculateSubtotal().toLocaleString('en-IN', {
-                                                })}</p>
-                                                <div className="col-6">
-                                                {/* <div class="mb-3">
-                                                    <input
-                                                        type="number"
-                                                        name="tax"
-                                                        className="form-control"
-                                                        value={invoiceData.taxpercentage}
-                                                        onChange={handleTaxChange}
-                                                        placeholder="Enter Tax Percentage"
-                                                        id="taxInput"
-                                                        min="0"
-                                                    />
-                                                </div> */}
-                                            </div>
-                                                <p><CurrencySign />{calculateTaxAmount().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
-                                                })}</p>
-                                                
-                                                <div className="mb-3">
-                                                    <input
-                                                        type="number"
-                                                        name="totaldiscount"
-                                                        className="form-control"
-                                                        value={discountTotal}
-                                                        onChange={handleDiscountChange} // Ensure proper event binding
-                                                        placeholder="Enter Discount Total"
-                                                        id="discountInput"
-                                                        min="0"
-                                                    />
-                                                </div>
-                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
-                                                    })}</p>
-                                            </div>
-                                        </div>
-                                    </div>
-                                </div>
-                                <hr />
-                                <div className="row pt-3">
-                                    <div className="col-7"></div>
-                                    <div className="col-5">
-                                        <div className="row">
-                                            <div className="col-6">
-                                                <p>Amount due</p>
-                                            </div>
-                                            <div className="col-6">
-                                                <p><CurrencySign />{calculateTotal().toLocaleString('en-IN', {
-                                                    // style: 'currency',
-                                                    // currency: 'INR',
-                                                    })}</p>
-                                            </div>
-                                        </div>
+                                    <div className='box1 rounded adminborder m-2 mt-5'>
+                                        <CKEditor
+                                            editor={ ClassicEditor }
+                                            data={invoiceData.information}
+                                            // onReady={ editor => {
+                                            //     console.log( 'Editor is ready to use!', editor );
+                                            // } }
+                                            
+                                            // data={editorData}
+                                            config={{ extraPlugins: [MyCustomUploadAdapterPlugin] }}
+                                            onChange={handleEditorChange}
+                                            onBlur={ ( event, editor ) => {
+                                                console.log( 'Blur.', editor );
+                                            } }
+                                            onFocus={ ( event, editor ) => {
+                                                console.log( 'Focus.', editor );
+                                            } }
+                                        />
                                     </div>
                                 </div>
                             </div>
-
-                            <div className='box1 rounded adminborder m-2 mt-5'>
-                                <CKEditor
-                                    editor={ ClassicEditor }
-                                    data={invoiceData.information}
-                                    // onReady={ editor => {
-                                    //     console.log( 'Editor is ready to use!', editor );
-                                    // } }
-                                    
-                                    onChange={handleEditorChange}
-                                    config={{ extraPlugins: [MyCustomUploadAdapterPlugin] }}
-                                    onBlur={ ( event, editor ) => {
-                                        console.log( 'Blur.', editor );
-                                    } }
-                                    onFocus={ ( event, editor ) => {
-                                        console.log( 'Focus.', editor );
-                                    } }
-                                />
+                            
+                            <div className="col-lg-3 col-12 order-1 order-lg-2">
+                                <div className='box1 rounded adminborder p-4 my-2 mx-0 mb-5'>
+                                    <div className="form-check form-switch">
+                                        <div>
+                                            <label className="form-check-label" htmlFor="signatureSwitch">Signature</label>
+                                            <input
+                                                className="form-check-input"
+                                                type="checkbox"
+                                                role="switch"
+                                                id="signatureSwitch"
+                                                onChange={handleSignatureSwitch}
+                                                checked={hasSignature}
+                                            />
+                                        </div>
+                                        {hasSignature && (
+                                            <>
+                                                <div>
+                                                    <label className="form-check-label" htmlFor="addSignatureSwitch">Add My Signature</label>
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        role="switch"
+                                                        id="addSignatureSwitch"
+                                                        checked={isAddSignatureSwitchOn}
+                                                        onChange={handleAddSignatureSwitch}
+                                                    />
+                                                </div>
+                                                <div>
+                                                    <label className="form-check-label" htmlFor="customerSignSwitch">Customer to Sign</label>
+                                                    <input
+                                                        className="form-check-input"
+                                                        type="checkbox"
+                                                        role="switch"
+                                                        id="customerSignSwitch"
+                                                        checked={isCustomerSignSwitchOn}
+                                                        onChange={handleCustomerSignSwitch}
+                                                    />
+                                                </div>
+                                            </>
+                                        )}
+                                    </div>
+                                </div>
+                                {isSignatureModalOpen && (
+                                    <SignatureModal
+                                        onSave={saveSignature}
+                                        onClose={() => setIsSignatureModalOpen(false)}
+                                    />
+                                )}
                             </div>
                         </div>
 
