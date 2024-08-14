@@ -121,6 +121,50 @@ router.get('/checkcustomersignature/:estimateIds', (req, res) => {
       .catch(err => res.status(200).json({ hasSignature: false }));
   });
 
+  router.get('/checkcustomersignatureusinginvoice/:invoiceIds', (req, res) => {
+    const { invoiceIds } = req.params;
+      CustomerSignatureSchema.findOne({invoiceId: invoiceIds })
+      .then(signature => {
+        if (signature) {
+          res.status(200).json({ hasSignature: true, signatureData: signature });
+        } else {
+          res.status(200).json({ hasSignature: false });
+        }
+      })
+      .catch(err => res.status(200).json({ hasSignature: false }));
+  });
+
+  router.put('/updatecustomersigninv/:invoiceId', async (req, res) => {
+    const { invoiceId } = req.params;
+    const { customersign, customerName, documentNumber, status,lastupdated,completeButtonVisible } = req.body;
+  
+    try {
+      const customerSignature = await CustomerSignatureSchema.findOneAndUpdate(
+        { invoiceId: invoiceId },
+        {
+          customersign,
+          invoiceId,
+          customerName,
+          documentNumber,
+          status,
+          lastupdated,
+          completeButtonVisible
+        },
+        { new: true }
+      );
+  
+      if (customerSignature) {
+        res.status(200).json({ message: 'Customer signature updated successfully', customerSignature });
+      } else {
+        res.status(404).json({ message: 'Customer signature not found' });
+      }
+    } catch (error) {
+      console.error('Error updating customer signature:', error);
+      res.status(500).json({ message: 'Server error' });
+    }
+  });
+
+
 router.post('/ownersignature', (req, res) => {
     const { signature, ownerId, email,companyname } = req.body;
   
@@ -163,13 +207,14 @@ router.put('/update-ownersignature', async (req, res) => {
 });
 
 router.post('/customersignature', (req, res) => {
-    const { customersign, estimateId,userid, customerName, customerEmail,documentNumber,lastupdated,completeButtonVisible } = req.body;
+    const { customersign, invoiceId, estimateId,userid, customerName, customerEmail,documentNumber,lastupdated,completeButtonVisible } = req.body;
 
-    if (!estimateId) {
-      return res.status(400).json({ message: 'Invalid Estimate ID' });
+    if (!estimateId && !invoiceId) {
+        return res.status(400).json({ message: 'Either Estimate ID or Invoice ID must be provided' });
     }
 
     const newSignature = new CustomerSignatureSchema({
+        invoiceId,
         estimateId,
         customerName,
         customerEmail,
@@ -310,6 +355,18 @@ router.get('/getemailestimatedata/:estimateid', async (req, res) => {
         const estimatedetail = await Estimate.findById(estimateid);
 
         res.json(estimatedetail);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+router.get('/getemailinvoicedata/:invoiceid', async (req, res) => {
+    try {
+        const invoiceid = req.params.invoiceid;
+        const invoicedetail = await Invoice.findById(invoiceid);
+
+        res.json(invoicedetail);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Internal server error' });
@@ -498,6 +555,8 @@ router.post('/send-invoice-email', async (req, res) => {
         customdate,
         duedate,
         InvoiceNumber,
+        invoiceId,
+        ownerId,
         amountdue,
         currencyType,
         amountdue1
@@ -552,6 +611,7 @@ router.post('/send-invoice-email', async (req, res) => {
                 </div>
                 <div style="margin: 20px 0px 10px;">
                     <p style="color:#222">This email contains a unique link just for you. Please do not share this email or link or others will have access to your document.</p>
+                    <a href="https://mycabinets.vercel.app/customersigninvoice?invoiceId=${invoiceId}" style="display:inline-block;padding:10px 20px;background-color:#4CAF50;color:#fff;text-decoration:none;border-radius:5px;">View this Estimate</a>
                 </div>
             </section>
             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
@@ -823,6 +883,80 @@ router.post('/send-estimate-signed-email', async (req, res) => {
 
     const mailOptions = {
         from: "accounts@mycabinets.net",
+        to: to,
+        subject: 'Your document has been signed',
+        html: `<html>
+        <body style="background-color:#c5c1c187; margin-top: 40px; padding:20px 0px;">
+             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#fff; padding: 15px 30px; margin-top: 40px;">
+                <div style="padding: 10px 0px;  text-align: center; font-weight: 500; color: #999999">
+                </div>
+                <div>
+                    <h1 style="margin-bottom:0px; font-size: 32px; color:#222">${customerName} has signed your document</h1>
+                </div>
+                <div>
+                    <p style="margin-bottom:10px; font-size: 18px; color:#222; padding-bottom:25px;">Document signed: <span style="font-weight:bold"> ${documentNumber} has been signed by ${customerName}.</span></p>
+                </div><hr/>
+                <div>
+                    <p style="margin-bottom:0px; padding-top:10px; padding-bottom:15px; font-size: 14px; color:#222"><span style="font-weight:bold">DO NOT </span>share this email</p>
+                </div>
+                <div style="padding: 1px 5px; margin: 0px 0px 10px;">
+                    <p style="color:#222">This email contains a unique link just for you. 
+                        Please do not share this email or link or others will have access to your document.
+                    </p>
+                </div>
+            </section>
+            <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
+                <div>
+                    <h1 style="font-size: 35px; margin-bottom: 0; margin-top: 0; color:#222">ESTIMATE</h1>
+                </div>
+                <div>
+                    <ul style="text-align: center;display: inline-flex;list-style:none;padding-left:0px">
+                        <li>
+                            <a href="">
+                                <img src="https://static.xx.fbcdn.net/rsrc.php/yb/r/hLRJ1GG_y0J.ico" alt="facebook icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                        <li>
+                            <a href="">
+                                <img src="https://static.cdninstagram.com/rsrc.php/y4/r/QaBlI0OZiks.ico" alt="instagram icon" style="margin: 0px 5px;">
+                            </a>
+                        </li>
+                    </ul>
+                </div>
+            </section>
+        </body>
+            </html>`,
+    };
+
+    try {
+        await transporter.sendMail(mailOptions);
+        console.log('Email sent successfully!');
+        res.status(200).json({ success: true });
+    } catch (error) {
+        console.error('Error sending email:', error);
+        res.status(500).json({ success: false, error: 'Failed to send email.' });
+    }
+});
+
+router.post('/send-Invoice-signed-email', async (req, res) => {
+    const {
+        to,
+        invoiceId,
+        ownerId,
+        documentNumber,
+        customerName
+    } = req.body;
+
+    const transporter = nodemailer.createTransport({
+        service: 'gmail',
+        auth: {
+            user: "jdwebservices1@gmail.com",
+            pass: "cwoxnbrrxvsjfbmr"
+        },
+    });
+
+    const mailOptions = {
+        from: 'jdwebservices1@gmail.com',
         to: to,
         subject: 'Your document has been signed',
         html: `<html>
