@@ -51,8 +51,10 @@ export default function Invoicedetail() {
   const [pdfExportVisible, setPdfExportVisible] = useState(false);
   const [ownerData, setOwnerData] = useState(null);
   const [signatureData, setsignatureData] = useState(null);
+
+  const [isSubmitting, setIsSubmitting] = useState(false);
   // const [signatureData, setsignatureData] = useState(null);
-  
+
 
 
   useEffect(() => {
@@ -78,7 +80,7 @@ export default function Invoicedetail() {
 
   const roundOff = (value) => {
     return Math.round(value * 100) / 100;
-};
+  };
 
   const handlePercentageChange = (event) => {
     setdepositPercentage(event.target.value);
@@ -145,31 +147,30 @@ export default function Invoicedetail() {
               setsavedDepositData('');
               const setamountDue = roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount)
               console.log("setamountDue Mark Depoist: ==============", setamountDue);
-  
-  
-              const updatedData = { 
-  
-                ...invoiceData,  
-                amountdue: setamountDue, 
-                status: `${
-                  setamountDue == 0
-                  ?
-                  "Paid"
-                  :
-                  "Partially Paid"
-                }`
-              
-              
+
+
+              const updatedData = {
+
+                ...invoiceData,
+                amountdue: setamountDue,
+                status: `${setamountDue == 0
+                    ?
+                    "Paid"
+                    :
+                    "Partially Paid"
+                  }`
+
+
               }; // Update emailsent status
-          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': authToken,
-            },
-            body: JSON.stringify(updatedData),
-          });
-  
+              await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+                method: 'POST',
+                headers: {
+                  'Content-Type': 'application/json',
+                  'Authorization': authToken,
+                },
+                body: JSON.stringify(updatedData),
+              });
+
 
               console.log('Payment added successfully!');
               // Fetch updated transaction data after payment addition
@@ -181,7 +182,7 @@ export default function Invoicedetail() {
               // Update amount due by subtracting totalPaidAmount from total invoice amount
               const updatedAmountDue = invoiceData.total - totalPaidAmount;
               setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
-              
+
               // Close the modal after adding payment
               document.getElementById('closebutton').click();
               if (modalRef.current) {
@@ -475,15 +476,15 @@ export default function Invoicedetail() {
       console.error('Customer email is not defined');
       return;
     }
-  
+
     try {
       const response = await fetch(`https://mycabinet.onrender.com/api/checkcustomersignatureusinginvoice/${encodeURIComponent(invoiceIdpass)}`);
       const json = await response.json();
       console.log('Customer signature response:', json);
       if (response.ok && json.hasSignature) {
-        setsignatureData(json.signatureData); 
+        setsignatureData(json.signatureData);
       } else {
-        setsignatureData(null); 
+        setsignatureData(null);
       }
     } catch (error) {
       console.error('Error fetching customer signature:', error);
@@ -624,19 +625,24 @@ export default function Invoicedetail() {
   };
 
   const handleAddPayment = async () => {
-    // const invoiceid = 'your-invoice-id'; 
+    if (isSubmitting) return; // Prevent further clicks if already submitting
+    setIsSubmitting(true); // Disable the button
+
     const userid = localStorage.getItem("userid");
     const authToken = localStorage.getItem('authToken');
+
     // Check for errors
     if (transactionData.paidamount === '') {
       setpaidamounterror("Fill detail");
-      return; // Exit the function early if there's an error
+      setIsSubmitting(false); // Re-enable the button
+      return;
     } else {
       setpaidamounterror(""); // Clear the error if the field is filled
     }
 
     if (transactionData.paiddate === '') {
       setpaiddateerror("Fill detail");
+      setIsSubmitting(false); // Re-enable the button
       return;
     } else {
       setpaiddateerror("");
@@ -644,30 +650,32 @@ export default function Invoicedetail() {
 
     if (transactionData.method === '') {
       setmethoderror("Fill detail");
+      setIsSubmitting(false); // Re-enable the button
       return;
     } else {
       setmethoderror("");
     }
+
     // Fetch updated transaction data after payment addition
     await fetchtransactiondata();
 
-    // Calculate total paid amount from transactions
-    // const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
     const totalPaidAmount = transactions.reduce(
       (total, payment) => total + parseFloat(payment.paidamount),
       0
     );
-    // Check if the paid amount exceeds the due amount
+
     const dueAmount = invoiceData.total - totalPaidAmount;
     const paymentAmount = parseFloat(transactionData.paidamount);
 
     if (paymentAmount > dueAmount) {
       console.error('Payment amount exceeds the due amount.');
       setexceedpaymenterror("Payment amount exceeds the amount.");
+      setIsSubmitting(false); // Re-enable the button
       return;
     } else {
       setexceedpaymenterror("");
     }
+
     try {
       const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
         method: 'POST',
@@ -690,68 +698,51 @@ export default function Invoicedetail() {
         setAlertMessage(responseData.message);
         setloading(false);
         window.scrollTo(0, 0);
+        setIsSubmitting(false); // Re-enable the button
         return; // Stop further execution
-      }
-      else {
-        if (response.ok) {
-          const responseData = await response.json();
-          if (responseData.success) {
-            console.log(responseData, 'Payment added successfully!');
-            console.log(roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount), 'invoiceData');
-            // Fetch updated transaction data after payment addition
+      } else if (response.ok) {
+        const responseData = await response.json();
+        if (responseData.success) {
+          console.log(responseData, 'Payment added successfully!');
+          const setamountDue = roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount);
 
-            const setamountDue = roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount)
-            console.log("setamountDue: ==============", setamountDue);
+          console.log("setamountDue: ==============", setamountDue);
 
+          const updatedData = {
+            ...invoiceData,
+            amountdue: setamountDue,
+            status: setamountDue === 0 ? "Paid" : "Partially Paid",
+          };
 
-            const updatedData = { 
+          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              'Authorization': authToken,
+            },
+            body: JSON.stringify(updatedData),
+          });
 
-              ...invoiceData,  
-              amountdue: setamountDue, 
-              status: `${
-                setamountDue == 0
-                ?
-                "Paid"
-                :
-                "Partially Paid"
-              }`
-            
-            
-            }; // Update emailsent status
-        await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            'Authorization': authToken,
-          },
-          body: JSON.stringify(updatedData),
-        });
+          await fetchtransactiondata();
 
-        
-            await fetchtransactiondata();
+          const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
+          const updatedAmountDue = invoiceData.total - totalPaidAmount;
+          setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
 
-            // Calculate total paid amount from transactions
-            const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
-
-            // Update amount due by subtracting totalPaidAmount from total invoice amount
-            const updatedAmountDue = invoiceData.total - totalPaidAmount;
-            setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
-            // Close the modal after adding payment
-            document.getElementById('closebutton').click();
-            if (modalRef.current) {
-              modalRef.current.hide();
-            }
-          } else {
-            console.error('Failed to add payment.');
+          document.getElementById('closebutton').click();
+          if (modalRef.current) {
+            modalRef.current.hide();
           }
         } else {
           console.error('Failed to add payment.');
         }
+      } else {
+        console.error('Failed to add payment.');
       }
-
-
     } catch (error) {
       console.error('Error adding payment:', error);
+    } finally {
+      setIsSubmitting(false); // Re-enable the button
     }
   };
 
@@ -1077,105 +1068,109 @@ thead{
   }
 
   const handleEditContent = (invoiceData) => {
-    const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
+    // Calculate the total paid amount from all transactions
+    const totalPaidAmount = transactions.reduce(
+        (total, payment) => total + parseFloat(payment.paidamount), 
+        0
+    );
 
-    if (totalPaidAmount === 0) {
-      // If totalPaidAmount is 0, navigate to /userpanel/Createinvoice page
-      setselectedinvoices(invoiceData);
-      let invoiceid = invoiceData._id;
-      console.log(invoiceid);
-      navigate('/userpanel/Editinvoice', { state: { invoiceid } });
-    } else {
-      // If totalPaidAmount is not 0, show an alert
-      setShowAlert(true);
-    }
-  };
+    // Log the total paid amount (optional)
+    console.log(`Total Paid Amount: ${totalPaidAmount}`);
+
+    // Always navigate to the Edit Invoice page
+    setselectedinvoices(invoiceData); // Store the selected invoice data
+    const invoiceid = invoiceData._id; // Extract the invoice ID
+    console.log(invoiceid); // Log the invoice ID for debugging
+
+    // Navigate to the Edit Invoice page, passing the invoice ID in the state
+    navigate('/userpanel/Editinvoice', { state: { invoiceid } });
+};
 
   const handleDeleteTransClick = async (transactionid) => {
     try {
-        const authToken = localStorage.getItem('authToken');
-        const response = await fetch(`https://mycabinet.onrender.com/api/deltransaction/${transactionid}`, {
-            method: 'GET',
-            headers: {
-                'Authorization': authToken,
-              }
-        });
-
-        if (response.status === 401) {
-          const json = await response.json();
-          setAlertMessage(json.message);
-          setloading(false);
-          window.scrollTo(0,0);
-          return; // Stop further execution
-        }
-        else{
-            const json = await response.json();
-            if (json.Success) {
-              console.log('Transaction removed successfully!');
-              fetchtransactiondata();
-            } else {
-                console.error('Error deleting teammember:', json.message);
-            }
-        }
-    } catch (error) {
-        console.error('Error deleting teammember:', error);
-    }
-};
-
-const handleRemove = async (invoiceid, invoiceIdpass) => {
-  try {
-    // Check if there's a customer signature
-    const signatureData = await checkCustomerSignature(invoiceIdpass);
-
-    // If a signature exists, delete it
-    if (signatureData) {
       const authToken = localStorage.getItem('authToken');
-      const deleteSignatureResponse = await fetch(`https://mycabinet.onrender.com/api/delcustomersignature/${encodeURIComponent(invoiceIdpass)}`, {
-        method: 'DELETE',
+      const response = await fetch(`https://mycabinet.onrender.com/api/deltransaction/${transactionid}`, {
+        method: 'GET',
         headers: {
           'Authorization': authToken,
         }
       });
 
-      if (!deleteSignatureResponse.ok) {
-        const json = await deleteSignatureResponse.json();
-        console.error('Error deleting customer signature:', json.message);
-        return; // Stop further execution if deleting signature fails
-      } else {
-        console.log('Customer signature deleted successfully!');
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0, 0);
+        return; // Stop further execution
       }
+      else {
+        const json = await response.json();
+        if (json.Success) {
+          console.log('Transaction removed successfully!');
+          fetchtransactiondata();
+        } else {
+          console.error('Error deleting teammember:', json.message);
+        }
+      }
+    } catch (error) {
+      console.error('Error deleting teammember:', error);
     }
+  };
 
-    // Proceed with deleting the estimate data
-    const authToken = localStorage.getItem('authToken');
-    const response = await fetch(`https://mycabinet.onrender.com/api/deldata/${invoiceid}`, {
-      method: 'GET',
-      headers: {
-        'Authorization': authToken,
+  const handleRemove = async (invoiceid, invoiceIdpass) => {
+    try {
+      // Check if there's a customer signature
+      const signatureData = await checkCustomerSignature(invoiceIdpass);
+
+      // If a signature exists, delete it
+      if (signatureData) {
+        const authToken = localStorage.getItem('authToken');
+        const deleteSignatureResponse = await fetch(`https://mycabinet.onrender.com/api/delcustomersignature/${encodeURIComponent(invoiceIdpass)}`, {
+          method: 'DELETE',
+          headers: {
+            'Authorization': authToken,
+          }
+        });
+
+        if (!deleteSignatureResponse.ok) {
+          const json = await deleteSignatureResponse.json();
+          console.error('Error deleting customer signature:', json.message);
+          return; // Stop further execution if deleting signature fails
+        } else {
+          console.log('Customer signature deleted successfully!');
+        }
       }
-    });
 
-    if (response.status === 401) {
-      const json = await response.json();
-      setAlertMessage(json.message);
-      setloading(false);
-      window.scrollTo(0, 0);
-      return; // Stop further execution
-    } else {
-      const json = await response.json();
+      // Proceed with deleting the estimate data
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`https://mycabinet.onrender.com/api/deldata/${invoiceid}`, {
+        method: 'GET',
+        headers: {
+          'Authorization': authToken,
+        }
+      });
 
-      if (json.success) {
-        console.log('Data removed successfully!');
-        navigate('/userpanel/Invoice');
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0, 0);
+        return; // Stop further execution
       } else {
-        console.error('Error deleting Invoice:', json.message);
-      }
-    }
+        const json = await response.json();
 
-  } catch (error) {
-    console.error('Error deleting Invoice:', error);
-  }
-};
+        if (json.success) {
+          console.log('Data removed successfully!');
+          navigate('/userpanel/Invoice');
+        } else {
+          console.error('Error deleting Invoice:', json.message);
+        }
+      }
+
+    } catch (error) {
+      console.error('Error deleting Invoice:', error);
+    }
+  };
 
   // const handleRemove = async (invoiceid,invoiceIdpass) => {
   //   const authToken = localStorage.getItem('authToken');
@@ -1279,9 +1274,8 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
         // setShowModal(false);
         setShowEmailAlert(true);
 
-        if(invoiceData.status == 'Paid' || invoiceData.status == 'Partially Paid')
-        {
-          const updatedData = {invoiceData }
+        if (invoiceData.status == 'Paid' || invoiceData.status == 'Partially Paid') {
+          const updatedData = { invoiceData }
           await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
             method: 'POST',
             headers: {
@@ -1290,7 +1284,7 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
             },
             body: JSON.stringify(updatedData),
           });
-        }else {
+        } else {
           const updatedData = { ...invoiceData, emailsent: 'yes' }
           await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
             method: 'POST',
@@ -1302,32 +1296,32 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
           });
         }
         // Check if customer signature already exists
-      const checkResponse = await fetch(`https://mycabinet.onrender.com/api/checkcustomersignatureusinginvoice/${encodeURIComponent(invoiceData._id)}`);
-      const checkJson = await checkResponse.json();
+        const checkResponse = await fetch(`https://mycabinet.onrender.com/api/checkcustomersignatureusinginvoice/${encodeURIComponent(invoiceData._id)}`);
+        const checkJson = await checkResponse.json();
 
-      if (checkResponse.ok && !checkJson.hasSignature) {
-        // Create new customer signature only if it doesn't exist
-        await fetch('https://mycabinet.onrender.com/api/customersignature', {
-          method: 'POST',
-          headers: {
-            'Content-Type': 'application/json',
-            // 'Authorization': authToken,
-          },
-          body: JSON.stringify({
-            invoiceId: invoiceData._id,
-            userid,
-            // ownerEmail:ownerData.email,
-            // ownerId:ownerData.ownerId,
-            status:'Pending Signature',
-            customerName: invoiceData.customername,
-            customerEmail: invoiceData.customeremail,
-            customersign: "",
-            documentNumber: invoiceData.InvoiceNumber,
-            lastupdated: '',
-            completeButtonVisible: false,
-          }), 
-        });
-      }
+        if (checkResponse.ok && !checkJson.hasSignature) {
+          // Create new customer signature only if it doesn't exist
+          await fetch('https://mycabinet.onrender.com/api/customersignature', {
+            method: 'POST',
+            headers: {
+              'Content-Type': 'application/json',
+              // 'Authorization': authToken,
+            },
+            body: JSON.stringify({
+              invoiceId: invoiceData._id,
+              userid,
+              // ownerEmail:ownerData.email,
+              // ownerId:ownerData.ownerId,
+              status: 'Pending Signature',
+              customerName: invoiceData.customername,
+              customerEmail: invoiceData.customeremail,
+              customersign: "",
+              documentNumber: invoiceData.InvoiceNumber,
+              lastupdated: '',
+              completeButtonVisible: false,
+            }),
+          });
+        }
 
         // Fetch updated invoice data
         fetchinvoicedata();
@@ -1372,9 +1366,8 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
         setShowSendEmailModal(false)
         setShowEmailAlert(true);
         // Update the database with emailsent status
-        if(invoiceData.status == 'Paid' || invoiceData.status == 'Partially Paid')
-        {
-          const updatedData = {invoiceData }
+        if (invoiceData.status == 'Paid' || invoiceData.status == 'Partially Paid') {
+          const updatedData = { invoiceData }
           await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
             method: 'POST',
             headers: {
@@ -1383,8 +1376,8 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
             },
             body: JSON.stringify(updatedData),
           });
-        }else {
-          const updatedData = { ...invoiceData,status:"Send", emailsent: 'yes' }
+        } else {
+          const updatedData = { ...invoiceData, status: "Send", emailsent: 'yes' }
           await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
             method: 'POST',
             headers: {
@@ -1595,9 +1588,9 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
                                 <address className='m-t-5 m-b-5'>
                                   <div className='mb-2'>
                                     <div className=''>{signupdata.address} </div>
-                                      {signupdata.city ? JSON.parse(signupdata.city).name+',' : ' '}
-                                      {signupdata.state ? JSON.parse(signupdata.state).name : ' '}
-                                     {/* <div className=''>{JSON.parse(signupdata.city).name}, {JSON.parse(signupdata.state).name}</div>
+                                    {signupdata.city ? JSON.parse(signupdata.city).name + ',' : ' '}
+                                    {signupdata.state ? JSON.parse(signupdata.state).name : ' '}
+                                    {/* <div className=''>{JSON.parse(signupdata.city).name}, {JSON.parse(signupdata.state).name}</div>
                                     <div className=''>{JSON.parse(signupdata.country).emoji}</div> */}
                                   </div>
                                   <div>{signupdata.FirstName} {signupdata.User1_Mobile_Number}</div>
@@ -1605,14 +1598,14 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
                                   <div>{signupdata.email}</div>
                                   <div>
                                     {signupdata.gstNumber == ''
-                                    ?
-                                  ""
-                                  :
-                                  signupdata.gstNumber
-                                  }
-                                    
-                                    
-                                    </div>
+                                      ?
+                                      ""
+                                      :
+                                      signupdata.gstNumber
+                                    }
+
+
+                                  </div>
 
                                 </address>
                               </div>
@@ -1660,22 +1653,22 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
                                   </div>
                                   <div className='col-6 col-md invoice-detail-right'>{formatCustomDate(invoiceData.duedate)}</div>
                                 </div> */}
-                                
 
-                                  {
-                                    invoiceData.job == "" ||  invoiceData.job == null
+
+                                {
+                                  invoiceData.job == "" || invoiceData.job == null
                                     ?
                                     ""
                                     :
                                     <div className='row text-md-end'>
-                                    <div className='col-6 col-md'>
-                                    <strong>Job</strong>
-                                  </div>
-                                  <div className='col-6 col-md invoice-detail-right'>{invoiceData.job}</div>
-                                  </div>
-                                  }
-                                 
-                               
+                                      <div className='col-6 col-md'>
+                                        <strong>Job</strong>
+                                      </div>
+                                      <div className='col-6 col-md invoice-detail-right'>{invoiceData.job}</div>
+                                    </div>
+                                }
+
+
 
                               </div>
                             </div>
@@ -1725,36 +1718,36 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
                                       <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.subtotal)}</td>
                                     </tr>
                                     {
-                                      invoiceData.discountTotal > 0 
-                                      ?
+                                      invoiceData.discountTotal > 0
+                                        ?
                                         <tr>
                                           <td className='text-md-end' width="22%">Discount</td>
                                           <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.discountTotal)}</td>
                                         </tr>
-                                      :
+                                        :
                                         null
                                     }
-                                    
 
-                                     
-                                      {
-                                      signupdata.taxPercentage == 0 
-                                      ?
-                                      <tr></tr>
-                                      :
-                                      <tr>
-                                      <td className='text-md-end' width="22%">
-                                      {signupdata.TaxName} ({signupdata.taxPercentage}%)
-                                      
-                                      </td>
-                                      <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.tax)}</td>
-                                      </tr>
-                                      }
-                                        
-                                        
-                                       
-                                      
-                                   
+
+
+                                    {
+                                      signupdata.taxPercentage == 0
+                                        ?
+                                        <tr></tr>
+                                        :
+                                        <tr>
+                                          <td className='text-md-end' width="22%">
+                                            {signupdata.TaxName} ({signupdata.taxPercentage}%)
+
+                                          </td>
+                                          <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.tax)}</td>
+                                        </tr>
+                                    }
+
+
+
+
+
                                     <tr>
 
                                       <td className='text-md-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>Total</td>
@@ -1784,33 +1777,33 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
                             </div>
                           </div>
 
-                          {invoiceData.isAddSignature || invoiceData.isCustomerSign  ? 
+                          {invoiceData.isAddSignature || invoiceData.isCustomerSign ?
                             <div className="invoice-body">
                               <p>By signing this document, the customer agrees to the services and conditions described in this document.</p>
                               <div className="row">
-                                  
-                                    {ownerData && invoiceData.isAddSignature && (
-                                      <div className="col-6">
-                                      <div className="my-2">
-                                        <div>
-                                          <p className='text-center fw-bold fs-5'>{ownerData.companyname}</p>
-                                          <img src={ownerData.data} alt="Saved Signature" style={{ width: "100%" }} /><hr/>
-                                          <p className='text-center'>{formatCustomDate(ownerData.createdAt)}</p>
-                                        </div>
-                                      </div>
-                                      </div>
-                                    )}
+
+                                {ownerData && invoiceData.isAddSignature && (
                                   <div className="col-6">
                                     <div className="my-2">
                                       <div>
-                                        <p className='text-center fw-bold fs-5'>{invoiceData.customername}</p>
-                                        {signatureData != null ? 
-                                          signatureData.customersign== '' ? (''):
-                                            (<div className="signature-section">
-                                              <img src={`${signatureData.customersign}`} alt="Customer Signature" style={{ width: "100%" }} /><hr/>
-                                              <p className='text-center'>{formatCustomDate(signatureData.createdAt)}</p>
-                                            </div>):''}
-                                        {/* {signatureData ? (
+                                        <p className='text-center fw-bold fs-5'>{ownerData.companyname}</p>
+                                        <img src={ownerData.data} alt="Saved Signature" style={{ width: "100%" }} /><hr />
+                                        <p className='text-center'>{formatCustomDate(ownerData.createdAt)}</p>
+                                      </div>
+                                    </div>
+                                  </div>
+                                )}
+                                <div className="col-6">
+                                  <div className="my-2">
+                                    <div>
+                                      <p className='text-center fw-bold fs-5'>{invoiceData.customername}</p>
+                                      {signatureData != null ?
+                                        signatureData.customersign == '' ? ('') :
+                                          (<div className="signature-section">
+                                            <img src={`${signatureData.customersign}`} alt="Customer Signature" style={{ width: "100%" }} /><hr />
+                                            <p className='text-center'>{formatCustomDate(signatureData.createdAt)}</p>
+                                          </div>) : ''}
+                                      {/* {signatureData ? (
                                             <div className="signature-section">
                                               <img src={`${signatureData.customersign}`} alt="Customer Signature" style={{ width: "100%" }} /><hr/>
                                               <p className='text-center'>{formatCustomDate(signatureData.createdAt)}</p>
@@ -1818,17 +1811,17 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
                                           ) : (
                                             ''
                                           )} */}
-                                      </div>
                                     </div>
                                   </div>
+                                </div>
                               </div>
-                              
-                            </div>: ''
+
+                            </div> : ''
                           }
 
                           <div className='invoice-body invoice-body-text'>
                             <div className='mt-1'>
-                              <span>{invoiceData.information == '' ? '' : 'Note:'}</span> 
+                              <span>{invoiceData.information == '' ? '' : 'Note:'}</span>
                               <div className='information-content' dangerouslySetInnerHTML={{ __html: invoiceData.information }} />
 
                             </div>
@@ -1943,7 +1936,7 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
               </div>
               <div class="modal-footer">
                 <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
-                <a className='greenclr ms-2 text-decoration-none pointer' onClick={handleAddPayment}>Add Payment</a>
+                <a className={`greenclr ms-2 btn btn-primary text-white text-decoration-none pointer ${isSubmitting ? 'disabled' : ''}`} onClick={handleAddPayment}>Add Payment</a>
               </div>
             </div>
           </div>
@@ -1989,7 +1982,7 @@ const handleRemove = async (invoiceid, invoiceIdpass) => {
                     </div>
                     <div className="col-3">
                       <button data-bs-dismiss="modal" type="button" className="btn btn-danger btn-sm me-2" onClick={() => handleDeleteTransClick(transaction._id)}>
-                          <i className="fas fa-trash"></i>
+                        <i className="fas fa-trash"></i>
                       </button>
                     </div>
                   </div><hr />

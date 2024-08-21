@@ -866,7 +866,7 @@ router.post('/send-estimate-signed-email', async (req, res) => {
     // const transporter = nodemailer.createTransport({
     //     service: 'gmail',
     //     auth: {
-    //         user: "jdwebservices1@gmail.com",
+    //         user: "accounts@mycabinets.net",
     //         pass: "cwoxnbrrxvsjfbmr"
     //     },
     // });
@@ -938,6 +938,39 @@ router.post('/send-estimate-signed-email', async (req, res) => {
     }
 });
 
+router.get('/deltransaction/:transactionid', async (req, res) => {
+    try {
+        const transactionid = req.params.transactionid;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
+
+        const result = await Transactions.findByIdAndDelete(transactionid);
+
+        if (result) {
+            res.json({
+                Success: true,
+                message: "Transaction deleted successfully"
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: "Transaction not found"
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
 router.post('/send-Invoice-signed-email', async (req, res) => {
     const {
         to,
@@ -950,13 +983,13 @@ router.post('/send-Invoice-signed-email', async (req, res) => {
     const transporter = nodemailer.createTransport({
         service: 'gmail',
         auth: {
-            user: "jdwebservices1@gmail.com",
+            user: "accounts@mycabinets.net",
             pass: "cwoxnbrrxvsjfbmr"
         },
     });
 
     const mailOptions = {
-        from: 'jdwebservices1@gmail.com',
+        from: 'accounts@mycabinets.net',
         to: to,
         subject: 'Your document has been signed',
         html: `<html>
