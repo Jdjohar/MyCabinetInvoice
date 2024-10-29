@@ -1324,6 +1324,7 @@ thead{
         }
 
         // Fetch updated invoice data
+        
         fetchinvoicedata();
 
       } else {
