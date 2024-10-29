@@ -167,9 +167,9 @@ export default function Itemlist() {
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                                 <p className='h5 fw-bold'>Items</p>
                                 <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb mb-0">
-                                        <li class="breadcrumb-item"><a href="/itempanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Items</li>
+                                    <ol className="breadcrumb mb-0">
+                                        <li className="breadcrumb-item"><a href="/itempanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                        <li className="breadcrumb-item active" aria-current="page">Items</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -191,7 +191,7 @@ export default function Itemlist() {
                         </div>
 
                         <div className="row px-2 table-responsive">
-                            <table class="table table-bordered">
+                            <table className="table table-bordered">
                                 <thead>
                                     <tr>
                                         <th scope="col">ID </th>

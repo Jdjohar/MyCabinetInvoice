@@ -142,19 +142,19 @@ export default function Invoice() {
     if (totalPaidAmount === 0) {
       return (
         <strong>
-          <i class="fa-solid fa-circle fs-12 mx-2 saved"></i> Saved
+          <i className="fa-solid fa-circle fs-12 mx-2 saved"></i> Saved
         </strong>
       )
     } else if (totalPaidAmount > 0 && totalPaidAmount < invoice.total) {
       return (
         <strong>
-          <i class="fa-solid fa-circle fs-12 mx-2 partiallypaid"></i> Partially Paid
+          <i className="fa-solid fa-circle fs-12 mx-2 partiallypaid"></i> Partially Paid
         </strong>
       )
     } else if (totalPaidAmount === invoice.total) {
       return (
         <strong>
-          <i class="fa-solid fa-circle fs-12 mx-2 paid"></i> Paid
+          <i className="fa-solid fa-circle fs-12 mx-2 paid"></i> Paid
         </strong>
       )
     } else {
@@ -259,7 +259,7 @@ export default function Invoice() {
                     <th scope='col'>STATUS</th>
                     {/* <th scope='col'>Status</th> */}
                     <th scope='col'>DATE</th>
-                    {/* <th scope='col'>EMAIL STATUS</th> */}
+                    <th scope='col'>EMAIL STATUS</th> 
                     <th scope='col'>VIEW</th>
                     <th scope='col'>AMOUNT</th>
                   </tr>
@@ -290,12 +290,12 @@ export default function Invoice() {
     </span>
   ) : invoice.status === 'Paid' ? (
     <span className='paid p-2 rounded-pill'>
-      <i class="fa-solid fa-circle fs-12 me-2 "></i>
+      <i className="fa-solid fa-circle fs-12 me-2 "></i>
       <span className='clrtrxtstatus fw-bold'>Paid</span>
     </span>
   ) : invoice.status === 'Partially Paid' ? (
     <span className='paid p-2 rounded-pill'>
-      <i class="fa-solid fa-circle fs-12 me-2"></i> 
+      <i className="fa-solid fa-circle fs-12 me-2"></i> 
       <span className='clrtrxtstatus fw-bold'>Partially Paid</span>
     </span>
   ) : (
@@ -318,9 +318,9 @@ export default function Invoice() {
                           </div>
                         </div>
                       </td>
-                      {/* <td className='text-center'>
+                      <td className='text-center'>
                         <p className='datetext'>{invoice.emailsent}</p>
-                      </td> */}
+                      </td>
                       <td className='text-center'>
                         <a role='button' className='text-black text-center' onClick={() => handleViewClick(invoice)}>
                           <i className='fa-solid fa-eye'></i>

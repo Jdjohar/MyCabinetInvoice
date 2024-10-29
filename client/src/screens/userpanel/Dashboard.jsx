@@ -228,19 +228,19 @@ const handleOverdue = () => {
     if (totalPaidAmount === 0) {
       return (
         <strong>
-          <i class="fa-solid fa-circle fs-12 mx-2 saved"></i> Saved
+          <i className="fa-solid fa-circle fs-12 mx-2 saved"></i> Saved
         </strong>
       )
     } else if (totalPaidAmount > 0 && totalPaidAmount < invoice.total) {
       return (
         <strong>
-          <i class="fa-solid fa-circle fs-12 mx-2 partiallypaid"></i> Partially Paid
+          <i className="fa-solid fa-circle fs-12 mx-2 partiallypaid"></i> Partially Paid
         </strong>
       )
     } else if (totalPaidAmount === invoice.total) {
       return (
         <strong>
-          <i class="fa-solid fa-circle fs-12 mx-2 paid"></i> Paid
+          <i className="fa-solid fa-circle fs-12 mx-2 paid"></i> Paid
         </strong>
       )
     } else {
@@ -314,12 +314,12 @@ const handleOverdue = () => {
                     <div className="row">
                       <div className="col-6 ">
                         <div className='px-4 py-4 dashbox pointer' onClick={handleAddinvoiceClick}>
-                          <i class="fa-solid fa-receipt text-primary pe-3 fs-4"></i><span className='fs-6 fw-bold'>Create Invoice</span>
+                          <i className="fa-solid fa-receipt text-primary pe-3 fs-4"></i><span className='fs-6 fw-bold'>Create Invoice</span>
                         </div>
                       </div>
                       <div className="col-6 ">
                         <div className='px-4 py-4 dashbox pointer' onClick={handleAddestimateClick}>
-                          <i class="fa-solid fa-receipt text-primary pe-3 fs-4"></i><span className='fs-6 fw-bold'>Create Estimate</span>
+                          <i className="fa-solid fa-receipt text-primary pe-3 fs-4"></i><span className='fs-6 fw-bold'>Create Estimate</span>
                         </div>
                       </div>
                     </div>
@@ -378,7 +378,7 @@ const handleOverdue = () => {
               </div>
             </div>
                 <div className="row px-2 table-responsive">
-                  <table class="table table-bordered">
+                  <table className="table table-bordered">
                     <thead>
                       <tr>
                         <th scope="col">INVOICE </th>
@@ -412,12 +412,12 @@ const handleOverdue = () => {
     </span>
   ) : invoice.status === 'Paid' ? (
     <span className='paid p-2 rounded-pill'>
-      <i class="fa-solid fa-circle fs-12 me-2 "></i>
+      <i className="fa-solid fa-circle fs-12 me-2 "></i>
       <span className='clrtrxtstatus fw-bold'>Paid</span>
     </span>
   ) : invoice.status === 'Partially Paid' ? (
     <span className='paid p-2 rounded-pill'>
-      <i class="fa-solid fa-circle fs-12 me-2"></i> 
+      <i className="fa-solid fa-circle fs-12 me-2"></i> 
       <span className='clrtrxtstatus fw-bold'>Partially Paid</span>
     </span>
   ) : (
@@ -445,7 +445,7 @@ const handleOverdue = () => {
 
                           <td className='text-center'>
                             <a role="button" className='text-black text-center' onClick={() => handleViewClick(invoice)}>
-                              <i class="fa-solid fa-eye"></i>
+                              <i className="fa-solid fa-eye"></i>
                             </a>
                           </td>
                           <td><CurrencySign /> {invoice.total}</td>
@@ -474,7 +474,7 @@ const handleOverdue = () => {
                                                  
                                                 <td className='text-center'>
                                                     <a role="button" className='text-black text-center' onClick={ () => handleViewClick(invoice)}>
-                                                        <i class="fa-solid fa-eye"></i>
+                                                        <i className="fa-solid fa-eye"></i>
                                                     </a>
                                                 </td>
                                                 <td><CurrencySign /> {invoice.total}</td>

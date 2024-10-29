@@ -166,7 +166,7 @@ const GoToHistory = () => {
               <hr />
 
               <div className="row px-0 table-responsive box1 rounded adminborder text-center">
-                <table class="table table-bordered">
+                <table className="table table-bordered">
                     <thead>
                       <tr>
                           {/* <th scope="col">ID </th> */}

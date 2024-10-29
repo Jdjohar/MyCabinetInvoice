@@ -80,22 +80,22 @@ const onchange = (event) => {
         <h1 className='text-center my-5 fw-bold'>IN<span className='clrblue'>VOICE</span></h1>
       <section className='d-flex justify-content-center align-items-center'>
         
-        <form class="signin-form loginbox" onSubmit={handleSubmit}>
+        <form className="signin-form loginbox" onSubmit={handleSubmit}>
             <div className=' p-5 pb-4 mt-3'>
                 <p className='h4 fw-bold'>Sign In</p>
 
-                <div class="form-group text-start mb-3 pt-3">
-                    <label class="label text-start" for="name">Email</label>
-                    <input type="text" class="form-control" name="email" value={credentials.email}  onChange={onchange} placeholder="Email" required />
+                <div className="form-group text-start mb-3 pt-3">
+                    <label className="label text-start" for="name">Email</label>
+                    <input type="text" className="form-control" name="email" value={credentials.email}  onChange={onchange} placeholder="Email" required />
                 </div>
-                <div class="form-group text-start mb-3">
-                    <label class="label" for="password">Password</label>
-                    <input type="password" class="form-control" name="password" value={credentials.password}  onChange={onchange} placeholder="Password" required />
+                <div className="form-group text-start mb-3">
+                    <label className="label" for="password">Password</label>
+                    <input type="password" className="form-control" name="password" value={credentials.password}  onChange={onchange} placeholder="Password" required />
                 </div>
-                <div class="form-group d-flex justify-content-center">
+                <div className="form-group d-flex justify-content-center">
                     {
         loginbtnloader?
-        <button class="form-control w-75 btn btnblur text-white mb-1">
+        <button className="form-control w-75 btn btnblur text-white mb-1">
           <ColorRing
         // width={200}
         loading={loginbtnloader}
@@ -107,7 +107,7 @@ const onchange = (event) => {
         aria-label="Loading Spinner"
         data-testid="loader"        
       /></button>
-        :<button type="submit" class="form-control w-75 btn btnblur text-white mb-1">Sign In</button>}
+        :<button type="submit" className="form-control w-75 btn btnblur text-white mb-1">Sign In</button>}
                 </div>
             </div>
 
@@ -116,9 +116,9 @@ const onchange = (event) => {
                 <p className='text-danger text-center fw-bold'>Login with correct details.</p>             
               </>                      
               )}
-            <div class="form-group mb-3">
-                <div class=" text-center">
-                    <p class="checkbox-wrap checkbox-primary mb-0 fw-bold">Don't have an account?
+            <div className="form-group mb-3">
+                <div className=" text-center">
+                    <p className="checkbox-wrap checkbox-primary mb-0 fw-bold">Don't have an account?
                     <Link className="text-dark" aria-current="page" to="/signup">Sign up</Link>
                     </p>
                     <p className='fw-bold pointer' onClick={handleForgetPassword}>Forgot Password?</p>

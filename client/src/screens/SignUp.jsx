@@ -156,7 +156,7 @@ export default function SignUp() {
         <h1 className='text-center mb-5 fw-bold'>IN<span className='clrblue'>VOICE</span></h1>
       <section className='d-flex justify-content-center align-items-center'>
         
-        <form class="signup-form signupbox" onSubmit={handleSubmit}>
+        <form className="signup-form signupbox" onSubmit={handleSubmit}>
             <div className=' p-5 pb-4 mt-3'>
                 <p className='h4 fw-bold'>Sign Up</p>
 
@@ -172,9 +172,9 @@ export default function SignUp() {
                         </div>
                     </div>
                     <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                        <div class="form-group pt-3">
-                            <label class="label py-2" for="company_name">Company name</label>
-                            <input type="text" class="form-control" name="companyname" onChange={onchange} value={credentails.companyname} placeholder="Company name" required />
+                        <div className="form-group pt-3">
+                            <label className="label py-2" for="company_name">Company name</label>
+                            <input type="text" className="form-control" name="companyname" onChange={onchange} value={credentails.companyname} placeholder="Company name" required />
                         </div>
                     </div>
 
@@ -219,21 +219,21 @@ export default function SignUp() {
                     </div>
                     
                     <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                        <div class="form-group pt-3">
-                            <label class="label py-2" for="First_Name">First Name</label>
-                            <input type="text" class="form-control" name="FirstName" value={credentails.FirstName} onChange={onchange} placeholder="First Name" required />
+                        <div className="form-group pt-3">
+                            <label className="label py-2" for="First_Name">First Name</label>
+                            <input type="text" className="form-control" name="FirstName" value={credentails.FirstName} onChange={onchange} placeholder="First Name" required />
                         </div>
                     </div>
                     <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                        <div class="form-group pt-3">
-                            <label class="label py-2" for="Last_Name">Last Name</label>
-                            <input type="text" class="form-control" name="LastName" value={credentails.LastName} onChange={onchange} placeholder="Last Name"  />
+                        <div className="form-group pt-3">
+                            <label className="label py-2" for="Last_Name">Last Name</label>
+                            <input type="text" className="form-control" name="LastName" value={credentails.LastName} onChange={onchange} placeholder="Last Name"  />
                         </div>
                     </div>
                     <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                        <div class="form-group mb-3 pt-3">
-                            <label class="label py-2" for="email">Email</label>
-                            <input type="text" class="form-control" name="email" value={credentails.email} onChange={onchange} placeholder="Email" required />
+                        <div className="form-group mb-3 pt-3">
+                            <label className="label py-2" for="email">Email</label>
+                            <input type="text" className="form-control" name="email" value={credentails.email} onChange={onchange} placeholder="Email" required />
                         </div>
                     </div>
                     <div className="col-12 col-sm-12 col-md-6 col-lg-6">
@@ -255,23 +255,23 @@ export default function SignUp() {
                         </div>
                     </div>
                 </div>
-                <div class="form-group mb-3 ">
+                <div className="form-group mb-3 ">
                     {message == true ? 
-                        <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                        <div className="alert alert-warning alert-dismissible fade show" role="alert">
                         <strong>{alertshow}</strong> 
-                          <button type="button" class="btn-close" onClick={()=>{
+                          <button type="button" className="btn-close" onClick={()=>{
                             setmessage(false);
                             setalertshow("");
                           }}></button>
-                          {/* <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> */}
+                          {/* <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> */}
 
                         </div>
                         : 
 
                     ""}
                 </div>
-                <div class="form-group d-flex justify-content-center mt-3">
-                    <button type="submit" class="form-control w-75 btn btnblur text-white mb-1">Sign Up</button>
+                <div className="form-group d-flex justify-content-center mt-3">
+                    <button type="submit" className="form-control w-75 btn btnblur text-white mb-1">Sign Up</button>
                 </div>
             </div>
         </form>

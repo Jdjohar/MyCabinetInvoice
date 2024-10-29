@@ -747,10 +747,10 @@ export default function Editinvoice() {
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                                 <p className='fs-35 fw-bold'>Invoice</p>
                                 <nav aria-label="breadcrumb">
-                                    <ol class="breadcrumb mb-0">
-                                        <li class="breadcrumb-item"><a href="/userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li class="breadcrumb-item"><a href="/userpanel/Invoice" className='txtclr text-decoration-none'>Invoice</a></li>
-                                        <li class="breadcrumb-item active" aria-current="page">Edit Invoice</li>
+                                    <ol className="breadcrumb mb-0">
+                                        <li className="breadcrumb-item"><a href="/userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                        <li className="breadcrumb-item"><a href="/userpanel/Invoice" className='txtclr text-decoration-none'>Invoice</a></li>
+                                        <li className="breadcrumb-item active" aria-current="page">Edit Invoice</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -921,7 +921,7 @@ export default function Editinvoice() {
                                                 <p><CurrencySign />{item.amount}</p>
                                             </div>
                                             <div className="col-6">
-                                                        <div class="mb-3">
+                                                        <div className="mb-3">
                                                             <label htmlFor="description" className="form-label">Description</label>
                                                         
                                                             <CKEditor
@@ -1000,7 +1000,7 @@ export default function Editinvoice() {
                                                                 <p><CurrencySign />{formattedTotalAmount}</p>
                                                             </div>
                                                             <div className="col-6">
-                                                                <div class="mb-3">
+                                                                <div className="mb-3">
                                                                     <label htmlFor="description" className="form-label">Description</label>
                                                                     <CKEditor
                                                                         editor={ ClassicEditor }

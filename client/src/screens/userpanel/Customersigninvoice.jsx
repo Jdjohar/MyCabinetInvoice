@@ -431,7 +431,7 @@ thead{
         </style>
       </head>
       <body>
-        <div class="print-page">
+        <div className="print-page">
           ${content}
         </div>
       </body>
@@ -887,7 +887,7 @@ console.log(offset);
             <div className="row">
                 <div className='m-auto'>
                   <div className='text-center pt-5'>
-                    <button className='pdfbtn text-center' onClick={handlePrintContent}><i class="fa-solid fa-print mx-2"></i>Pdf</button>
+                    <button className='pdfbtn text-center' onClick={handlePrintContent}><i className="fa-solid fa-print mx-2"></i>Pdf</button>
                   </div>
 
                     <div className="row py-4 px-2">
@@ -910,7 +910,7 @@ console.log(offset);
                               </div>
 
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
                           <div className='invoice-header'>
                             <div className='row'>
@@ -946,7 +946,7 @@ console.log(offset);
                                 </div>
                               </div>
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
 
                           <div className='invoice-table'>
@@ -1010,7 +1010,7 @@ console.log(offset);
                                 </table>
                               </div>
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
 
                           <div className='invoice-price page-not-break'>
@@ -1019,7 +1019,7 @@ console.log(offset);
                             </div>
                             <div className='invoice-price-right'>
                               <small>Amount Due</small>
-                              <span class="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
+                              <span className="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
                             </div>
                           </div>
                           {invoiceData.isAddSignature || invoiceData.isCustomerSign  ? 

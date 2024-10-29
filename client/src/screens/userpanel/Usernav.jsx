@@ -32,17 +32,17 @@ export default function Usernav() {
 
     
     <div>
-      <nav class="navbar bg-body-tertiary d-block d-lg-none d-md-none">
-  <div class="">
-    <button class="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
-      <span class="navbar-toggler-icon text-black"></span>
+      <nav className="navbar bg-body-tertiary d-block d-lg-none d-md-none">
+  <div className="">
+    <button className="navbar-toggler" type="button" data-bs-toggle="offcanvas" data-bs-target="#offcanvasNavbar" aria-controls="offcanvasNavbar" aria-label="Toggle navigation">
+      <span className="navbar-toggler-icon text-black"></span>
     </button>
-    <div class="offcanvas offcanvas-start text-black" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
-      <div class="offcanvas-header">
-        <h5 class="offcanvas-title" id="offcanvasNavbarLabel">IN<span className='clrblue'>VOICE</span></h5>
-        <button type="button" class="btn-close " data-bs-dismiss="offcanvas" aria-label="Close"></button>
+    <div className="offcanvas offcanvas-start text-black" tabindex="-1" id="offcanvasNavbar" aria-labelledby="offcanvasNavbarLabel">
+      <div className="offcanvas-header">
+        <h5 className="offcanvas-title" id="offcanvasNavbarLabel">IN<span className='clrblue'>VOICE</span></h5>
+        <button type="button" className="btn-close " data-bs-dismiss="offcanvas" aria-label="Close"></button>
       </div>
-      <div class="offcanvas-body nav">
+      <div className="offcanvas-body nav">
       <ul>
                     <li className='text-center'>
                       <Link to="/Userpanel/Userdashboard" className={`nav-link scrollto icones text-black ${location.pathname == '/Userpanel/Userdashboard' ? 'active' : ''}`} >
@@ -54,17 +54,17 @@ export default function Usernav() {
                     </li>
                     <li>
                       <Link to="/userpanel/Invoice" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Invoice</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>Invoice</span>
                       </Link>
                     </li>
                     <li>
                       <Link to="/userpanel/Estimate" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Estimate</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>Estimate</span>
                       </Link>
                     </li>
                     <li>
                       <Link to="/userpanel/E-sign" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>E-Sign</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>E-Sign</span>
                       </Link>
                     </li>
                     <li>
@@ -75,7 +75,7 @@ export default function Usernav() {
                                   location.pathname == '/userpanel/Customerlist' || 
                                   location.pathname == '/userpanel/Addcustomer' || 
                                   location.pathname == '/userpanel/Editcustomer' ? 'active' : ''}`} >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Customer List</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>Customer List</span>
                       </Link>
                     </li>
                     <li>
@@ -83,7 +83,7 @@ export default function Usernav() {
                                   location.pathname == '/userpanel/Itemlist' || 
                                   location.pathname == '/userpanel/Additem' || 
                                   location.pathname == '/userpanel/Edititem' ? 'active' : ''}`} >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Item List</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>Item List</span>
                       </Link>
                     </li>
                     <li>
@@ -93,33 +93,33 @@ export default function Usernav() {
                                   location.pathname == '/userpanel/Editteam' ||
                                   location.pathname == '/userpanel/Timeview' ||
                                   location.pathname == '/Timeschemahistory' ? 'active' : ''}`} >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
                       </Link>
                     </li>
                     <li>
                       <Link to="/userpanel/Signature" className='nav-link scrollto iconestext-black' >
-                      <i class="fa-solid fa-house me-2 dashclr"></i><span >Signature</span>
+                      <i className="fa-solid fa-house me-2 dashclr"></i><span >Signature</span>
                       </Link>
                     </li>
                     <li>
                       <Link to="/userpanel/Imageupload" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Logo Upload</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>Logo Upload</span>
                       </Link>
                     </li>
                     <li>
                       <Link to="/userpanel/Editprofile" className='nav-link scrollto icones text-black' >
-                        <i class="fa-solid fa-house me-2 dashclr"></i> <span>Profile</span>
+                        <i className="fa-solid fa-house me-2 dashclr"></i> <span>Profile</span>
                       </Link>
                     </li>
                     <li>
                       <Link to="/userpanel/Report" className='nav-link scrollto w-100 icones text-black' >
-                      <i class="fa-solid fa-house me-2 dashclr"></i> <span className='ps-2'>Report</span>
+                      <i className="fa-solid fa-house me-2 dashclr"></i> <span className='ps-2'>Report</span>
                       </Link>
                     </li>
                     
                       <li>
                         <a onClick={handleLogout} className=" pointer nav-link scrollto icones text-black">
-                          <i class="fa-solid fa-right-from-bracket me-2"></i>
+                          <i className="fa-solid fa-right-from-bracket me-2"></i>
                           <span>Logout</span>
                         </a>
                       </li>
@@ -152,12 +152,12 @@ export default function Usernav() {
     //                 </li>
     //                 <li>
     //                   <Link to="" className='nav-link scrollto icones text-black' >
-    //                     <i class="fa-solid fa-house me-2 dashclr"></i> <span>Invoice</span>
+    //                     <i className="fa-solid fa-house me-2 dashclr"></i> <span>Invoice</span>
     //                   </Link>
     //                 </li>
     //                 <li>
     //                   <Link to="" className='nav-link scrollto icones text-black' >
-    //                     <i class="fa-solid fa-house me-2 dashclr"></i> <span>Estimate</span>
+    //                     <i className="fa-solid fa-house me-2 dashclr"></i> <span>Estimate</span>
     //                   </Link>
     //                 </li>
     //                 <li>
@@ -165,23 +165,23 @@ export default function Usernav() {
     //                 </li>
     //                 <li>
     //                   <Link to="/userpanel/Customerlist" className='nav-link scrollto icones text-black' >
-    //                     <i class="fa-solid fa-house me-2 dashclr"></i> <span>Customer List</span>
+    //                     <i className="fa-solid fa-house me-2 dashclr"></i> <span>Customer List</span>
     //                   </Link>
     //                 </li>
     //                 <li>
     //                   <Link to="/userpanel/Itemlist" className='nav-link scrollto icones text-black' >
-    //                     <i class="fa-solid fa-house me-2 dashclr"></i> <span>Item List</span>
+    //                     <i className="fa-solid fa-house me-2 dashclr"></i> <span>Item List</span>
     //                   </Link>
     //                 </li>
     //                 <li>
     //                   <Link to="/userpanel/Team" className='nav-link scrollto icones text-black' >
-    //                     <i class="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
+    //                     <i className="fa-solid fa-house me-2 dashclr"></i> <span>Team</span>
     //                   </Link>
     //                 </li>
                     
     //                   <li>
     //                     <a onClick={handleLogout} className=" pointer nav-link scrollto icones text-black">
-    //                       <i class="fa-solid fa-right-from-bracket me-2"></i>
+    //                       <i className="fa-solid fa-right-from-bracket me-2"></i>
     //                       <span>Logout</span>
     //                     </a>
     //                   </li>

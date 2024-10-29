@@ -119,13 +119,13 @@ export default function Addteam() {
               {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
               <div className="col-12">
                           {message == true ? 
-                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <div className="alert alert-warning alert-dismissible fade show" role="alert">
                             <strong>{alertShow}</strong> 
-                              <button type="button" class="btn-close" onClick={()=>{
+                              <button type="button" className="btn-close" onClick={()=>{
                                 setMessage(false);
                                 setAlertShow("");
                               }}></button>
-                              {/* <button type="button" class="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> */}
+                              {/* <button type="button" className="btn-close" data-bs-dismiss="alert" aria-label="Close"></button> */}
 
                             </div>
                             : 
@@ -227,9 +227,9 @@ export default function Addteam() {
                         </div>
                         {/* <div className="col-12">
                           {message == true ? 
-                            <div class="alert alert-warning alert-dismissible fade show" role="alert">
+                            <div className="alert alert-warning alert-dismissible fade show" role="alert">
                             <strong>{alertShow}</strong> 
-                              <button type="button" class="btn-close" onClick={()=>{
+                              <button type="button" className="btn-close" onClick={()=>{
                                 setMessage(false);
                                 setAlertShow("");
                               }}></button>

@@ -5,7 +5,7 @@
   </div>
   <div className='invoice-price-right'>
     <small>Amount Due</small>
-    <span class="f-w-600 mt-3"><CurrencySign />{roundOff(estimateData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
+    <span className="f-w-600 mt-3"><CurrencySign />{roundOff(estimateData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
 
   </div>
 

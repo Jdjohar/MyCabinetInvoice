@@ -138,6 +138,7 @@ export default function Estimatedetail() {
           'Authorization': authToken,
         }
       });
+      console.log(response, "response");
 
       if (response.status === 401) {
         const json = await response.json();
@@ -147,12 +148,14 @@ export default function Estimatedetail() {
         return; // Stop further execution
       } else {
         const json = await response.json();
+        console.log(json, "Json Update");
         setOwnerData(json[0]); // Save all owner data
       }
     } catch (error) {
       console.error('Error fetching owner data:', error);
     }
   };
+
 
   const fetchtransactiondata = async () => {
     try {
@@ -534,7 +537,7 @@ thead{
         </style>
       </head>
       <body>
-        <div class="print-page">
+        <div className="print-page">
           ${content}
         </div>
       </body>
@@ -800,9 +803,9 @@ thead{
                       <div className="col-lg-6 col-md-6 col-sm-6 col-7 me-auto">
                         <p className='fs-35 fw-bold'>Estimate</p>
                         <nav aria-label="breadcrumb">
-                          <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Estimatedetail</li>
+                          <ol className="breadcrumb mb-0">
+                            <li className="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                            <li className="breadcrumb-item active" aria-current="page">Estimatedetail</li>
                           </ol>
                         </nav>
                       </div>
@@ -840,14 +843,14 @@ thead{
                         <div className="row">
                           <div className="col-lg-7 col-sm-5 col-3"></div>
                           <div className="col-9 col-sm-7 col-lg-5">
-                            <div class="alert alert-warning d-flex" role="alert">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="alertwidth bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                            <div className="alert alert-warning d-flex" role="alert">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="alertwidth bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
                                 <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                               </svg>
                               <div>
                                 You cannot edit a document that has already been partially paid. Please create a new document.
                               </div>
-                              <button type="button" class="btn-close" onClick={() => {
+                              <button type="button" className="btn-close" onClick={() => {
                                 // setmessage(false);
                                 setShowAlert("");
                               }}></button>
@@ -897,7 +900,7 @@ thead{
                               </div>
 
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
                           <div className='invoice-header'>
                             <div className='row'>
@@ -946,7 +949,7 @@ thead{
 
                               </div>
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
 
                           <div className='invoice-table'>
@@ -1037,7 +1040,7 @@ thead{
                                 </table>
                               </div>
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
 
                           <div className='invoice-price page-not-break'>
@@ -1047,7 +1050,7 @@ thead{
                             </div>
                             <div className='invoice-price-right'>
                               <small>Amount Due</small>
-                              <span class="f-w-600 mt-3"><CurrencySign />{roundOff(estimateData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
+                              <span className="f-w-600 mt-3"><CurrencySign />{roundOff(estimateData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
                             </div>
 
                           </div>
@@ -1139,19 +1142,19 @@ thead{
       }
 
       {/* email model  */}
-      <div class="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
-              <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div className="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+              <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div className="modal-body">
               <form onSubmit={handleFormSubmit}>
-                <div class="row mb-3">
-                  <label for="to" class="col-sm-2 col-form-label">To</label>
-                  <div class="col-sm-10">
-                    {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                <div className="row mb-3">
+                  <label for="to" className="col-sm-2 col-form-label">To</label>
+                  <div className="col-sm-10">
+                    {/* <input type="text" className="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
                     <ReactMultiEmail
                       emails={emails}
                       onChange={handleEmailChange}
@@ -1182,9 +1185,9 @@ thead{
                     />
                   </div>
                 </div>
-                <div class="row mb-3">
-                  <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
-                  <div class="col-sm-10">
+                <div className="row mb-3">
+                  <label for="bcc" className="col-sm-2 col-form-label">Bcc</label>
+                  <div className="col-sm-10">
                     <ReactMultiEmail
                       emails={bccEmails}
                       onChange={handleBccEmailsChange}
@@ -1214,13 +1217,13 @@ thead{
                     />
                   </div>
                 </div>
-                <div class="mb-3">
-                  <label for="content" class="form-label">Content</label>
-                  <textarea class="form-control" id="content" name="content" rows="5" defaultValue={content} onChange={handleContentChange}></textarea>
+                <div className="mb-3">
+                  <label for="content" className="form-label">Content</label>
+                  <textarea className="form-control" id="content" name="content" rows="5" defaultValue={content} onChange={handleContentChange}></textarea>
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Send</button>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Send</button>
                 </div>
               </form>
             </div>

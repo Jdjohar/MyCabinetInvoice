@@ -149,11 +149,11 @@ export default function Addcustomer() {
             <div className='mt-4 mx-4'>
               {alertMessage && <Alertauthtoken message={alertMessage} onClose={() => setAlertMessage('')} />}
               {alertmessageShow == true ?  
-                  <div class="alert alert-warning d-flex justify-content-between" role="alert">
+                  <div className="alert alert-warning d-flex justify-content-between" role="alert">
                     <div>
                       {alertmessageShow}
                     </div>
-                    <button type="button" class="btn-close" onClick={()=>{
+                    <button type="button" className="btn-close" onClick={()=>{
                         setAlertmessageShow("");
                       }}>
                     </button>
@@ -309,7 +309,7 @@ export default function Addcustomer() {
                                   
                               }}
                               valueType="short"
-                              class="form-control" 
+                              className="form-control" 
                               placeHolder="Select Country"
                             />
                           </div>

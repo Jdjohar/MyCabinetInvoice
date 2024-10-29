@@ -21,7 +21,7 @@ export default function Invoicedetail() {
   const [selectedinvoices, setselectedinvoices] = useState(null);
   const [invoiceData, setInvoiceData] = useState({
     customername: '', itemname: '', customeremail: '', customerphone: '', InvoiceNumber: '', purchaseorder: '',
-    date: '', duedate: '', description: '', itemquantity: '', price: '', discount: '',
+    date: '', status:'', duedate: '', description: '', itemquantity: '', price: '', discount: '',
     amount: '', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
   });
   const [editorData, setEditorData] = useState("<p></p>");
@@ -1051,7 +1051,7 @@ thead{
         </style>
       </head>
       <body>
-        <div class="print-page">
+        <div className="print-page">
           ${content}
         </div>
       </body>
@@ -1285,7 +1285,7 @@ thead{
             body: JSON.stringify(updatedData),
           });
         } else {
-          const updatedData = { ...invoiceData, emailsent: 'yes' }
+          const updatedData = { ...invoiceData,status: 'Send', emailsent: 'yes' }
           await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
             method: 'POST',
             headers: {
@@ -1509,9 +1509,9 @@ thead{
                       <div className="col-lg-6 col-md-6 col-sm-6 col-7 me-auto">
                         <p className='fs-35 fw-bold'>Invoice</p>
                         <nav aria-label="breadcrumb">
-                          <ol class="breadcrumb mb-0">
-                            <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                            <li class="breadcrumb-item active" aria-current="page">Invoicedetail</li>
+                          <ol className="breadcrumb mb-0">
+                            <li className="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                            <li className="breadcrumb-item active" aria-current="page">Invoicedetail</li>
                           </ol>
                         </nav>
                       </div>
@@ -1550,14 +1550,14 @@ thead{
                         <div className="row">
                           <div className="col-lg-7 col-sm-5 col-3"></div>
                           <div className="col-9 col-sm-7 col-lg-5">
-                            <div class="alert alert-warning d-flex" role="alert">
-                              <svg xmlns="http://www.w3.org/2000/svg" class="alertwidth bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                            <div className="alert alert-warning d-flex" role="alert">
+                              <svg xmlns="http://www.w3.org/2000/svg" className="alertwidth bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
                                 <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                               </svg>
                               <div>
                                 You cannot edit a document that has already been partially paid. Please create a new document.
                               </div>
-                              <button type="button" class="btn-close" onClick={() => {
+                              <button type="button" className="btn-close" onClick={() => {
                                 // setmessage(false);
                                 setShowAlert("");
                               }}></button>
@@ -1611,7 +1611,7 @@ thead{
                               </div>
 
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
                           {console.log("invoiceData:-", invoiceData)}
 
@@ -1672,7 +1672,7 @@ thead{
 
                               </div>
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
 
                           <div className='invoice-table'>
@@ -1763,7 +1763,7 @@ thead{
                                 </table>
                               </div>
                             </div>
-                            <div class="clr"></div>
+                            <div className="clr"></div>
                           </div>
 
                           <div className='invoice-price page-not-break'>
@@ -1773,7 +1773,7 @@ thead{
                             </div>
                             <div className='invoice-price-right'>
                               <small>Amount Due</small>
-                              <span class="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
+                              <span className="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
                             </div>
                           </div>
 
@@ -1899,28 +1899,28 @@ thead{
 
       {/* payment modal  */}
       <form action="">
-        <div class="modal fade" id="exampleModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-5" id="exampleModalLabel">Mark paid</h1>
-                <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div className="modal fade" id="exampleModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title fs-5" id="exampleModalLabel">Mark paid</h1>
+                <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="modal-body">
-                <div class="mb-3">
-                  <label for="amount" class="form-label">Amount<span class="text-danger">*</span></label>
-                  <input type="number" class="form-control" name='paidamount' onChange={onchange} id="exampleFormControlInput1" placeholder="Amount" required />
+              <div className="modal-body">
+                <div className="mb-3">
+                  <label for="amount" className="form-label">Amount<span className="text-danger">*</span></label>
+                  <input type="number" className="form-control" name='paidamount' onChange={onchange} id="exampleFormControlInput1" placeholder="Amount" required />
                   {paidamounterror && <p className="text-danger">{paidamounterror}</p>}
                   {exceedpaymenterror && <p className="text-danger">{exceedpaymenterror}</p>}
                 </div>
-                <div class="mb-3">
-                  <label for="date" class="form-label">Date<span class="text-danger">*</span></label>
-                  <input type="date" class="form-control" name='paiddate' onChange={onchange} id="exampleFormControlInput2" placeholder="Date" required />
+                <div className="mb-3">
+                  <label for="date" className="form-label">Date<span className="text-danger">*</span></label>
+                  <input type="date" className="form-control" name='paiddate' onChange={onchange} id="exampleFormControlInput2" placeholder="Date" required />
                   {paiddateerror && <p className="text-danger">{paiddateerror}</p>}
                 </div>
-                <div class="mb-3">
-                  <label for="date" class="form-label">Method<span class="text-danger">*</span></label>
-                  <select class="form-select" name='method' onChange={onchange} aria-label="Default select example" required>
+                <div className="mb-3">
+                  <label for="date" className="form-label">Method<span className="text-danger">*</span></label>
+                  <select className="form-select" name='method' onChange={onchange} aria-label="Default select example" required>
                     <option selected disabled hidden>Method</option>
                     <option value="Cash">Cash</option>
                     <option value="Credit">Credit</option>
@@ -1929,12 +1929,12 @@ thead{
                   </select>
                   {methoderror && <p className="text-danger">{methoderror}</p>}
                 </div>
-                <div class="mb-3">
-                  <label for="note" class="form-label">Note</label>
-                  <input type="text" class="form-control" name='note' onChange={onchange} id="exampleFormControlInput4" placeholder="Note" />
+                <div className="mb-3">
+                  <label for="note" className="form-label">Note</label>
+                  <input type="text" className="form-control" name='note' onChange={onchange} id="exampleFormControlInput4" placeholder="Note" />
                 </div>
               </div>
-              <div class="modal-footer">
+              <div className="modal-footer">
                 <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
                 <a className={`greenclr ms-2 btn btn-primary text-white text-decoration-none pointer ${isSubmitting ? 'disabled' : ''}`} onClick={handleAddPayment}>Add Payment</a>
               </div>
@@ -1946,14 +1946,14 @@ thead{
 
       {/* transaction modal  */}
 
-      <div class="modal fade" id="exampleModal1" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-5" id="exampleModalLabel">View Transactions</h1>
-              <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div className="modal fade" id="exampleModal1" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-5" id="exampleModalLabel">View Transactions</h1>
+              <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div className="modal-body">
               <div className="row px-2 text-center">
                 <div className="col-3">
                   <p>DATE</p>
@@ -1989,7 +1989,7 @@ thead{
                 </>
               ))}
             </div>
-            <div class="modal-footer">
+            <div className="modal-footer">
               <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
             </div>
           </div>
@@ -1998,19 +1998,19 @@ thead{
       </div>
 
       {/* email model  */}
-      <div class="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div class="modal-dialog modal-lg">
-          <div class="modal-content">
-            <div class="modal-header">
-              <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
-              <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div className="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal-dialog modal-lg">
+          <div className="modal-content">
+            <div className="modal-header">
+              <h1 className="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+              <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div class="modal-body">
+            <div className="modal-body">
               <form onSubmit={handleFormSubmit}>
-                <div class="row mb-3">
-                  <label for="to" class="col-sm-2 col-form-label">To</label>
-                  <div class="col-sm-10">
-                    {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                <div className="row mb-3">
+                  <label for="to" className="col-sm-2 col-form-label">To</label>
+                  <div className="col-sm-10">
+                    {/* <input type="text" className="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
                     <ReactMultiEmail
                       emails={emails}
                       onChange={handleEmailChange}
@@ -2041,9 +2041,9 @@ thead{
                     />
                   </div>
                 </div>
-                <div class="row mb-3">
-                  <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
-                  <div class="col-sm-10">
+                <div className="row mb-3">
+                  <label for="bcc" className="col-sm-2 col-form-label">Bcc</label>
+                  <div className="col-sm-10">
                     <ReactMultiEmail
                       emails={bccEmails}
                       onChange={handleBccEmailsChange}
@@ -2073,13 +2073,13 @@ thead{
                     />
                   </div>
                 </div>
-                <div class="mb-3">
-                  <label for="content" class="form-label">Content</label>
-                  <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
+                <div className="mb-3">
+                  <label for="content" className="form-label">Content</label>
+                  <textarea className="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
                 </div>
-                <div class="modal-footer">
-                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Send</button>
+                <div className="modal-footer">
+                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Send</button>
                 </div>
               </form>
             </div>
@@ -2089,17 +2089,17 @@ thead{
 
       {/* deposit modal  */}
       <form action="">
-        <div class="modal fade" id="exampleModaldeposit" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header p-4">
-                <h1 class="modal-title fs-3 fw-bold" id="exampleModalLabel">Request a deposit</h1>
-                <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div className="modal fade" id="exampleModaldeposit" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header p-4">
+                <h1 className="modal-title fs-3 fw-bold" id="exampleModalLabel">Request a deposit</h1>
+                <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div class="modal-body p-4">
+              <div className="modal-body p-4">
                 <input type="hidden" id="deposit_uniqueid" value="uniqueid_here" />
 
-                <div class="mb-3 row">
+                <div className="mb-3 row">
                   <div className="col-6 fw-bold fs-5">
                     <p>Total amount</p>
                   </div>
@@ -2114,31 +2114,31 @@ thead{
                     </p>
                   </div>
                 </div>
-                <div class="mb-3 row">
+                <div className="mb-3 row">
                   <div className="col-5">
-                    <label for="number" class="form-label">Percentage</label>
+                    <label for="number" className="form-label">Percentage</label>
                     <div className='input-group mb-4'>
                       <input type="number" className="form-control" id="depositpercentage" value={depositpercentage} onChange={handlePercentageChange} min="0" />
-                      <span class="input-group-text">%</span>
+                      <span className="input-group-text">%</span>
                     </div>
                   </div>
                   <div className="col-2 fw-bold fs-5">
                     <p className='pt-3 fs-2 ps-5'>=</p>
                   </div>
                   <div className="col-5">
-                    <label for="text" class="form-label">Amount</label>
+                    <label for="text" className="form-label">Amount</label>
                     <div className='input-group mb-4'>
                       <input type="text" className="form-control" id="amount" value={amount} readOnly />
-                      <span class="input-group-text"><CurrencySign /></span>
+                      <span className="input-group-text"><CurrencySign /></span>
                     </div>
                   </div>
                   <div className="col-5">
-                    <label for="date" class="form-label" id='duedepositdate'>Due Date</label>
-                    <input type="date" class="form-control" value={duedepositDate} onChange={handleDateChange} />
+                    <label for="date" className="form-label" id='duedepositdate'>Due Date</label>
+                    <input type="date" className="form-control" value={duedepositDate} onChange={handleDateChange} />
                   </div>
                 </div>
               </div>
-              <div class="modal-footer p-4">
+              <div className="modal-footer p-4">
                 <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
                 <a className='greenclr ms-2 text-decoration-none pointer' data-bs-dismiss="modal" onClick={handleSave}>Save</a>
                 {(depositpercentage === '' || parseInt(depositpercentage) < 1) ? (
@@ -2155,20 +2155,20 @@ thead{
 
       {/* Email modal-2 */}
       {showSendEmailModal ?
-        <div class="modal fade show" id="sendEmailModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog" style={{ display: "block" }}>
-          {/* <div class="modal fade" id="sendEmailModal2" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true"> */}
-          <div class="modal-dialog modal-lg">
-            <div class="modal-content">
-              <div class="modal-header">
-                <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
-                <button type="button" class="btn-close" onClick={() => setShowSendEmailModal(false)}></button>
+        <div className="modal fade show" id="sendEmailModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog" style={{ display: "block" }}>
+          {/* <div className="modal fade" id="sendEmailModal2" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true"> */}
+          <div className="modal-dialog modal-lg">
+            <div className="modal-content">
+              <div className="modal-header">
+                <h1 className="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+                <button type="button" className="btn-close" onClick={() => setShowSendEmailModal(false)}></button>
               </div>
-              <div class="modal-body">
+              <div className="modal-body">
                 <form onSubmit={handleDepositFormSubmit}>
-                  <div class="row mb-3">
-                    <label for="to" class="col-sm-2 col-form-label">To</label>
-                    <div class="col-sm-10">
-                      {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                  <div className="row mb-3">
+                    <label for="to" className="col-sm-2 col-form-label">To</label>
+                    <div className="col-sm-10">
+                      {/* <input type="text" className="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
                       <ReactMultiEmail
                         emails={emails}
                         onChange={handleEmailChange}
@@ -2198,9 +2198,9 @@ thead{
                       />
                     </div>
                   </div>
-                  <div class="row mb-3">
-                    <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
-                    <div class="col-sm-10">
+                  <div className="row mb-3">
+                    <label for="bcc" className="col-sm-2 col-form-label">Bcc</label>
+                    <div className="col-sm-10">
                       <ReactMultiEmail
                         emails={bccEmails}
                         onChange={handleBccEmailsChange}
@@ -2230,13 +2230,13 @@ thead{
                       />
                     </div>
                   </div>
-                  <div class="mb-3">
-                    <label for="content" class="form-label">Content</label>
-                    <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
+                  <div className="mb-3">
+                    <label for="content" className="form-label">Content</label>
+                    <textarea className="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
                   </div>
-                  <div class="modal-footer">
-                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setShowSendEmailModal(false)}>Close</button>
-                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Send</button>
+                  <div className="modal-footer">
+                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setShowSendEmailModal(false)}>Close</button>
+                    <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Send</button>
                   </div>
                 </form>
               </div>

@@ -140,9 +140,9 @@ export default function Editprofile() {
                                         <div className="row">
     
                                             <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="company_name">Company name</label>
-                                                    <input type="text" class="form-control" name="companyname" value={signupdata.companyname} onChange={handleInputChange} placeholder="Company name" />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="company_name">Company name</label>
+                                                    <input type="text" className="form-control" name="companyname" value={signupdata.companyname} onChange={handleInputChange} placeholder="Company name" />
                                                 </div>
                                             </div>
     
@@ -190,63 +190,63 @@ export default function Editprofile() {
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-4 col-lg-4">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="First_Name">First Name</label>
-                                                    <input type="text" class="form-control" name="FirstName" value={signupdata.FirstName} onChange={handleInputChange} placeholder="First Name" />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="First_Name">First Name</label>
+                                                    <input type="text" className="form-control" name="FirstName" value={signupdata.FirstName} onChange={handleInputChange} placeholder="First Name" />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-4 col-lg-4">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="Last_Name">Last Name</label>
-                                                    <input type="text" class="form-control" name="LastName" value={signupdata.LastName} onChange={handleInputChange} placeholder="Last Name"  />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="Last_Name">Last Name</label>
+                                                    <input type="text" className="form-control" name="LastName" value={signupdata.LastName} onChange={handleInputChange} placeholder="Last Name"  />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-4 col-lg-4">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="User1_Mobile_Number">Number</label>
-                                                    <input type="text" class="form-control" name="User1_Mobile_Number" value={signupdata.User1_Mobile_Number} onChange={handleInputChange} placeholder="Number"  />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="User1_Mobile_Number">Number</label>
+                                                    <input type="text" className="form-control" name="User1_Mobile_Number" value={signupdata.User1_Mobile_Number} onChange={handleInputChange} placeholder="Number"  />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-4 col-lg-4">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="First_Name1">First Name</label>
-                                                    <input type="text" class="form-control" name="User2FirstName" value={signupdata.User2FirstName} onChange={handleInputChange} placeholder="First Name" />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="First_Name1">First Name</label>
+                                                    <input type="text" className="form-control" name="User2FirstName" value={signupdata.User2FirstName} onChange={handleInputChange} placeholder="First Name" />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-4 col-lg-4">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="Last_Name">Last Name</label>
-                                                    <input type="text" class="form-control" name="LastName" value={signupdata.User2LastName} onChange={handleInputChange} placeholder="Last Name"  />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="Last_Name">Last Name</label>
+                                                    <input type="text" className="form-control" name="LastName" value={signupdata.User2LastName} onChange={handleInputChange} placeholder="Last Name"  />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-4 col-lg-4">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="User2_Mobile_Number">Number</label>
-                                                    <input type="text" class="form-control" name="User2_Mobile_Number" value={signupdata.User2_Mobile_Number} onChange={handleInputChange} placeholder="Number"  />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="User2_Mobile_Number">Number</label>
+                                                    <input type="text" className="form-control" name="User2_Mobile_Number" value={signupdata.User2_Mobile_Number} onChange={handleInputChange} placeholder="Number"  />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                                <div class="form-group mb-3 pt-3">
-                                                    <label class="label py-2" for="email">Email</label>
-                                                    <input type="text" class="form-control" name="email" value={signupdata.email} onChange={handleInputChange} placeholder="Email"  />
+                                                <div className="form-group mb-3 pt-3">
+                                                    <label className="label py-2" for="email">Email</label>
+                                                    <input type="text" className="form-control" name="email" value={signupdata.email} onChange={handleInputChange} placeholder="Email"  />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="gstNumber">Business Tax Number</label>
-                                                    <input type="text" class="form-control" name="gstNumber" value={signupdata.gstNumber} onChange={handleInputChange} placeholder="Abn" />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="gstNumber">Business Tax Number</label>
+                                                    <input type="text" className="form-control" name="gstNumber" value={signupdata.gstNumber} onChange={handleInputChange} placeholder="Abn" />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="TaxName">Business Tax Name</label>
-                                                    <input type="text" class="form-control" name="TaxName" value={signupdata.TaxName || ''} onChange={handleInputChange} placeholder="Tax Name" />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="TaxName">Business Tax Name</label>
+                                                    <input type="text" className="form-control" name="TaxName" value={signupdata.TaxName || ''} onChange={handleInputChange} placeholder="Tax Name" />
                                                 </div>
                                             </div>
                                             <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                                <div class="form-group pt-3">
-                                                    <label class="label py-2" for="taxPercentage">Tax in Percentage</label>
-                                                    <input type="text" class="form-control" name="taxPercentage" value={signupdata.taxPercentage || 'No'} onChange={handleInputChange} placeholder="Tax Percentage (5%)" />
+                                                <div className="form-group pt-3">
+                                                    <label className="label py-2" for="taxPercentage">Tax in Percentage</label>
+                                                    <input type="text" className="form-control" name="taxPercentage" value={signupdata.taxPercentage || 'No'} onChange={handleInputChange} placeholder="Tax Percentage (5%)" />
                                                 </div>
                                             </div>
                                             

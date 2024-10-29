@@ -232,7 +232,7 @@ export default function Estimate() {
                               </td>
                               <td>
                                 <span className='clrtrxtstatus'>
-                                  <i class="fa-solid fa-circle fs-12 mx-2 saved"></i> Saved
+                                  <i className="fa-solid fa-circle fs-12 mx-2 saved"></i> Saved
                                 </span>
                               </td>
                               <td>

@@ -307,7 +307,6 @@ router.get('/getownerdata/:ownerId', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
 router.get('/getemailownerdata/:ownerId', async (req, res) => {
     try {
         const ownerId = req.params.ownerId;

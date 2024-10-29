@@ -838,9 +838,9 @@ export default function Createestimate() {
                                             <div className="col-lg-4 col-md-6 col-sm-12 col-7 me-auto">
                                                 <p className='fs-35 fw-bold'>Estimate</p>
                                                 <nav aria-label="breadcrumb">
-                                                    <ol class="breadcrumb mb-0">
-                                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                                        <li class="breadcrumb-item active" aria-current="page">Estimate</li>
+                                                    <ol className="breadcrumb mb-0">
+                                                        <li className="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                                        <li className="breadcrumb-item active" aria-current="page">Estimate</li>
                                                     </ol>
                                                 </nav>
                                             </div>
@@ -895,7 +895,7 @@ export default function Createestimate() {
                                                                         </div> 
                                                                         <div className="col-3">
                                                                             <a role='button' className="btn btn-success btn-sm me-2 text-white mt-1" data-bs-toggle="modal" data-bs-target="#exampleModal1">
-                                                                                <i class="fa-solid fa-plus"></i>
+                                                                                <i className="fa-solid fa-plus"></i>
                                                                             </a>
                                                                         </div>
                                                                     </div>
@@ -1420,7 +1420,7 @@ export default function Createestimate() {
 
                                                             }}
                                                             valueType="short"
-                                                            class="form-control"
+                                                            className="form-control"
                                                             placeHolder="Select Country"
                                                         />
                                                     </div>
