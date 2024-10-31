@@ -560,15 +560,7 @@ router.post('/send-invoice-email', async (req, res) => {
         currencyType,
         amountdue1
     } = req.body;
-    // const transporter = nodemailer.createTransport({
-    //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-    //     port: 465, // Replace with the appropriate port
-    //     secure: true, // true for 465, false for other ports
-    //     auth: {
-    //       user: 'accounts@mycabinets.net',
-    //       pass: 'lpctmxmuoudgnopd'
-    //     }
-    //   });
+   
     const transporter = nodemailer.createTransport({
         host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
         port: 465, // Replace with the appropriate port

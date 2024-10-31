@@ -4,6 +4,7 @@ const port = 3001
 const mongoDB = require("./db")
 const nodemailer = require('nodemailer');
 const bodyParser = require('body-parser');
+const cors = require('cors');
 var path = require('path');
 const { job } = require('./cron');
 mongoDB();
@@ -14,22 +15,11 @@ app.use(bodyParser.urlencoded({ limit: '10mb', extended: true }));
 
 // Start the cron job
 job.start();
-// app.use((req,res,next)=>{
-//   // res.setHeader("Access-Control-Allow-Origin","https://grit.homes");
-//   // res.setHeader("Access-Control-Allow-Origin","https://mycabinets.vercel.app");
-//   res.setHeader("Access-Control-Allow-Origin","http://localhost:3000");
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-//   next();
-// })
+
 
 app.use((req, res, next) => {
-  // res.setHeader("Access-Control-Allow-Origin", "https://restro-wbno.vercel.app");
-  // res.setHeader("Access-Control-Allow-Origin", "http://localhost:3000");
+  
   const corsWhitelist = [
-    "http://localhost:3000",
     "https://mycabinets.vercel.app",
     'http://localhost:5173'
 ];
@@ -38,32 +28,9 @@ if (corsWhitelist.indexOf(req.headers.origin) !== -1) {
     res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
     res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin, X-Requested-With, Accept");
 }
-  // res.setHeader("Access-Control-Allow-Origin", "* , https://restro-wbno.vercel.app");
-  // res.setHeader("Access-Control-Allow-Methods", "GET, POST, PUT, DELETE");
-  // res.setHeader("Access-Control-Allow-Headers", "Content-Type, Authorization, Origin, X-Requested-With, Accept");
+ 
   next();
 });
-
-// app.use((req, res, next) => {
-//   // Allow multiple domains
-//   const allowedOrigins = [
-//     "http://localhost:3000",
-//     "https://mycabinets.vercel.app",
-//   ];
-
-//   const origin = req.headers.origin;
-
-//   if (allowedOrigins.includes(origin)) {
-//     res.setHeader("Access-Control-Allow-Origin", origin);
-//   }
-
-//   res.header(
-//     "Access-Control-Allow-Headers",
-//     "Origin, X-Requested-With, Content-Type, Accept"
-//   );
-
-//   next();
-// });
 
 
 app.use('/uploads', express.static(path.join(__dirname, 'uploads')));
