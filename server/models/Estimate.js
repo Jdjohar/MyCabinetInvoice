@@ -61,6 +61,10 @@ const EstimateSchema = new Schema({
     noteimageUrl:{
         type: String,
     },
+     status: {
+        type: String,
+        default: 'Saved',
+    },
     convertedToInvoice: {
         type: Boolean,
         default: false,
