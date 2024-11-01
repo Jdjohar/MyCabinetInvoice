@@ -698,7 +698,7 @@ thead{
         // setShowModal(false);
         setShowEmailAlert(true);
         // Update the database with emailsent status
-        const updatedData = { ...estimateData, emailsent: 'yes' }; // Update emailsent status
+        const updatedData = { ...estimateData,status: 'Send', emailsent: 'yes' }; // Update emailsent status
         await fetch(`https://mycabinet.onrender.com/api/updateestimateData/${estimateid}`, {
           method: 'POST',
           headers: {
