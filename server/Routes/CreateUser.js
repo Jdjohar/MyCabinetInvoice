@@ -25,11 +25,18 @@ const Deposit = require('../models/Deposit');
 const Signature = require('../models/Signature')
 const Ownwesignature = require('../models/Ownwesignature')
 const CustomerSignatureSchema = require('../models/CustomerSignature')
+const Vendor = require('../models/Vendor')
+const ExpenseType = require('../models/ExpenseType')
+const Expense = require('../models/Expense')
 const crypto = require('crypto');
 const bodyParser = require('body-parser');
 const nodemailer = require('nodemailer');
 const multer = require('multer');
 const path = require('path');
+const archiver = require('archiver');
+const fs = require('fs');
+
+
 
 const getCurrencySign = (currencyType) => {
     switch (currencyType) {
@@ -43,22 +50,61 @@ const getCurrencySign = (currencyType) => {
     }
 };
 
+router.get('/backup', (req, res) => {
+    console.log("StartBackup");
+    
+    const dumpDir = path.join(__dirname, 'dump');
+    const archivePath = path.join(__dirname, `${dbName}-backup.zip`);
+
+    // Step 1: Run mongodump
+    exec(`mongodump --db=${dbName} --out=${dumpDir}`, (error, stdout, stderr) => {
+        if (error) {
+            console.error(`Backup error: ${stderr}`);
+            return res.status(500).send('Error creating backup');
+        }
+
+        // Step 2: Zip the dump folder
+        const output = fs.createWriteStream(archivePath);
+        const archive = archiver('zip', { zlib: { level: 9 } });
+
+        output.on('close', () => {
+            // Step 3: Send the ZIP file
+            res.download(archivePath, err => {
+                if (err) console.error(err);
+
+                // Optional cleanup
+                fs.rmSync(dumpDir, { recursive: true, force: true });
+                fs.unlinkSync(archivePath);
+            });
+        });
+
+        archive.on('error', err => {
+            throw err;
+        });
+
+        archive.pipe(output);
+        archive.directory(dumpDir, false);
+        archive.finalize();
+    });
+});
+
+
 router.get('/check-signature/:ownerId', (req, res) => {
     const ownerId = req.params.ownerId;
-  
-    Ownwesignature.findOne({ ownerId })
-      .then(signature => {
-        if (signature) {
-          res.json({ hasSignature: true, signatureData: signature.data });
-        } else {
-          res.json({ hasSignature: false });
-        }
-      })
-      .catch(err => res.json({ hasSignature: false }));
-  });
-  
 
-  router.get('/getallesigncustomerdata', async (req, res) => {
+    Ownwesignature.findOne({ ownerId })
+        .then(signature => {
+            if (signature) {
+                res.json({ hasSignature: true, signatureData: signature.data });
+            } else {
+                res.json({ hasSignature: false });
+            }
+        })
+        .catch(err => res.json({ hasSignature: false }));
+});
+
+
+router.get('/getallesigncustomerdata', async (req, res) => {
     try {
         // Fetch all customer data
         let userid = req.params.userid;
@@ -83,9 +129,163 @@ router.get('/check-signature/:ownerId', (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+router.get('/searchinvoices/:userid', async (req, res) => {
+    try {
+      const userid = req.params.userid;
+      const authtoken = req.headers.authorization;
+      const search = req.query.search || '';
+      const status = req.query.status;
+  
+      // Verify JWT token
+      const decodedToken = jwt.verify(authtoken, jwrsecret);
+  
+      let query = {
+        userid,
+        $or: [
+          { customername: { $regex: search, $options: 'i' } },
+          { job: { $regex: search, $options: 'i' } }
+        ]
+      };
+  
+      if (status && status !== 'All') {
+        query.status = status;
+      }
+  
+      const invoices = await Invoice.find(query).sort({ createdAt: -1 });
+  
+      res.json({ invoices });
+    } catch (error) {
+      console.error('Search error:', error);
+      if (error.name === 'JsonWebTokenErrord') {
+        return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+      }
+      res.status(500).json({ message: 'Internal server error' });
+    }
+  });
 
+// Get all invoices grouped by financial year for a user
+router.get('/all-invoices-by-financial-year', async (req, res) => {
+    try {
+        let authtoken = req.headers.authorization;
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        
+        const { userid } = req.query;
+        
+        if (!userid) {
+            return res.status(400).json({
+                success: false,
+                message: 'User ID is required'
+            });
+        }
 
-  router.get('/getesigncustomerdata/:userid', async (req, res) => {
+        // Aggregation pipeline to group all invoices by financial year
+        const invoicesByYear = await Invoice.aggregate([
+            {
+                $match: { userid: userid }  // Filter by user
+            },
+            {
+                $addFields: {
+                       financialYear: {
+                        $cond: {
+                            if: { $gte: [{ $month: "$date" }, 7] },  // Assuming FY starts April 1st
+                            then: { 
+                                $concat: [
+                                    { $toString: { $year: "$date" } },
+                                    "-",
+                                    { $toString: { $add: [{ $year: "$date" }, 1] } }
+                                ]
+                            },
+                            else: { 
+                                $concat: [
+                                    { $toString: { $subtract: [{ $year: "$date" }, 1] } },
+                                    "-",
+                                    { $toString: { $year: "$date" } }
+                                ]
+                            }
+                        }
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$financialYear",
+                    invoices: { 
+                        $push: {
+                            _id: "$_id",
+                            invoice_id: "$invoice_id",
+                            InvoiceNumber: "$InvoiceNumber",
+                            customername: "$customername",
+                            job: "$job",
+                            customeremail: "$customeremail",
+                            emailsent: "$emailsent",
+                            date: "$date",
+                            duedate: "$duedate",
+                            items: "$items",
+                            subtotal: "$subtotal",
+                            total: "$total",
+                            amountdue: "$amountdue",
+                            discountTotal: "$discountTotal",
+                            information: "$information",
+                            tax: "$tax",
+                            taxpercentage: "$taxpercentage",
+                            status: "$status",
+                            isAddSignature: "$isAddSignature",
+                            isCustomerSign: "$isCustomerSign",
+                            createdAt: "$createdAt"
+                        }
+                    },
+                    totalAmount: { $sum: "$total" },
+                    invoiceCount: { $sum: 1 },
+                    totalDue: { $sum: "$amountdue" },
+                    totalTax: { $sum: { $toDouble: "$tax" } }
+                }
+            },
+            {
+                $sort: { "_id": -1 }  // Sort by financial year descending
+            },
+            {
+                $project: {
+                    financialYear: "$_id",
+                    invoices: 1,
+                    totalAmount: 1,
+                    invoiceCount: 1,
+                    totalDue: 1,
+                    totalTax: 1
+                }
+            }
+        ]);
+
+        // If no invoices found, return empty array
+        if (!invoicesByYear.length) {
+            return res.status(200).json({
+                success: true,
+                data: [],
+                message: 'No invoices found for this user'
+            });
+        }
+
+        res.status(200).json({
+            success: true,
+            data: invoicesByYear,
+            message: 'All invoices retrieved successfully'
+        });
+
+    } catch (error) {
+        console.error(error);
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ 
+                success: false,
+                message: 'Unauthorized: Invalid token' 
+            });
+        }
+        res.status(500).json({ 
+            success: false,
+            message: 'Internal server error',
+            error: error.message
+        });
+    }
+});
+router.get('/getesigncustomerdata/:userid', async (req, res) => {
     try {
         const { userid } = req.params;
         let authtoken = req.headers.authorization;
@@ -93,7 +293,7 @@ router.get('/check-signature/:ownerId', (req, res) => {
         // Verify JWT token
         const decodedToken = jwt.verify(authtoken, jwrsecret);
         console.log(decodedToken);
-        const customeremailData = await CustomerSignatureSchema.find({"userid":userid}); // Assuming you have an `Owner` model
+        const customeremailData = await CustomerSignatureSchema.find({ "userid": userid }); // Assuming you have an `Owner` model
 
         if (!customeremailData) {
             return res.status(404).json({ message: 'Customer not found' });
@@ -110,74 +310,74 @@ router.get('/check-signature/:ownerId', (req, res) => {
 
 router.get('/checkcustomersignature/:estimateIds', (req, res) => {
     const { estimateIds } = req.params;
-      CustomerSignatureSchema.findOne({estimateId: estimateIds })
-      .then(signature => {
-        if (signature) {
-          res.status(200).json({ hasSignature: true, signatureData: signature });
-        } else {
-          res.status(200).json({ hasSignature: false });
-        }
-      })
-      .catch(err => res.status(200).json({ hasSignature: false }));
-  });
+    CustomerSignatureSchema.findOne({ estimateId: estimateIds })
+        .then(signature => {
+            if (signature) {
+                res.status(200).json({ hasSignature: true, signatureData: signature });
+            } else {
+                res.status(200).json({ hasSignature: false });
+            }
+        })
+        .catch(err => res.status(200).json({ hasSignature: false }));
+});
 
-  router.get('/checkcustomersignatureusinginvoice/:invoiceIds', (req, res) => {
+router.get('/checkcustomersignatureusinginvoice/:invoiceIds', (req, res) => {
     const { invoiceIds } = req.params;
-      CustomerSignatureSchema.findOne({invoiceId: invoiceIds })
-      .then(signature => {
-        if (signature) {
-          res.status(200).json({ hasSignature: true, signatureData: signature });
-        } else {
-          res.status(200).json({ hasSignature: false });
-        }
-      })
-      .catch(err => res.status(200).json({ hasSignature: false }));
-  });
+    CustomerSignatureSchema.findOne({ invoiceId: invoiceIds })
+        .then(signature => {
+            if (signature) {
+                res.status(200).json({ hasSignature: true, signatureData: signature });
+            } else {
+                res.status(200).json({ hasSignature: false });
+            }
+        })
+        .catch(err => res.status(200).json({ hasSignature: false }));
+});
 
-  router.put('/updatecustomersigninv/:invoiceId', async (req, res) => {
+
+router.put('/updatecustomersigninv/:invoiceId', async (req, res) => {
     const { invoiceId } = req.params;
-    const { customersign, customerName, documentNumber, status,lastupdated,completeButtonVisible } = req.body;
-  
-    try {
-      const customerSignature = await CustomerSignatureSchema.findOneAndUpdate(
-        { invoiceId: invoiceId },
-        {
-          customersign,
-          invoiceId,
-          customerName,
-          documentNumber,
-          status,
-          lastupdated,
-          completeButtonVisible
-        },
-        { new: true }
-      );
-  
-      if (customerSignature) {
-        res.status(200).json({ message: 'Customer signature updated successfully', customerSignature });
-      } else {
-        res.status(404).json({ message: 'Customer signature not found' });
-      }
-    } catch (error) {
-      console.error('Error updating customer signature:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  });
+    const { customersign, customerName, documentNumber, status, lastupdated, completeButtonVisible } = req.body;
 
+    try {
+        const customerSignature = await CustomerSignatureSchema.findOneAndUpdate(
+            { invoiceId: invoiceId },
+            {
+                customersign,
+                invoiceId,
+                customerName,
+                documentNumber,
+                status,
+                lastupdated,
+                completeButtonVisible
+            },
+            { new: true }
+        );
+
+        if (customerSignature) {
+            res.status(200).json({ message: 'Customer signature updated successfully', customerSignature });
+        } else {
+            res.status(404).json({ message: 'Customer signature not found' });
+        }
+    } catch (error) {
+        console.error('Error updating customer signature:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
 
 router.post('/ownersignature', (req, res) => {
-    const { signature, ownerId, email,companyname } = req.body;
-  
+    const { signature, ownerId, email, companyname } = req.body;
+
     const newSignature = new Ownwesignature({
-      ownerId,
-      email,
-      companyname,
-      data: signature,
+        ownerId,
+        email,
+        companyname,
+        data: signature,
     });
-  
+
     newSignature.save()
-      .then(signature => res.json({ message: 'Signature saved successfully', id: signature._id }))
-      .catch(err => res.status(500).send('Error saving signature'));
+        .then(signature => res.json({ message: 'Signature saved successfully', id: signature._id }))
+        .catch(err => res.status(500).send('Error saving signature'));
 });
 
 // Route for updating an existing signature
@@ -188,8 +388,8 @@ router.put('/update-ownersignature', async (req, res) => {
 
     try {
         const updatedSignature = await Ownwesignature.findOneAndUpdate(
-            { ownerId }, 
-            { data: signature, email, companyname }, 
+            { ownerId },
+            { data: signature, email, companyname },
             { new: true }
         );
 
@@ -207,7 +407,7 @@ router.put('/update-ownersignature', async (req, res) => {
 });
 
 router.post('/customersignature', (req, res) => {
-    const { customersign, invoiceId, estimateId,userid, customerName, customerEmail,documentNumber,lastupdated,completeButtonVisible } = req.body;
+    const { customersign, invoiceId, estimateId, userid, customerName, customerEmail, documentNumber, lastupdated, completeButtonVisible } = req.body;
 
     if (!estimateId && !invoiceId) {
         return res.status(400).json({ message: 'Either Estimate ID or Invoice ID must be provided' });
@@ -233,35 +433,35 @@ router.post('/customersignature', (req, res) => {
 // Add this route to update customer signature
 router.put('/updatecustomersignature/:estimateId', async (req, res) => {
     const { estimateId } = req.params;
-    const { customersign, customerName, documentNumber, status,lastupdated,completeButtonVisible } = req.body;
-  
-    try {
-      const customerSignature = await CustomerSignatureSchema.findOneAndUpdate(
-        { estimateId: estimateId },
-        {
-          customersign,
-          estimateId,
-          customerName,
-          documentNumber,
-          status,
-          lastupdated,
-          completeButtonVisible
-        },
-        { new: true }
-      );
-  
-      if (customerSignature) {
-        res.status(200).json({ message: 'Customer signature updated successfully', customerSignature });
-      } else {
-        res.status(404).json({ message: 'Customer signature not found' });
-      }
-    } catch (error) {
-      console.error('Error updating customer signature:', error);
-      res.status(500).json({ message: 'Server error' });
-    }
-  });
+    const { customersign, customerName, documentNumber, status, lastupdated, completeButtonVisible } = req.body;
 
-  router.delete('/customersignature/:email', async (req, res) => {
+    try {
+        const customerSignature = await CustomerSignatureSchema.findOneAndUpdate(
+            { estimateId: estimateId },
+            {
+                customersign,
+                estimateId,
+                customerName,
+                documentNumber,
+                status,
+                lastupdated,
+                completeButtonVisible
+            },
+            { new: true }
+        );
+
+        if (customerSignature) {
+            res.status(200).json({ message: 'Customer signature updated successfully', customerSignature });
+        } else {
+            res.status(404).json({ message: 'Customer signature not found' });
+        }
+    } catch (error) {
+        console.error('Error updating customer signature:', error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.delete('/customersignature/:email', async (req, res) => {
     const { email } = req.params;
 
     try {
@@ -277,7 +477,7 @@ router.put('/updatecustomersignature/:estimateId', async (req, res) => {
         res.status(500).json({ message: 'Server error' });
     }
 });
-  
+
 
 // Backend route to fetch owner data by ownerId
 router.get('/getownerdata/:ownerId', async (req, res) => {
@@ -290,7 +490,7 @@ router.get('/getownerdata/:ownerId', async (req, res) => {
         console.log(decodedToken);
 
         // Fetch owner data from the database
-        const ownerData = await Ownwesignature.find({"ownerId":ownerId}); // Assuming you have an `Owner` model
+        const ownerData = await Ownwesignature.find({ "ownerId": ownerId }); // Assuming you have an `Owner` model
 
         if (!ownerData) {
             return res.status(404).json({ message: 'Owner not found' });
@@ -307,6 +507,7 @@ router.get('/getownerdata/:ownerId', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 router.get('/getemailownerdata/:ownerId', async (req, res) => {
     try {
         const ownerId = req.params.ownerId;
@@ -317,7 +518,7 @@ router.get('/getemailownerdata/:ownerId', async (req, res) => {
         // console.log(decodedToken);
 
         // Fetch owner data from the database
-        const ownerData = await Ownwesignature.find({"ownerId":ownerId}); // Assuming you have an `Owner` model
+        const ownerData = await Ownwesignature.find({ "ownerId": ownerId }); // Assuming you have an `Owner` model
 
         if (!ownerData) {
             return res.status(404).json({ message: 'Owner not found' });
@@ -334,18 +535,18 @@ router.get('/getemailownerdata/:ownerId', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-  
-  // Get signature route
+
+// Get signature route
 router.get('/ownersignature/:id', (req, res) => {
     Ownwesignature.findById(req.params.id)
-      .then(signature => {
-        if (signature) {
-          res.json({ data: signature.data });
-        } else {
-          res.status(404).send('Signature not found');
-        }
-      })
-      .catch(err => res.status(500).send('Error retrieving signature'));
+        .then(signature => {
+            if (signature) {
+                res.json({ data: signature.data });
+            } else {
+                res.status(404).send('Signature not found');
+            }
+        })
+        .catch(err => res.status(500).send('Error retrieving signature'));
 });
 
 router.get('/getemailestimatedata/:estimateid', async (req, res) => {
@@ -383,16 +584,60 @@ router.get('/getemailsignupdata/:userid', async (req, res) => {
     }
 });
 
-router.get('/getemailtransactiondata/:invoiceid', async (req, res) => {
+// Transactions API
+router.get('/allTransactions', async (req, res) => {
     try {
-        const invoiceid = req.params.invoiceid;
-        const transactiondata = await Transactions.find({ invoiceid: invoiceid }).sort({ paiddate: 1 });
-        res.json(transactiondata);
+        // Fetch all transactions from the Transactions collection
+        const allTransactions = await Transactions.find();
+
+        // Check if any transactions are found
+        if (allTransactions && allTransactions.length > 0) {
+            // Respond with JSON containing all transactions
+            res.json({ transactions: allTransactions });
+        } else {
+            // If no transactions found, respond with 404 status and a message
+            res.status(404).json({ message: 'No transactions found' });
+        }
     } catch (error) {
-        console.error(error);   
+        // If an error occurs during the database operation, log it and respond with a 500 status
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
+router.get('/deltransaction/:transactionid', async (req, res) => {
+    try {
+        const transactionid = req.params.transactionid;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
+
+        const result = await Transactions.findByIdAndDelete(transactionid);
+
+        if (result) {
+            res.json({
+                Success: true,
+                message: "teammember deleted successfully"
+            });
+        } else {
+            res.status(404).json({
+                Success: false,
+                message: "teammember not found"
+            });
+        }
+    } catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
 
 router.get('/currentMonthReceivedAmount/:userId', async (req, res) => {
     try {
@@ -446,42 +691,6 @@ router.get('/currentMonthReceivedAmount/:userId', async (req, res) => {
             curMonPaidAmount: totalPaidAmount,
             curMonUnpaidAmount
         });
-    } catch (error) {
-        console.error(error);
-        res.status(500).json({ message: 'Server error' });
-    }
-});
-
-router.get('/currentMonthReceivedAmount2/:userid', async (req, res) => {
-    try {
-        const userid = req.params.userid;
-        const { startOfMonth, endOfMonth } = req.query;
-
-        const formattedStartDate = moment(startOfMonth).format('YYYY-MM-DD');
-        const formattedEndDate = moment(endOfMonth).format('YYYY-MM-DD');
-
-        const result = await Transactions.aggregate([
-            {
-                $match: {
-                    userid: userid,
-                    paiddate: {
-                        $gte: formattedStartDate,
-                        $lte: formattedEndDate
-                    }
-                }
-            },
-            {
-                $group: {
-                    _id: "$paiddate",
-                    totalReceivedAmount: { $sum: "$paidamount" }
-                }
-            },
-            {
-                $sort: { _id: 1 } 
-            }
-        ]);
-
-        res.json(result);
     } catch (error) {
         console.error(error);
         res.status(500).json({ message: 'Server error' });
@@ -544,6 +753,42 @@ router.get('/overdueInvoices/:userId', async (req, res) => {
     }
 });
 
+router.get('/currentMonthReceivedAmount2/:userid', async (req, res) => {
+    try {
+        const userid = req.params.userid;
+        const { startOfMonth, endOfMonth } = req.query;
+
+        const formattedStartDate = moment(startOfMonth).format('YYYY-MM-DD');
+        const formattedEndDate = moment(endOfMonth).format('YYYY-MM-DD');
+
+        const result = await Transactions.aggregate([
+            {
+                $match: {
+                    userid: userid,
+                    paiddate: {
+                        $gte: formattedStartDate,
+                        $lte: formattedEndDate
+                    }
+                }
+            },
+            {
+                $group: {
+                    _id: "$paiddate",
+                    totalReceivedAmount: { $sum: "$paidamount" }
+                }
+            },
+            {
+                $sort: { _id: 1 }
+            }
+        ]);
+
+        res.json(result);
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
+    }
+});
+
 router.post('/send-invoice-email', async (req, res) => {
     const {
         to,
@@ -561,15 +806,15 @@ router.post('/send-invoice-email', async (req, res) => {
         amountdue1
     } = req.body;
    
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        port: 465, // Replace with the appropriate port
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: 'accounts@mycabinets.net',
-            pass: 'Mycabinet@123'
-        }
-    });
+   const transporter = nodemailer.createTransport({
+           host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+           port: 465, // Replace with the appropriate port
+           secure: true, // true for 465, false for other ports
+           auth: {
+               user: 'accounts@mycabinets.net',
+               pass: 'Mycabinet@123'
+           }
+       });
 
     const currencySign = getCurrencySign(currencyType);
 
@@ -602,7 +847,7 @@ router.post('/send-invoice-email', async (req, res) => {
                 </div>
                 <div style="margin: 20px 0px 10px;">
                     <p style="color:#222">This email contains a unique link just for you. Please do not share this email or link or others will have access to your document.</p>
-                    <a href="https://mycabinets.vercel.app/customersigninvoice?invoiceId=${invoiceId}" style="display:inline-block;padding:10px 20px;background-color:#4CAF50;color:#fff;text-decoration:none;border-radius:5px;">View this Estimate</a>
+                    <a href="https://grithomes.vercel.app/customersigninvoice?invoiceId=${invoiceId}" style="display:inline-block;padding:10px 20px;background-color:#4CAF50;color:#fff;text-decoration:none;border-radius:5px;">View this Invoice</a>
                 </div>
             </section>
             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
@@ -654,26 +899,19 @@ router.post('/send-deposit-email', async (req, res) => {
         InvoiceNumber,
         currencyType,
     } = req.body;
+    console.log(duedate, "");
 
     const transporter = nodemailer.createTransport({
-        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        port: 465, // Replace with the appropriate port
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: 'accounts@mycabinets.net',
-            pass: 'Mycabinet@123'
-        }
-    });
+            host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+            port: 465, // Replace with the appropriate port
+            secure: true, // true for 465, false for other ports
+            auth: {
+                user: 'accounts@mycabinets.net',
+                pass: 'Mycabinet@123'
+            }
+        });
 
-    // const transporter = nodemailer.createTransport({
-    //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-    //     port: 465, // Replace with the appropriate port
-    //     secure: true, // true for 465, false for other ports
-    //     auth: {
-    //       user: 'accounts@mycabinets.net',
-    //       pass: 'lpctmxmuoudgnopd'
-    //     }
-    //   });
+    
 
     const currencySign = getCurrencySign(currencyType);
 
@@ -681,7 +919,7 @@ router.post('/send-deposit-email', async (req, res) => {
         from: 'accounts@mycabinets.net',
         to: to.join(', '),
         bcc: bcc.join(', '),
-        subject: `Invoice from ${companyName}`,
+        subject: `Deposit Request from ${companyName}`,
         attachments: [
             {
                 filename: `Invoice #${InvoiceNumber}.pdf`,
@@ -697,7 +935,7 @@ router.post('/send-deposit-email', async (req, res) => {
                     <p style="margin-top: 0px;">Invoice #${InvoiceNumber}</p>
                 </div>
                 <div>
-                    <h1 style="margin-bottom:0px; font-size: 35px; color:#222">Invoice from ${companyName}</h1>
+                    <h1 style="margin-bottom:0px; font-size: 35px; color:#222">Deposit Request from ${companyName}</h1>
                     <h1 style="margin: 0px; font-size: 35px; color:#222">${currencySign}${depositamount}</h1>
                     <p style="margin-top: 0px; color:#222">Due: ${duedate}</p>
                 </div>
@@ -758,25 +996,18 @@ router.post('/send-estimate-email', async (req, res) => {
         amountdue1
     } = req.body;
 
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        port: 465, // Replace with the appropriate port
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: 'accounts@mycabinets.net',
-            pass: 'Mycabinet@123'
-        }
-    });
 
-    // const transporter = nodemailer.createTransport({
-    //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-    //     port: 465, // Replace with the appropriate port
-    //     secure: true, // true for 465, false for other ports
-    //     auth: {
-    //       user: 'accounts@mycabinets.net',
-    //       pass: 'lpctmxmuoudgnopd'
-    //     }
-    //   });
+   const transporter = nodemailer.createTransport({
+           host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+           port: 465, // Replace with the appropriate port
+           secure: true, // true for 465, false for other ports
+           auth: {
+               user: 'accounts@mycabinets.net',
+               pass: 'Mycabinet@123'
+           }
+       });
+
+   
 
     const currencySign = getCurrencySign(currencyType);
 
@@ -808,7 +1039,7 @@ router.post('/send-estimate-email', async (req, res) => {
                 </div>
                 <div style="margin: 20px 0px 10px;">
                     <p style="color:#222">This email contains a unique link just for you. Please do not share this email or link or others will have access to your document.</p>
-                    <a href="https://mycabinets.vercel.app/customersign?estimateId=${estimateId}" style="display:inline-block;padding:10px 20px;background-color:#4CAF50;color:#fff;text-decoration:none;border-radius:5px;">View this Estimate</a>
+                    <a href="https://grithomes.vercel.app/customersign?estimateId=${estimateId}" style="display:inline-block;padding:10px 20px;background-color:#4CAF50;color:#fff;text-decoration:none;border-radius:5px;">View this Estimate</a>
                 </div>
             </section>
             <section style="font-family:sans-serif; width: 50%; margin: auto; background-color:#f5f4f4; padding: 35px 30px; margin-bottom: 40px;">
@@ -854,23 +1085,17 @@ router.post('/send-estimate-signed-email', async (req, res) => {
         customerName
     } = req.body;
 
-    // const transporter = nodemailer.createTransport({
-    //     service: 'gmail',
-    //     auth: {
-    //         user: "accounts@mycabinets.net",
-    //         pass: "cwoxnbrrxvsjfbmr"
-    //     },
-    // });
-    
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        port: 465, // Replace with the appropriate port
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: 'accounts@mycabinets.net',
-            pass: 'Mycabinet@123'
-        }
-    });
+  
+
+   const transporter = nodemailer.createTransport({
+           host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+           port: 465, // Replace with the appropriate port
+           secure: true, // true for 465, false for other ports
+           auth: {
+               user: 'accounts@mycabinets.net',
+               pass: 'Mycabinet@123'
+           }
+       });
 
     const mailOptions = {
         from: "accounts@mycabinets.net",
@@ -929,39 +1154,6 @@ router.post('/send-estimate-signed-email', async (req, res) => {
     }
 });
 
-router.get('/deltransaction/:transactionid', async (req, res) => {
-    try {
-        const transactionid = req.params.transactionid;
-        let authtoken = req.headers.authorization;
-
-        // Verify JWT token
-        const decodedToken = jwt.verify(authtoken, jwrsecret);
-        console.log(decodedToken);
-
-        const result = await Transactions.findByIdAndDelete(transactionid);
-
-        if (result) {
-            res.json({
-                Success: true,
-                message: "Transaction deleted successfully"
-            });
-        } else {
-            res.status(404).json({
-                Success: false,
-                message: "Transaction not found"
-            });
-        }
-    } catch (error) {
-        console.error(error);
-        // Handle token verification errors
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
-        }
-        // Handle other errors
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
 router.post('/send-Invoice-signed-email', async (req, res) => {
     const {
         to,
@@ -970,13 +1162,14 @@ router.post('/send-Invoice-signed-email', async (req, res) => {
         documentNumber,
         customerName
     } = req.body;
-
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
+const transporter = nodemailer.createTransport({
+        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+        port: 465, // Replace with the appropriate port
+        secure: true, // true for 465, false for other ports
         auth: {
-            user: "accounts@mycabinets.net",
-            pass: "cwoxnbrrxvsjfbmr"
-        },
+            user: 'accounts@mycabinets.net',
+            pass: 'Mycabinet@123'
+        }
     });
 
     const mailOptions = {
@@ -1371,67 +1564,67 @@ router.post("/createuser", [
 router.post('/login', [
     body('email').isEmail(),
     body('password').isLength({ min: 4 }),
-  ], async (req, res) => {
+], async (req, res) => {
     const errors = validationResult(req);
     if (!errors.isEmpty()) {
-      return res.status(400).json({ errors: errors.array() });
+        return res.status(400).json({ errors: errors.array() });
     }
-  
+
     const email = req.body.email;
     const password = req.body.password;
-  
+
     try {
-      // Check if it's a user
-      const user = await User.findOne({ email });
-      
-      if (user) {
-        const pwdCompare = await bcrypt.compare(password, user.password);
-        if (pwdCompare) {
-          const data = {
-            user: {
-              id: user._id,
-            },
-          };
-          const mostRecentClockEntry = await Timeschema.findOne({ endTime: null, userid:user._id }).sort({ startTime: -1 });
-          const mostRecentClockEntrystartTime = mostRecentClockEntry != null ? mostRecentClockEntry.startTime : "";
-          const authToken = jwt.sign(data, jwrsecret);
-          return res.json({ 
-            Success: true, 
-            authToken, 
-            userid: user._id, 
-            username: user.FirstName, 
-            CurrencyType: user.CurrencyType, 
-            startTime:mostRecentClockEntrystartTime, 
-            isTeamMember: false, 
-            taxPercentage: user.taxPercentage,
-            TaxName: user.TaxName,
-        });
+        // Check if it's a user
+        const user = await User.findOne({ email });
+
+        if (user) {
+            const pwdCompare = await bcrypt.compare(password, user.password);
+            if (pwdCompare) {
+                const data = {
+                    user: {
+                        id: user._id,
+                    },
+                };
+                const mostRecentClockEntry = await Timeschema.findOne({ endTime: null, userid: user._id }).sort({ startTime: -1 });
+                const mostRecentClockEntrystartTime = mostRecentClockEntry != null ? mostRecentClockEntry.startTime : "";
+                const authToken = jwt.sign(data, jwrsecret);
+                return res.json(
+                    {
+                        Success: true,
+                        authToken, userid: user._id,
+                        username: user.FirstName,
+                        CurrencyType: user.CurrencyType,
+                        startTime: mostRecentClockEntrystartTime,
+                        isTeamMember: false,
+                        taxPercentage: user.taxPercentage,
+                        TaxName: user.TaxName,
+                    });
+            }
         }
-      }
-  
-      // Check if it's a team member
-      const teamMember = await Team.findOne({ email });
-      
-      if (teamMember) {
-        const pwdCompare1 = await bcrypt.compare(password, teamMember.password);
-        if (pwdCompare1) {
-          const data1 = {
-            users: {
-              id: teamMember._id,
-            },
-          };
-          const mostRecentClockEntry = await Timeschema.findOne({ endTime: null, userid:teamMember._id }).sort({ startTime: -1 });
-          const mostRecentClockEntrystartTime = mostRecentClockEntry != null ? mostRecentClockEntry.startTime : "";
-          const authToken = jwt.sign(data1, jwrsecret);
-          return res.json({ Success: true, authToken, userid: teamMember._id, username: teamMember.name, startTime:mostRecentClockEntrystartTime, isTeamMember: true });
+
+        // Check if it's a team member
+        const teamMember = await Team.findOne({ email });
+
+        if (teamMember) {
+            const pwdCompare1 = await bcrypt.compare(password, teamMember.password);
+            if (pwdCompare1) {
+                const data1 = {
+                    users: {
+                        id: teamMember._id,
+                    },
+                };
+                const mostRecentClockEntry = await Timeschema.findOne({ endTime: null, userid: teamMember._id }).sort({ startTime: -1 });
+                const mostRecentClockEntrystartTime = mostRecentClockEntry != null ? mostRecentClockEntry.startTime : "";
+                const authToken = jwt.sign(data1, jwrsecret);
+                return res.json({ Success: true, authToken, userid: teamMember._id, username: teamMember.name, startTime: mostRecentClockEntrystartTime, isTeamMember: true });
+            }
         }
-      }
-  
-      console.log('Login failed for email:', email);
-      return res.status(400).json({ errors: 'Login with correct details' });
+
+        console.log('Login failed for email:', email);
+        return res.status(400).json({ errors: 'Login with correct details' });
     } catch (error) {
-      console.log(error);
-      res.json({ Success: false });
+        console.log(error);
+        res.json({ Success: false });
     }
 });
 
@@ -1492,22 +1685,16 @@ function sendWelcomeEmail(userEmail, name, isFirstTimeLogin) {
         </body>
     </html>`;
 
-    const transporter = nodemailer.createTransport({
-        service: 'gmail',
-        auth: {
-            user: 'accounts@mycabinets.net',
-            pass: 'Mycabinet@123'
-        }
-    });
-    // const transporter = nodemailer.createTransport({
-    //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-    //     port: 465, // Replace with the appropriate port
-    //     secure: true, // true for 465, false for other ports
-    //     auth: {
-    //       user: 'accounts@mycabinets.net',
-    //       pass: 'lpctmxmuoudgnopd'
-    //     }
-    //   });
+  const transporter = nodemailer.createTransport({
+          host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+          port: 465, // Replace with the appropriate port
+          secure: true, // true for 465, false for other ports
+          auth: {
+              user: 'accounts@mycabinets.net',
+              pass: 'Mycabinet@123'
+          }
+      });
+    
 
     const mailOptions = {
         from: 'your-email@gmail.com',
@@ -1543,28 +1730,19 @@ router.post('/forgot-password', async (req, res) => {
         await user.save();
 
         // Nodemailer setup
-        const transporter = nodemailer.createTransport({
-
-            host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-            port: 465, // Replace with the appropriate port
-            secure: true, // true for 465, false for other ports
-            auth: {
-                user: 'accounts@mycabinets.net',
-                pass: 'Mycabinet@123'
-            }
-        });
-        // const transporter = nodemailer.createTransport({
-        //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        //     port: 465, // Replace with the appropriate port
-        //     secure: true, // true for 465, false for other ports
-        //     auth: {
-        //       user: 'accounts@mycabinets.net',
-        //       pass: 'lpctmxmuoudgnopd'
-        //     }
-        //   });
+      const transporter = nodemailer.createTransport({
+              host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+              port: 465, // Replace with the appropriate port
+              secure: true, // true for 465, false for other ports
+              auth: {
+                  user: '',
+                  pass: 'Mycabinet@123'
+              }
+          });
+      
 
         const mailOptions = {
-            from: 'your_email@example.com',
+            from: 'accounts@mycabinets.net',
             to: user.email,
             subject: 'Reset your password',
             text: `You are receiving this because you (or someone else) have requested to reset your password.\n\n
@@ -1611,37 +1789,6 @@ router.post('/reset-password', async (req, res) => {
     }
 });
 
-
-// router.post('/clockin', async (req, res) => {
-
-//     let Data = new Date();
-//     const options = { timeZone: 'Asia/Kolkata', timeZoneName: 'short' };
-//     console.log(Data.toLocaleString('en-US', options), "Time Zone");
-//     const formattedTime = Data.toLocaleString('en-US', options);
-//     const newClock = new Timeschema({
-//         startTime: formattedTime, 
-//     });
-
-//     await newClock.save();
-
-//     res.json({ message: 'Clock-in successful', startTime: formattedTime });
-// });
-
-// router.post('/clockout', async (req, res) => {
-//     let Data = new Date();
-//     const options = { timeZone: 'Asia/Kolkata', timeZoneName: 'short' };
-//     console.log(Data.toLocaleString('en-US', options), "Time Zone");
-//     const formattedTime = Data.toLocaleString('en-US', options);
-
-//     // Assuming you have a Mongoose model named 'Timeschema' for clock-out times
-//     const newClock = new Timeschema({
-//         endTime: formattedTime, 
-//     });
-
-//     await newClock.save();
-
-//     res.json({ message: 'Clock-out successful', endTime: formattedTime });
-// });
 
 router.post('/clockin', async (req, res) => {
     try {
@@ -1769,184 +1916,80 @@ router.get('/allEntries', async (req, res) => {
     }
 });
 
-//   router.get('/allEntriesuserwise/:userid', async (req, res) => {
-//   try {
-//     const { userid } = req.params;
-//     const allEntries = await Timeschema.find({userid}).sort({ startTime: 1 });
 
-//     if (allEntries && allEntries.length > 0) {
-//       res.json({ allEntries });
-//     } else {
-//       res.status(404).json({ message: 'No entries found' });
-//     }
-//   } catch (error) {
-//     console.error(error);
-//     res.status(500).json({ message: 'Server error' });
-//   }
-// });
+router.post("/addcustomer", [
+    body('emails').isArray().withMessage('Emails must be an array'),
+body('emails.*').isEmail().withMessage('Each email must be valid'),
+    body('name').isLength({ min: 3 }),
+    body('information').isLength(),
+    body('number').isLength(), 
+    body('city').isLength(),
+    body('state').isLength(),
+    body('country').isLength(),
+    body('post').isLength(),
+], async (req, res) => {
+    const errors = validationResult(req);
+    let authtoken = req.headers.authorization;
 
-router.post("/addcustomer",
-    [
-        body('email').isEmail(),
-        body('name').isLength({ min: 3 }),
-        body('information').isLength(),
-        body('number').isLength({ min: 3 }),
-        body('city').isLength(),
-        body('state').isLength(),
-        body('country').isLength(),
-        body('post').isLength(),
+    try {
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
 
-        // body('address').isLength(),
-    ]
-    , async (req, res) => {
-        const errors = validationResult(req);
-        let authtoken = req.headers.authorization;
-        try {
-            // Verify JWT token
-            const decodedToken = jwt.verify(authtoken, jwrsecret);
-            console.log(decodedToken);
-
-            if (!errors.isEmpty()) {
-                return res.status(400).json({ errors: errors.array() });
-            }
-            const email = req.body.email;
-            const existingcustomer = await Customerlist.findOne({ email });
-
-            if (existingcustomer) {
-                console.log('Email already registered:', email);
-                return res.status(400).json({
-                    success: false,
-                    message: "This Customer Email already exist!"
-                });
-            } else {
-                Customerlist.create({
-                    userid: req.body.userid,
-                    name: req.body.name,
-                    information: req.body.information,
-                    email: req.body.email,
-                    number: req.body.number,
-                    country: req.body.country,
-                    countryid: req.body.countryid,
-                    city: req.body.city,
-                    cityid: req.body.cityid,
-                    state: req.body.state,
-                    stateid: req.body.stateid,
-                    countrydata: req.body.countrydata,
-                    statedata: req.body.statedata,
-                    citydata: req.body.citydata,
-                    zip: req.body.zip,
-                    address1: req.body.address1,
-                    address2: req.body.address2,
-                    post: req.body.post,
-                })
-                res.json({
-                    Success: true,
-                    message: "Congratulations! Your Customer has been successfully added! "
-                })
-            }
+        if (!errors.isEmpty()) {
+            return res.status(400).json({ errors: errors.array() });
         }
-        catch (error) {
-            console.error(error);
-            // Handle token verification errors
-            if (error.name === 'JsonWebTokenError') {
-                return res.status(401).json({ message: 'Unauthorized: Invalid token' });
-            }
-            // Handle other errors
-            res.status(500).json({ message: 'Internal server error' });
+
+        const email = req.body.email;
+        const existingCustomer = await Customerlist.findOne({ emails: { $in: req.body.emails } });
+
+        if (existingCustomer) {
+            console.log('Email already registered:', email);
+            return res.status(400).json({
+                success: false,
+                message: "This Customer Email already exists!"
+            });
+        } else {
+            // Create new customer record
+            const newCustomer = await Customerlist.create({
+                userid: req.body.userid,
+                name: req.body.name,
+                information: req.body.information,
+                  emails: req.body.emails,
+                number: req.body.number,
+                country: req.body.country,
+                countryid: req.body.countryid,
+                city: req.body.city,
+                cityid: req.body.cityid,
+                state: req.body.state,
+                stateid: req.body.stateid,
+                countrydata: req.body.countrydata,
+                statedata: req.body.statedata,
+                citydata: req.body.citydata,
+                zip: req.body.zip,
+                address1: req.body.address1,
+                address2: req.body.address2,
+                post: req.body.post,
+            });
+
+            res.json({
+                success: true,
+                message: "Congratulations! Your Customer has been successfully added!",
+                data: newCustomer
+            });
         }
-    });
+    } catch (error) {
+        console.error(error);
 
-// router.post(
-//         '/savecreateinvoice',
-//         [
-//           body('userid').isLength({ min: 3 }),
-//           body('invoiceData').isObject(),
-//           // Add validation for other fields if needed
-//         ],
-//         async (req, res) => {
-//           try {
-//             const errors = validationResult(req);
-//             if (!errors.isEmpty()) {
-//               return res.status(400).json({ errors: errors.array() });
-//             }
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
 
-//             const {
-//               userid,
-//               customername,
-//               itemname,
-//               customeremail,
-//               invoicenumber,
-//               purchaseorder,
-//               date,
-//               duedate,
-//               description,
-//               itemquantity,
-//               price,
-//               discount,
-//               amount,
-//               tax,
-//               subtotal,
-//               total,
-//               amountdue,
-//               information,
-//             } = req.body.invoiceData; // Destructure invoice data
-
-//             // Create the invoice in the database
-//             const newInvoice = new Invoice({
-//               userid,
-//               customername,
-//               itemname,
-//               customeremail,
-//               invoicenumber,
-//               purchaseorder,
-//               date,
-//               duedate,
-//               description,
-//               itemquantity,
-//               price,
-//               discount,
-//               amount,
-//               tax,
-//               subtotal,
-//               total,
-//               amountdue,
-//               information,
-//             });
-
-//             await newInvoice.save(); // Save the new invoice to the database
-
-//             res.json({
-//               success: true,
-//               message: 'Congratulations! Your Invoice has been successfully saved!',
-//             });
-//           } catch (error) {
-//             console.error('Error:', error);
-//             res.status(500).json({ success: false, message: 'Failed to save the invoice.' });
-//           }
-//         }
-//       );
-
-// router.post("/savecreateinvoice", [
-//     // Validate the incoming data (placeholders)
-//     body('userid').isLength({ min: 1 }),
-//     body('invoiceData').isObject(),
-// ], async (req, res) => {
-//     const errors = validationResult(req);
-//     if (!errors.isEmpty()) {
-//         return res.status(400).json({ errors: errors.array() });
-//     }
-
-//     try {
-//         // Save the invoice data to the database (placeholders)
-//         const { userid, invoiceData } = req.body;
-//         // Save the invoiceData to the database using Mongoose or other ORM
-
-//         res.json({ success: true, message: "Invoice saved successfully" });
-//     } catch (error) {
-//         console.error(error);
-//         return res.status(500).json({ success: false, message: "Internal Server Error" });
-//     }
-// });
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
 
 
 // Create a new invoice
@@ -2056,47 +2099,74 @@ router.post('/savecreateestimate', async (req, res) => {
 });
 
 router.get('/invoicedata/:userid', async (req, res) => {
-    try {
-        let userid = req.params.userid;
-        let authtoken = req.headers.authorization;
-        // Verify JWT token
-        const decodedToken = jwt.verify(authtoken, jwrsecret);
-        console.log(decodedToken);
-        // Find invoice data sorted by creation date in descending order
-        const invoicedata = await Invoice.find({ userid: userid }).sort({ createdAt: -1 });
-        res.json(invoicedata);
-    } catch (error) {
-        console.error('Error fetching dashboard data:', error);
-        // Handle token verification errors
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
-        }
-        // Handle other errors
-        res.status(500).json({ message: 'Internal server error' });
+  try {
+    const userid = req.params.userid;
+    const rawToken = req.headers.authorization;
+    const page = parseInt(req.query.page) || 0;
+    const limit = parseInt(req.query.limit) || 20;
+    const status = req.query.status;
+
+    // ✅ Extract and verify JWT
+    if (!rawToken) {
+      return res.status(401).json({ message: 'Unauthorized: No token provided' });
     }
+
+    const token = rawToken.startsWith("Bearer ") ? rawToken.slice(7) : rawToken;
+    const decodedToken = jwt.verify(token, jwrsecret);
+    console.log("Decoded Token:", decodedToken);
+
+    // ✅ Build query
+    const query = { userid };
+    if (status && status !== 'All') {
+      query.status = status;
+    }
+
+    // ✅ Count total documents for pagination
+    const totalInvoices = await Invoice.countDocuments(query);
+
+    // ✅ Fetch paginated results
+    const invoices = await Invoice.find(query)
+      .sort({ createdAt: -1 })
+      .skip(page * limit)
+      .limit(limit);
+
+    // ✅ Return in expected structure
+    res.json({
+      invoices,
+      totalPages: Math.ceil(totalInvoices / limit),
+    });
+
+  } catch (error) {
+    console.error('Error fetching dashboard data:', error);
+    if (error.name === 'JsonWebTokenError') {
+      return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+    }
+    res.status(500).json({ message: 'Internal server error' });
+  }
 });
+
 
 router.get('/customerwisedata/:customeremail', async (req, res) => {
     try {
-        let customeremail = req.params.customeremail;customeremail
+        let customeremail = req.params.customeremail;
         let authtoken = req.headers.authorization;
-        
+
         // Verify JWT token
         const decodedToken = jwt.verify(authtoken, jwrsecret);
         console.log(decodedToken);
-        
+
         // Find invoice data for the specified customer email sorted by creation date in descending order
         const invoicedata = await Invoice.find({ customeremail: customeremail }).sort({ createdAt: -1 });
-        
+
         res.json(invoicedata);
     } catch (error) {
         console.error('Error fetching customer-wise data:', error);
-        
+
         // Handle token verification errors
         if (error.name === 'JsonWebTokenError') {
             return res.status(401).json({ message: 'Unauthorized: Invalid token' });
         }
-        
+
         // Handle other errors
         res.status(500).json({ message: 'Internal server error' });
     }
@@ -2139,75 +2209,9 @@ router.post('/converttoinvoice/:estimateid', async (req, res) => {
                 duedate: estimate.date,
                 description: estimate.description,
                 items: estimate.items,
-                subtotal: estimate.subtotal,
-                total: estimate.total,
-                userid: estimate.userid,
-                information: estimate.information,
-                tax: estimate.tax,
-                taxpercentage: estimate.taxpercentage,
-                job: estimate.job,
                 discountTotal: estimate.discountTotal,
-            });
-
-            // Save the new invoice to the database
-            await newInvoice.save();
-
-            // Mark the estimate as converted
-            // estimate.convertedToInvoice = true;
-            // await estimate.save();
-
-            res.status(200).json({ message: 'Estimate converted to invoice successfully', newInvoice });
-        }
-    } catch (error) {
-        console.error(error);
-        // Handle token verification errors
-        if (error.name === 'JsonWebTokenError') {
-            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
-        }
-        // Handle other errors
-        res.status(500).json({ message: 'Internal server error' });
-    }
-});
-
-router.post('/converttoinvoice/:estimateid', async (req, res) => {
-    try {
-        const { estimateid } = req.params;
-        // Find the estimate by ID
-        let authtoken = req.headers.authorization;
-
-        // Verify JWT token
-        const decodedToken = jwt.verify(authtoken, jwrsecret);
-        console.log(decodedToken);
-        const estimate = await Estimate.findById(estimateid);
-
-        if (!estimate) {
-            return res.status(404).json({ message: 'Estimate not found' });
-        }
-
-        // Check if the estimate is already converted
-        if (estimate.convertedToInvoice) {
-            return res.status(400).json({ message: 'Estimate already converted to invoice' });
-        } else {
-            estimate.convertedToInvoice = true;
-            const result = await Estimate.findByIdAndUpdate(estimateid, estimate, { new: true });
-
-            // Get the last used invoice_id
-            const lastInvoice = await Invoice.findOne().sort({ invoice_id: -1 });
-            const lastId = lastInvoice ? lastInvoice.invoice_id : 0;
-            const nextId = lastId + 1;
-            console.log(estimate);
-            // Create a new Invoice based on the estimate details
-            const newInvoice = new Invoice({
-                invoice_id: nextId,
-                InvoiceNumber: `Invoice-${nextId}`,
-                customername: estimate.customername,
-                customeremail: estimate.customeremail,
-                date: estimate.date,
-                duedate: estimate.date,
-                description: estimate.description,
-                items: estimate.items,
-                job: estimate.job,
                 subtotal: estimate.subtotal,
+                job: estimate.job,
                 total: estimate.total,
                 userid: estimate.userid,
                 information: estimate.information,
@@ -2738,17 +2742,39 @@ router.get('/gettransactiondata/:invoiceid', async (req, res) => {
     }
 });
 
-// Fetch invoicedetail from a userid
-router.get('/invoicedata/:userid', async (req, res) => {
+router.get('/getemailtransactiondata/:invoiceid', async (req, res) => {
     try {
-        let userid = req.params.userid;
-        const invoices = (await Invoice.find({ userid: userid }));
-        res.json(invoices);
+        const invoiceid = req.params.invoiceid;
+        // let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        // const decodedToken = jwt.verify(authtoken, jwrsecret);
+        // console.log(decodedToken);
+        const transactiondata = await Transactions.find({ invoiceid: invoiceid }).sort({ paiddate: 1 });
+        // const transactiondata = (await Transactions.find({ invoiceid: invoiceid }));
+        res.json(transactiondata);
     } catch (error) {
         console.error(error);
+        // Handle token verification errors
+        // if (error.name === 'JsonWebTokenError') {
+        //     return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        // }
+        // Handle other errors
         res.status(500).json({ message: 'Internal server error' });
     }
 });
+
+// Fetch invoicedetail from a userid
+// router.get('/invoicedata/:userid', async (req, res) => {
+//     try {
+//         let userid = req.params.userid;
+//         const invoices = (await Invoice.find({ userid: userid }));
+//         res.json(invoices);
+//     } catch (error) {
+//         console.error(error);
+//         res.status(500).json({ message: 'Internal server error' });
+//     }
+// });
 
 // Fetch invoicedetail from a userid
 router.get('/estimatedata/:userid', async (req, res) => {
@@ -2759,7 +2785,7 @@ router.get('/estimatedata/:userid', async (req, res) => {
         // Verify JWT token
         const decodedToken = jwt.verify(authtoken, jwrsecret);
         console.log(decodedToken);
-        
+
         const estimates = await Estimate.find({ userid: userid }).sort({ createdAt: -1 });;
         res.json(estimates);
     } catch (error) {
@@ -2962,7 +2988,6 @@ router.get('/getsignupdata/:userid', async (req, res) => {
         res.status(500).json({ message: 'Internal server error' });
     }
 });
-
 
 router.get('/customers/:userid', async (req, res) => {
     try {
@@ -3167,6 +3192,7 @@ router.post("/additem",
     [
         body('itemname').isLength({ min: 3 }),
         body('description').isLength(),
+        body('unit').isLength(),
         body('price').isNumeric(),
 
         // body('address').isLength(),
@@ -3186,9 +3212,11 @@ router.post("/additem",
                 itemname: req.body.itemname,
                 description: req.body.description,
                 price: req.body.price,
+                unit: req.body.unit,
             })
             res.json({
                 Success: true,
+                Itemdata1: Itemlist,
                 message: "Congratulations! Your Item has been successfully added! "
             })
         }
@@ -3490,24 +3518,16 @@ function sendTeamWelcomeEmail(userEmail, name, isFirstTimeLogin, companyName) {
         </body>
     </html>`;
 
-    const transporter = nodemailer.createTransport({
-        host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-        port: 465, // Replace with the appropriate port
-        secure: true, // true for 465, false for other ports
-        auth: {
-            user: 'accounts@mycabinets.net',
-            pass: 'Mycabinet@123'
-        }
-    });
-    // const transporter = nodemailer.createTransport({
-    //     host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
-    //     port: 465, // Replace with the appropriate port
-    //     secure: true, // true for 465, false for other ports
-    //     auth: {
-    //       user: 'accounts@mycabinets.net',
-    //       pass: 'lpctmxmuoudgnopd'
-    //     }
-    //   });
+  const transporter = nodemailer.createTransport({
+          host: 'smtp.hostinger.com', // Replace with your hosting provider's SMTP server
+          port: 465, // Replace with the appropriate port
+          secure: true, // true for 465, false for other ports
+          auth: {
+              user: 'accounts@mycabinets.net',
+              pass: 'Mycabinet@123'
+          }
+      });
+    
 
     const mailOptions = {
         from: 'accounts@mycabinets.net',
@@ -4115,6 +4135,417 @@ router.get('/getUserPreferences/:userid', async (req, res) => {
     } catch (error) {
         console.error('Error retrieving user preferences:', error);
         res.status(500).json({ error: 'Failed to retrieve user preferences' });
+    }
+});
+
+
+
+// Create a new expense
+router.post('/expense', async (req, res) => {
+    try {
+        const { invoiceId, vendor, expenseType,expenseDate ,transactionType,paymentStatus, amount, description, receiptUrl } = req.body;
+
+        // Check if the invoice exists
+        // const invoice = await Invoice.findById(invoiceId);
+        // if (!invoice) {
+        //     return res.status(404).json({ error: 'Invoice not found' });
+        // }
+
+        // Create and save the expense
+        const expense = new Expense({
+            invoiceId,
+            vendor,
+            expenseType,
+            expenseDate ,
+            amount,
+            transactionType,
+            description,
+            paymentStatus,
+            receiptUrl
+        });
+        await expense.save();
+
+        res.status(201).json(expense);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all expenses for a specific invoice
+router.get('/expense/:invoiceId', async (req, res) => {
+    try {
+        const { invoiceId } = req.params;
+
+        const expenses = await Expense.find({ invoiceId });
+        res.status(200).json(expenses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+router.get('/expense/', async (req, res) => {
+    try {
+        const { invoiceId } = req.params;
+
+        const expenses = await Expense.find();
+        res.status(200).json(expenses);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get a specific expense by ID
+router.get('/expense/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const expense = await Expense.findById(id);
+        if (!expense) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        res.status(200).json(expense);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update an expense
+router.put('/expense/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { vendorName, expenseType, amount, description, receiptUrl, paymentStatus } = req.body;
+
+        const expense = await Expense.findByIdAndUpdate(
+            id,
+            { vendorName, expenseType, amount, description, receiptUrl, paymentStatus },
+            { new: true, runValidators: true }
+        );
+
+        if (!expense) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        res.status(200).json(expense);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete an expense
+router.delete('/expense/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const expense = await Expense.findByIdAndDelete(id);
+        if (!expense) {
+            return res.status(404).json({ error: 'Expense not found' });
+        }
+
+        res.status(200).json({ message: 'Expense deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+
+// Create a new expense type
+router.post('/expensetype', async (req, res) => {
+    try {
+        const { name, description } = req.body;
+
+        // Check if an expense type with the same name already exists
+        const existingExpenseType = await ExpenseType.findOne({ name });
+        if (existingExpenseType) {
+            return res.status(400).json({ error: 'Expense type already exists' });
+        }
+
+        // Create and save the new expense type
+        const expenseType = new ExpenseType({ name, description });
+        await expenseType.save();
+
+        res.status(201).json(expenseType);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all expense types
+router.get('/expensetype', async (req, res) => {
+    try {
+        const expenseTypes = await ExpenseType.find();
+        res.status(200).json(expenseTypes);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get a specific expense type by ID
+router.get('/expensetype/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const expenseType = await ExpenseType.findById(id);
+        if (!expenseType) {
+            return res.status(404).json({ error: 'Expense type not found' });
+        }
+        res.status(200).json(expenseType);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update an expense type
+router.put('/expensetype/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, description } = req.body;
+
+        const expenseType = await ExpenseType.findByIdAndUpdate(
+            id,
+            { name, description },
+            { new: true, runValidators: true }
+        );
+
+        if (!expenseType) {
+            return res.status(404).json({ error: 'Expense type not found' });
+        }
+
+        res.status(200).json(expenseType);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete an expense type
+router.delete('/expensetype/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const expenseType = await ExpenseType.findByIdAndDelete(id);
+        if (!expenseType) {
+            return res.status(404).json({ error: 'Expense type not found' });
+        }
+
+        res.status(200).json({ message: 'Expense type deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Create a new vendor
+router.post('/vendor', async (req, res) => {
+    try {
+        const { name, contactPerson, email, phone, address, notes } = req.body;
+
+        // Check if a vendor with the same name or email already exists
+        const existingVendor = await Vendor.findOne({ $or: [{ name }, { email }] });
+        if (existingVendor) {
+            return res.status(400).json({ error: 'Vendor with the same name or email already exists' });
+        }
+
+        // Create and save the new vendor
+        const vendor = new Vendor({ name, contactPerson, email, phone, address, notes });
+        await vendor.save();
+
+        res.status(201).json(vendor);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get all vendors
+router.get('/vendor', async (req, res) => {
+    try {
+        const vendors = await Vendor.find();
+        res.status(200).json(vendors);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Get a specific vendor by ID
+router.get('/vendor/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const vendor = await Vendor.findById(id);
+        if (!vendor) {
+            return res.status(404).json({ error: 'Vendor not found' });
+        }
+        res.status(200).json(vendor);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Update a vendor
+router.put('/vendor/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+        const { name, contactPerson, email, phone, address, notes } = req.body;
+
+        const vendor = await Vendor.findByIdAndUpdate(
+            id,
+            { name, contactPerson, email, phone, address, notes },
+            { new: true, runValidators: true }
+        );
+
+        if (!vendor) {
+            return res.status(404).json({ error: 'Vendor not found' });
+        }
+
+        res.status(200).json(vendor);
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+// Delete a vendor
+router.delete('/vendor/:id', async (req, res) => {
+    try {
+        const { id } = req.params;
+
+        const vendor = await Vendor.findByIdAndDelete(id);
+        if (!vendor) {
+            return res.status(404).json({ error: 'Vendor not found' });
+        }
+
+        res.status(200).json({ message: 'Vendor deleted successfully' });
+    } catch (error) {
+        res.status(500).json({ error: error.message });
+    }
+});
+
+
+//Team Entry edit
+
+router.get('/userEntries/:userid', async (req, res) => {
+    try {
+        const { userid } = req.params;
+        let authtoken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authtoken, jwrsecret);
+        console.log(decodedToken);
+        const userEntries = await Timeschema.find({ userid }).sort({ startTime: 1 });
+
+        if (userEntries) {
+            res.json({ userEntries });
+        } else {
+            res.status(404).json({ message: 'No entries found for this user' });
+        }
+    } catch (error) {
+        console.error(error);
+        // Handle token verification errors
+        if (error.name === 'JsonWebTokenError') {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+        // Handle other errors
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+// Update time entry
+router.put('/userEntries/:entryId', async (req, res) => {
+    try {
+        const { entryId } = req.params;
+        const { startTime, endTime } = req.body;
+        const authToken = req.headers.authorization;
+
+        // Verify JWT token
+        const decodedToken = jwt.verify(authToken, jwrsecret);
+
+        if (!decodedToken) {
+            return res.status(401).json({ message: 'Unauthorized: Invalid token' });
+        }
+
+        // Update the entry in the database
+        const updatedEntry = await Timeschema.findByIdAndUpdate(
+            entryId,
+            { startTime, endTime },
+            { new: true } // Return the updated document
+        );
+
+        if (!updatedEntry) {
+            return res.status(404).json({ message: 'Entry not found' });
+        }
+
+        // Recalculate totalTime and timeInSeconds
+        const start = new Date(startTime).getTime();
+        const end = new Date(endTime).getTime();
+        const timeInSeconds = Math.floor((end - start) / 1000);
+
+        updatedEntry.timeInSeconds = timeInSeconds;
+
+        const hours = Math.floor(timeInSeconds / 3600);
+        const minutes = Math.floor((timeInSeconds % 3600) / 60);
+        const seconds = timeInSeconds % 60;
+
+        updatedEntry.totalTime = `${hours} hours ${minutes} minutes ${seconds} seconds`;
+
+        await updatedEntry.save();
+
+        res.json({ message: 'Time updated successfully', updatedEntry });
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Internal server error' });
+    }
+});
+
+
+// Update an entry
+router.put('/userEntriesUpdate/:entryId', async (req, res) => {
+    try {
+        const entryId = req.params.entryId; // Extract entry ID from the URL
+        const updatedData = req.body; // The updated fields from the frontend
+
+        // Update the entry in the database
+        const updatedEntry = await Timeschema.findByIdAndUpdate(
+            entryId,
+            updatedData,
+            { new: true } // Return the updated document
+        );
+
+        if (updatedEntry) {
+            res.json({ success: true, message: 'Entry updated successfully', updatedEntry });
+        } else {
+            res.status(404).json({ success: false, message: 'Entry not found' });
+        }
+    } catch (error) {
+        console.error('Error updating entry:', error);
+        res.status(500).json({ success: false, message: 'Failed to update entry' });
+    }
+});
+
+
+// Delete a category
+router.delete('/userEntries/:entryId', async (req, res) => {
+    try {
+        const entryId = req.params.entryId;
+        const result = await Timeschema.findByIdAndDelete(entryId);
+        if (result) {
+            res.json({ success: true, message: 'Entry deleted successfully' });
+        } else {
+            res.status(404).json({ success: false, message: 'Entry not found' });
+        }
+    } catch (error) {
+        console.error('Error deleting category:', error);
+        res.status(500).json({ success: false, message: 'Failed to delete category' });
+    }
+});
+
+
+router.get('/allEntries', async (req, res) => {
+    try {
+        const allEntries = await Timeschema.find().sort({ startTime: 1 });
+
+        if (allEntries && allEntries.length > 0) {
+            res.json({ allEntries });
+        } else {
+            res.status(404).json({ message: 'No entries found' });
+        }
+    } catch (error) {
+        console.error(error);
+        res.status(500).json({ message: 'Server error' });
     }
 });
 

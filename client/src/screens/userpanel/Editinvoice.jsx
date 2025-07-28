@@ -198,7 +198,9 @@ export default function Editinvoice() {
                 window.scrollTo(0, 0);
                 return;
             } else {
-                const json = await response.json();
+                const json = await response.json()
+                console.log(json,"json ===");
+                ;
                 if (json.Success) {
                     setInvoiceData(json.invoices);
                     setdiscountTotal(json.invoices.discountTotal);
@@ -280,6 +282,8 @@ export default function Editinvoice() {
               }
               else{
                 const json = await response.json();
+                console.log(json,"json - ");
+                
             
                 if (Array.isArray(json)) {
                     setitems(json);
@@ -347,11 +351,13 @@ export default function Editinvoice() {
     
         if (!itemExists) {
             const selectedPrice = items.find((i) => i._id === value)?.price || 0;
+            const selectedUnit = items.find((i) => i._id === value)?.unit || 0;
             const selectedDescription = items.find((i) => i._id === value)?.description || "";
             const newItem = {
                 itemId: value,
                 itemname: label,
                 price: selectedPrice,
+                unit:selectedUnit,
                 itemquantity: 1, // Set default quantity or whatever value you prefer
                 discount: 0, // Set default discount or whatever value you prefer
                 amount: selectedPrice, // Initially set amount same as price
@@ -605,7 +611,6 @@ export default function Editinvoice() {
         const subtotal = calculateSubtotal();
         const totalDiscountedAmount = subtotal - discountTotal; 
         const taxAmount = (totalDiscountedAmount * invoiceData.taxpercentage) / 100;
-        console.log(subtotal, discountTotal, "totalDiscountedAmount",taxAmount, "Tax Amount");
         return taxAmount;
     };
     
@@ -747,10 +752,10 @@ export default function Editinvoice() {
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                                 <p className='fs-35 fw-bold'>Invoice</p>
                                 <nav aria-label="breadcrumb">
-                                    <ol className="breadcrumb mb-0">
-                                        <li className="breadcrumb-item"><a href="/userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li className="breadcrumb-item"><a href="/userpanel/Invoice" className='txtclr text-decoration-none'>Invoice</a></li>
-                                        <li className="breadcrumb-item active" aria-current="page">Edit Invoice</li>
+                                    <ol class="breadcrumb mb-0">
+                                        <li class="breadcrumb-item"><a href="/userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                        <li class="breadcrumb-item"><a href="/userpanel/Invoice" className='txtclr text-decoration-none'>Invoice</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Edit Invoice</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -869,6 +874,9 @@ export default function Editinvoice() {
                                                 <p>QUANTITY</p>
                                             </div>
                                             <div className="col-2">
+                                                <p>UNIT</p>
+                                            </div>
+                                            <div className="col-2">
                                                 <p>PRICE</p>
                                             </div>
                                             <div className="col-2">
@@ -877,7 +885,7 @@ export default function Editinvoice() {
                                         </div>
 
                                         <div>
-                                            {console.log(invoiceData, "invoiceData")}
+                                            {console.log(invoiceData.items, "invoiceData.items")}
                                         {invoiceData.items && invoiceData.items.map((item) => (
                                             <div className='row' key={item.itemId}>
                                             <div className="col-6 ">
@@ -903,6 +911,11 @@ export default function Editinvoice() {
                                             </div>
                                             <div className="col-2">
                                                 <div className="mb-3">
+                                                    {item.unit || '-'}
+                                                </div>
+                                            </div>
+                                            <div className="col-2">
+                                                <div className="mb-3">
                                                 
                                                     <input
                                                                 type="text"
@@ -921,7 +934,7 @@ export default function Editinvoice() {
                                                 <p><CurrencySign />{item.amount}</p>
                                             </div>
                                             <div className="col-6">
-                                                        <div className="mb-3">
+                                                        <div class="mb-3">
                                                             <label htmlFor="description" className="form-label">Description</label>
                                                         
                                                             <CKEditor
@@ -1000,7 +1013,7 @@ export default function Editinvoice() {
                                                                 <p><CurrencySign />{formattedTotalAmount}</p>
                                                             </div>
                                                             <div className="col-6">
-                                                                <div className="mb-3">
+                                                                <div class="mb-3">
                                                                     <label htmlFor="description" className="form-label">Description</label>
                                                                     <CKEditor
                                                                         editor={ ClassicEditor }

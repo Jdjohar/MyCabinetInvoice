@@ -351,11 +351,13 @@ export default function Editestimate() {
     
         if (!itemExists) {
             const selectedPrice = items.find((i) => i._id === value)?.price || 0;
+            const selectedUnit = items.find((i) => i._id === value)?.unit || 0;
             const selectedDescription = items.find((i) => i._id === value)?.description || "";
             const newItem = {
                 itemId: value,
                 itemname: label,
                 price: selectedPrice,
+                unit: selectedUnit,
                 itemquantity: 1, // Set default quantity or whatever value you prefer
                 discount: 0, // Set default discount or whatever value you prefer
                 amount: selectedPrice, // Initially set amount same as price
@@ -726,10 +728,10 @@ export default function Editestimate() {
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                                 <p className='fs-35 fw-bold'>Estimate</p>
                                 <nav aria-label="breadcrumb">
-                                    <ol className="breadcrumb mb-0">
-                                        <li className="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li className="breadcrumb-item"><a href="/userpanel/Estimate" className='txtclr text-decoration-none'>Estimate</a></li>
-                                        <li className="breadcrumb-item active" aria-current="page">Edit Estimate</li>
+                                    <ol class="breadcrumb mb-0">
+                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                        <li class="breadcrumb-item"><a href="/userpanel/Estimate" className='txtclr text-decoration-none'>Estimate</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Edit Estimate</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -834,6 +836,9 @@ export default function Editestimate() {
                                                 <p>QUANTITY</p>
                                             </div>
                                             <div className="col-2">
+                                                <p>UNIT</p>
+                                            </div>
+                                            <div className="col-2">
                                                 <p>PRICE</p>
                                             </div>
                                             {/* <div className="col-2">
@@ -871,6 +876,9 @@ export default function Editestimate() {
                                                 </div>
                                             </div>
                                             <div className="col-2">
+                                                <p>{item.unit || '-'}</p>
+                                            </div>
+                                            <div className="col-2">
                                                 <div className="mb-3">
                                                     {/* <input
                                                         type="number"
@@ -900,10 +908,10 @@ export default function Editestimate() {
                                                 <p><CurrencySign />{item.amount}</p>
                                             </div>
                                             {/* <div className="col-5">
-                                                        <div className="mb-3">
+                                                        <div class="mb-3">
                                                             <label htmlFor="description" className="form-label">Description</label>
                                                             <textarea
-                                                                className="form-control"
+                                                                class="form-control"
                                                                 name='description'
                                                                 id='description'
                                                                 placeholder='Item Description'
@@ -1005,7 +1013,7 @@ export default function Editestimate() {
                                                         <p><CurrencySign />{formattedTotalAmount}</p>
                                                     </div>
                                                     <div className="col-6">
-                                                        <div className="mb-3">
+                                                        <div class="mb-3">
                                                             <label htmlFor="description" className="form-label">Description</label>
                                                             
                                                             <CKEditor

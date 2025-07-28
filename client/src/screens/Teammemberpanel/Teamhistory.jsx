@@ -41,7 +41,6 @@ export default function Teamhistory() {
             return; // Stop further execution
           }
           else{
-            
   
             const data = await response.json();
             const sortedEntries = data.userEntries.sort((a, b) => new Date(a.startTime) - new Date(b.startTime));

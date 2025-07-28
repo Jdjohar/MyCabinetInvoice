@@ -18,10 +18,11 @@ export default function Invoicedetail() {
   const modalRefemail = useRef(null);
   const [items, setitems] = useState([]);
   const location = useLocation();
+  const [isSubmitting, setIsSubmitting] = useState(false);
   const [selectedinvoices, setselectedinvoices] = useState(null);
   const [invoiceData, setInvoiceData] = useState({
     customername: '', itemname: '', customeremail: '', customerphone: '', InvoiceNumber: '', purchaseorder: '',
-    date: '', status:'', duedate: '', description: '', itemquantity: '', price: '', discount: '',
+    date: '', duedate: '', description: '', itemquantity: '', price: '', discount: '',
     amount: '', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
   });
   const [editorData, setEditorData] = useState("<p></p>");
@@ -39,7 +40,10 @@ export default function Invoicedetail() {
     method: '',
     note: ''
   });
+  const [expenseTypes, setExpenseTypes] = useState([]);
+  const [vendors, setVendors] = useState([]);
   const [transactions, setTransactions] = useState([]);
+  const [expenseTransactions, setExpenseTransactions] = useState([]);
   const [showAlert, setShowAlert] = useState(false);
   const [emails, setEmails] = useState([]);
   const [bccEmails, setBccEmails] = useState([]);
@@ -51,10 +55,10 @@ export default function Invoicedetail() {
   const [pdfExportVisible, setPdfExportVisible] = useState(false);
   const [ownerData, setOwnerData] = useState(null);
   const [signatureData, setsignatureData] = useState(null);
-
-  const [isSubmitting, setIsSubmitting] = useState(false);
   // const [signatureData, setsignatureData] = useState(null);
-
+  const apiURL = 'https://mycabinet.onrender.com/api/expense';
+  const expenseTypeURL = 'https://mycabinet.onrender.com/api/expensetype';
+  const vendorURL = 'https://mycabinet.onrender.com/api/vendor';
 
 
   useEffect(() => {
@@ -66,6 +70,7 @@ export default function Invoicedetail() {
       fetchinvoicedata();
       fetchdepositdata();
       fetchtransactiondata();
+      fetchExpensetransactiondata();
     }
   }, [invoiceid])
 
@@ -74,12 +79,52 @@ export default function Invoicedetail() {
     if (invoiceData.customeremail) {
       setEmails([invoiceData.customeremail]);
     }
+    fetchExpenseTypes()
+    fetchVendors()
   }, [invoiceData.customeremail]);
 
   let navigate = useNavigate();
 
   const roundOff = (value) => {
     return Math.round(value * 100) / 100;
+  };
+
+
+  const fetchExpenseTypes = async () => {
+    setloading(true);
+    try {
+      const response = await fetch(expenseTypeURL);
+      const data = await response.json();
+      setExpenseTypes(data);
+    } catch (error) {
+      console.error('Error fetching expense types:', error);
+    } finally {
+      setloading(false);
+    }
+  };
+
+  // Fetch all vendors
+  const fetchVendors = async () => {
+    setloading(true);
+    try {
+      const response = await fetch(vendorURL);
+      const data = await response.json();
+      setVendors(data);
+    } catch (error) {
+      console.error('Error fetching vendors:', error);
+    } finally {
+      setloading(false);
+    }
+  };
+  const getExpenseTypeName = (id) => {
+    const expenseType = expenseTypes.find((type) => type._id === id);
+    return expenseType ? expenseType.name : '-';
+  };
+
+  // Function to get Vendor name by ID
+  const getVendorName = (id) => {
+    const vendor = vendors.find((vendor) => vendor._id === id);
+    return vendor ? vendor.name : '-';
   };
 
   const handlePercentageChange = (event) => {
@@ -95,6 +140,8 @@ export default function Invoicedetail() {
 
 
   const handleDateChange = (event) => {
+    console.log(event.target.value, "event");
+
     setDueDepositDate(event.target.value);
   };
 
@@ -154,10 +201,10 @@ export default function Invoicedetail() {
                 ...invoiceData,
                 amountdue: setamountDue,
                 status: `${setamountDue == 0
-                    ?
-                    "Paid"
-                    :
-                    "Partially Paid"
+                  ?
+                  "Paid"
+                  :
+                  "Partially Paid"
                   }`
 
 
@@ -580,6 +627,44 @@ export default function Invoicedetail() {
     }
   }
 
+  const fetchExpensetransactiondata = async () => {
+    try {
+      const userid = localStorage.getItem("userid");
+      const authToken = localStorage.getItem('authToken');
+      const response = await fetch(`https://mycabinet.onrender.com/api/expense/${invoiceid}`, {
+        headers: {
+          'Authorization': authToken,
+        }
+      });
+
+      if (response.status === 401) {
+        const json = await response.json();
+        setAlertMessage(json.message);
+        setloading(false);
+        window.scrollTo(0, 0);
+        return; // Stop further execution
+      }
+      else {
+        const json = await response.json();
+
+        // Check if the response contains paidamount
+        if (Array.isArray(json)) {
+          setExpenseTransactions(json);
+          //   const totalPaidAmount = payments.reduce((total, payment) => total + payment.paidamount, 0);
+
+          console.log(json, "Invoice 173");
+
+        } else {
+          console.error('Invalid data structure for transactions:', json);
+        }
+        setloading(false);
+      }
+    }
+    catch (error) {
+      console.error('Error fetching data:', error);
+    }
+  }
+
   const fetchsignupdata = async () => {
     try {
       const userid = localStorage.getItem("userid");
@@ -624,25 +709,25 @@ export default function Invoicedetail() {
     return date.toLocaleDateString('en-US', options);
   };
 
-  const handleAddPayment = async () => {
-    if (isSubmitting) return; // Prevent further clicks if already submitting
-    setIsSubmitting(true); // Disable the button
+ const handleAddPayment = async () => {
+    if (isSubmitting) return; // Prevent multiple clicks
+    setIsSubmitting(true); // Set loading state
 
+    // const invoiceid = 'your-invoice-id'; 
     const userid = localStorage.getItem("userid");
     const authToken = localStorage.getItem('authToken');
-
     // Check for errors
     if (transactionData.paidamount === '') {
       setpaidamounterror("Fill detail");
-      setIsSubmitting(false); // Re-enable the button
-      return;
+      setIsSubmitting(false);
+      return; // Exit the function early if there's an error
     } else {
       setpaidamounterror(""); // Clear the error if the field is filled
     }
 
     if (transactionData.paiddate === '') {
       setpaiddateerror("Fill detail");
-      setIsSubmitting(false); // Re-enable the button
+      setIsSubmitting(false);
       return;
     } else {
       setpaiddateerror("");
@@ -650,32 +735,35 @@ export default function Invoicedetail() {
 
     if (transactionData.method === '') {
       setmethoderror("Fill detail");
-      setIsSubmitting(false); // Re-enable the button
+      setIsSubmitting(false);
       return;
     } else {
       setmethoderror("");
     }
-
     // Fetch updated transaction data after payment addition
     await fetchtransactiondata();
 
+
+    // Calculate total paid amount from transactions
+    // const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
     const totalPaidAmount = transactions.reduce(
       (total, payment) => total + parseFloat(payment.paidamount),
       0
     );
-
-    const dueAmount = invoiceData.total - totalPaidAmount;
+    // Check if the paid amount exceeds the due amount
+    const dueAmount = roundOff(invoiceData.total - totalPaidAmount);
     const paymentAmount = parseFloat(transactionData.paidamount);
+    console.log(dueAmount, paymentAmount, "paymentAmountpaymentAmount");
+    
 
     if (paymentAmount > dueAmount) {
       console.error('Payment amount exceeds the due amount.');
       setexceedpaymenterror("Payment amount exceeds the amount.");
-      setIsSubmitting(false); // Re-enable the button
+      setIsSubmitting(false);
       return;
     } else {
       setexceedpaymenterror("");
     }
-
     try {
       const response = await fetch('https://mycabinet.onrender.com/api/addpayment', {
         method: 'POST',
@@ -695,56 +783,107 @@ export default function Invoicedetail() {
 
       if (response.status === 401) {
         const responseData = await response.json();
+        fetchExpensetransactiondata();
         setAlertMessage(responseData.message);
         setloading(false);
         window.scrollTo(0, 0);
-        setIsSubmitting(false); // Re-enable the button
         return; // Stop further execution
-      } else if (response.ok) {
-        const responseData = await response.json();
-        if (responseData.success) {
-          console.log(responseData, 'Payment added successfully!');
-          const setamountDue = roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount);
+      }
+      else {
+        if (response.ok) {
+          const responseData = await response.json();
+          if (responseData.success) {
+            console.log(responseData, 'Payment added successfully!');
+            console.log(roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount), 'invoiceData');
+            // Fetch updated transaction data after payment addition
 
-          console.log("setamountDue: ==============", setamountDue);
+            const setamountDue = roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0) - responseData.transaction.paidamount)
+            console.log("setamountDue: ==============", setamountDue);
 
-          const updatedData = {
-            ...invoiceData,
-            amountdue: setamountDue,
-            status: setamountDue === 0 ? "Paid" : "Partially Paid",
-          };
 
-          await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
-            method: 'POST',
-            headers: {
-              'Content-Type': 'application/json',
-              'Authorization': authToken,
-            },
-            body: JSON.stringify(updatedData),
-          });
+            const updatedData = {
 
-          await fetchtransactiondata();
+              ...invoiceData,
+              amountdue: setamountDue,
+              status: `${setamountDue == 0
+                ?
+                "Paid"
+                :
+                "Partially Paid"
+                }`
 
-          const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
-          const updatedAmountDue = invoiceData.total - totalPaidAmount;
-          setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
 
-          document.getElementById('closebutton').click();
-          if (modalRef.current) {
-            modalRef.current.hide();
+            }; // Update emailsent status
+            await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken,
+              },
+              body: JSON.stringify(updatedData),
+            });
+            // Add new expense
+            await fetch('https://mycabinet.onrender.com/api/expense', {
+              method: 'POST',
+              headers: {
+                'Content-Type': 'application/json',
+                'Authorization': authToken,
+              },
+              body: JSON.stringify({
+                expenseDate: new Date().toISOString().split('T')[0], // Provide appropriate date here
+                expenseType: null, // Specify the type of expense
+                vendor: null, // Specify the vendor
+                amount: transactionData.paidamount,
+                description: '', // Add a description if needed
+                paymentStatus: 'Paid',
+                transactionType: 'Credit',
+                receiptUrl: '', // If there's a receipt URL, provide it here
+                invoiceId: invoiceData._id,
+              }),
+            });
+
+
+            console.log(
+              JSON.stringify({
+                expenseDate: new Date().toISOString().split('T')[0], // Provide appropriate date here
+                expenseType: null, // Specify the type of expense
+                vendor: null, // Specify the vendor
+                amount: transactionData.paidamount,
+                description: '', // Add a description if needed
+                paymentStatus: 'Paid',
+                transactionType: 'Credit',
+                receiptUrl: '', // If there's a receipt URL, provide it here
+                invoiceId: invoiceData._id,
+              }),
+            );
+
+            await fetchtransactiondata();
+
+            // Calculate total paid amount from transactions
+            const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
+
+            // Update amount due by subtracting totalPaidAmount from total invoice amount
+            const updatedAmountDue = invoiceData.total - totalPaidAmount;
+            setInvoiceData({ ...invoiceData, amountdue: updatedAmountDue });
+            // Close the modal after adding payment
+            document.getElementById('closebutton').click();
+            if (modalRef.current) {
+              modalRef.current.hide();
+            }
+          } else {
+            console.error('Failed to add payment.');
           }
         } else {
           console.error('Failed to add payment.');
         }
-      } else {
-        console.error('Failed to add payment.');
       }
+
+
     } catch (error) {
       console.error('Error adding payment:', error);
-    } finally {
-      setIsSubmitting(false); // Re-enable the button
     }
   };
+
 
   const handlePrintContent = async () => {
     const content = document.getElementById('invoiceContent').innerHTML;
@@ -1051,7 +1190,7 @@ thead{
         </style>
       </head>
       <body>
-        <div className="print-page">
+        <div class="print-page">
           ${content}
         </div>
       </body>
@@ -1068,23 +1207,19 @@ thead{
   }
 
   const handleEditContent = (invoiceData) => {
-    // Calculate the total paid amount from all transactions
-    const totalPaidAmount = transactions.reduce(
-        (total, payment) => total + parseFloat(payment.paidamount), 
-        0
-    );
+    const totalPaidAmount = transactions.reduce((total, payment) => total + payment.paidamount, 0);
 
-    // Log the total paid amount (optional)
-    console.log(`Total Paid Amount: ${totalPaidAmount}`);
-
-    // Always navigate to the Edit Invoice page
-    setselectedinvoices(invoiceData); // Store the selected invoice data
-    const invoiceid = invoiceData._id; // Extract the invoice ID
-    console.log(invoiceid); // Log the invoice ID for debugging
-
-    // Navigate to the Edit Invoice page, passing the invoice ID in the state
-    navigate('/userpanel/Editinvoice', { state: { invoiceid } });
-};
+    if (totalPaidAmount === 0) {
+      // If totalPaidAmount is 0, navigate to /userpanel/Createinvoice page
+      setselectedinvoices(invoiceData);
+      let invoiceid = invoiceData._id;
+      console.log(invoiceid);
+      navigate('/userpanel/Editinvoice', { state: { invoiceid } });
+    } else {
+      // If totalPaidAmount is not 0, show an alert
+      setShowAlert(true);
+    }
+  };
 
   const handleDeleteTransClick = async (transactionid) => {
     try {
@@ -1117,7 +1252,15 @@ thead{
     }
   };
 
+
   const handleRemove = async (invoiceid, invoiceIdpass) => {
+    const confirmDelete = window.confirm('Are you sure you want to delete this invoice?');
+  
+    // If the user cancels, stop execution
+    if (!confirmDelete) {
+      console.log('Invoice deletion cancelled by the user.');
+      return;
+    }
     try {
       // Check if there's a customer signature
       const signatureData = await checkCustomerSignature(invoiceIdpass);
@@ -1171,6 +1314,61 @@ thead{
       console.error('Error deleting Invoice:', error);
     }
   };
+
+  // const handleRemove = async (invoiceid, invoiceIdpass) => {
+  //   try {
+  //     // Check if there's a customer signature
+  //     const signatureData = await checkCustomerSignature(invoiceIdpass);
+
+  //     // If a signature exists, delete it
+  //     if (signatureData) {
+  //       const authToken = localStorage.getItem('authToken');
+  //       const deleteSignatureResponse = await fetch(`https://mycabinet.onrender.com/api/delcustomersignature/${encodeURIComponent(invoiceIdpass)}`, {
+  //         method: 'DELETE',
+  //         headers: {
+  //           'Authorization': authToken,
+  //         }
+  //       });
+
+  //       if (!deleteSignatureResponse.ok) {
+  //         const json = await deleteSignatureResponse.json();
+  //         console.error('Error deleting customer signature:', json.message);
+  //         return; // Stop further execution if deleting signature fails
+  //       } else {
+  //         console.log('Customer signature deleted successfully!');
+  //       }
+  //     }
+
+  //     // Proceed with deleting the estimate data
+  //     const authToken = localStorage.getItem('authToken');
+  //     const response = await fetch(`https://mycabinet.onrender.com/api/deldata/${invoiceid}`, {
+  //       method: 'GET',
+  //       headers: {
+  //         'Authorization': authToken,
+  //       }
+  //     });
+
+  //     if (response.status === 401) {
+  //       const json = await response.json();
+  //       setAlertMessage(json.message);
+  //       setloading(false);
+  //       window.scrollTo(0, 0);
+  //       return; // Stop further execution
+  //     } else {
+  //       const json = await response.json();
+
+  //       if (json.success) {
+  //         console.log('Data removed successfully!');
+  //         navigate('/userpanel/Invoice');
+  //       } else {
+  //         console.error('Error deleting Invoice:', json.message);
+  //       }
+  //     }
+
+  //   } catch (error) {
+  //     console.error('Error deleting Invoice:', error);
+  //   }
+  // };
 
   // const handleRemove = async (invoiceid,invoiceIdpass) => {
   //   const authToken = localStorage.getItem('authToken');
@@ -1285,7 +1483,7 @@ thead{
             body: JSON.stringify(updatedData),
           });
         } else {
-          const updatedData = { ...invoiceData,status: 'Send', emailsent: 'yes' }
+          const updatedData = { ...invoiceData, status: 'Send', emailsent: 'yes' }
           await fetch(`https://mycabinet.onrender.com/api/updateinvoicedata/${invoiceid}`, {
             method: 'POST',
             headers: {
@@ -1324,7 +1522,6 @@ thead{
         }
 
         // Fetch updated invoice data
-        
         fetchinvoicedata();
 
       } else {
@@ -1340,6 +1537,9 @@ thead{
     const authToken = localStorage.getItem('authToken');
     const contentAsPdf = await generatePdfFromHtml();
     try {
+      console.log(formatCustomDate(duedepositDate), "duedepositDate");
+      console.log(savedDepositData, "savedDepositData");
+
       const finalContent = content.trim() || ``; // If content is empty, use default value
       const response = await fetch('https://mycabinet.onrender.com/api/send-deposit-email', {
         method: 'POST',
@@ -1353,7 +1553,7 @@ thead{
           content: finalContent,
           companyName: signupdata.companyname,
           customdate: formatCustomDate(invoiceData.date),
-          duedate: formatCustomDate(savedDepositData.duedepositDate),
+          duedate: formatCustomDate(duedepositDate),
           depositamount: savedDepositData.depositamount,
           InvoiceNumber: invoiceData.InvoiceNumber,
           currencyType: signupdata.CurrencyType,
@@ -1366,6 +1566,9 @@ thead{
         // setShowModal(false);
         setShowSendEmailModal(false)
         setShowEmailAlert(true);
+        const data = response.json();
+        console.log(data, "check");
+
         // Update the database with emailsent status
         if (invoiceData.status == 'Paid' || invoiceData.status == 'Partially Paid') {
           const updatedData = { invoiceData }
@@ -1510,9 +1713,9 @@ thead{
                       <div className="col-lg-6 col-md-6 col-sm-6 col-7 me-auto">
                         <p className='fs-35 fw-bold'>Invoice</p>
                         <nav aria-label="breadcrumb">
-                          <ol className="breadcrumb mb-0">
-                            <li className="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                            <li className="breadcrumb-item active" aria-current="page">Invoicedetail</li>
+                          <ol class="breadcrumb mb-0">
+                            <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                            <li class="breadcrumb-item active" aria-current="page">Invoicedetail</li>
                           </ol>
                         </nav>
                       </div>
@@ -1551,14 +1754,14 @@ thead{
                         <div className="row">
                           <div className="col-lg-7 col-sm-5 col-3"></div>
                           <div className="col-9 col-sm-7 col-lg-5">
-                            <div className="alert alert-warning d-flex" role="alert">
-                              <svg xmlns="http://www.w3.org/2000/svg" className="alertwidth bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
+                            <div class="alert alert-warning d-flex" role="alert">
+                              <svg xmlns="http://www.w3.org/2000/svg" class="alertwidth bi bi-exclamation-triangle-fill flex-shrink-0 me-2" viewBox="0 0 16 16" role="img" aria-label="Warning:">
                                 <path d="M8.982 1.566a1.13 1.13 0 0 0-1.96 0L.165 13.233c-.457.778.091 1.767.98 1.767h13.713c.889 0 1.438-.99.98-1.767L8.982 1.566zM8 5c.535 0 .954.462.9.995l-.35 3.507a.552.552 0 0 1-1.1 0L7.1 5.995A.905.905 0 0 1 8 5zm.002 6a1 1 0 1 1 0 2 1 1 0 0 1 0-2z" />
                               </svg>
                               <div>
                                 You cannot edit a document that has already been partially paid. Please create a new document.
                               </div>
-                              <button type="button" className="btn-close" onClick={() => {
+                              <button type="button" class="btn-close" onClick={() => {
                                 // setmessage(false);
                                 setShowAlert("");
                               }}></button>
@@ -1594,15 +1797,15 @@ thead{
                                     {/* <div className=''>{JSON.parse(signupdata.city).name}, {JSON.parse(signupdata.state).name}</div>
                                     <div className=''>{JSON.parse(signupdata.country).emoji}</div> */}
                                   </div>
-                                  <div>{signupdata.FirstName} {signupdata.User1_Mobile_Number}</div>
-                                  <div>{signupdata.User2FirstName} {signupdata.User2_Mobile_Number}</div>
+
                                   <div>{signupdata.email}</div>
+                                  <div>{signupdata.website} </div>
                                   <div>
                                     {signupdata.gstNumber == ''
                                       ?
                                       ""
                                       :
-                                      signupdata.gstNumber
+                                      `${signupdata.TaxName} ${signupdata.gstNumber}`
                                     }
 
 
@@ -1612,7 +1815,7 @@ thead{
                               </div>
 
                             </div>
-                            <div className="clr"></div>
+                            <div class="clr"></div>
                           </div>
                           {console.log("invoiceData:-", invoiceData)}
 
@@ -1673,7 +1876,7 @@ thead{
 
                               </div>
                             </div>
-                            <div className="clr"></div>
+                            <div class="clr"></div>
                           </div>
 
                           <div className='invoice-table'>
@@ -1683,6 +1886,7 @@ thead{
                                   <tr className='table table-invoice'>
                                     <th className='text-start'>Item</th>
                                     <th className='text-center d-none d-md-table-cell' width="15%">Quantity</th>
+                                    <th className='text-end d-none d-md-table-cell' width="15%"> Unit</th>
                                     <th className='text-end d-none d-md-table-cell' width="15%"> Price</th>
                                     <th className='text-end' width="15%"> Amount</th>
                                   </tr>
@@ -1699,8 +1903,9 @@ thead{
                                         </div>
                                       </td>
                                       <td className="text-center d-none d-md-table-cell">{item.itemquantity}</td>
-                                      <td className="text-end d-none d-md-table-cell">{roundOff(item.price)}</td>
-                                      <td className='text-end'>{roundOff(item.amount)}</td>
+                                      <td className="text-end d-none d-md-table-cell">{item.unit}</td>
+                                      <td className="text-end d-none d-md-table-cell">{roundOff(item.price).toLocaleString('en-CA')}</td>
+                                      <td className='text-end'>{roundOff(item.amount).toLocaleString('en-CA')}</td>
                                     </tr>
                                   ))}
                                 </tbody>
@@ -1716,14 +1921,14 @@ thead{
                                     <tr>
                                       <td className='d-none d-md-table-cell' rowspan="10"></td>
                                       <td className='text-md-end' width="22%">Subtotal</td>
-                                      <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.subtotal)}</td>
+                                      <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.subtotal).toLocaleString('en-CA')}</td>
                                     </tr>
                                     {
                                       invoiceData.discountTotal > 0
                                         ?
                                         <tr>
                                           <td className='text-md-end' width="22%">Discount</td>
-                                          <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.discountTotal)}</td>
+                                          <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.discountTotal).toLocaleString('en-CA')}</td>
                                         </tr>
                                         :
                                         null
@@ -1741,7 +1946,7 @@ thead{
                                             {signupdata.TaxName} ({signupdata.taxPercentage}%)
 
                                           </td>
-                                          <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.tax)}</td>
+                                          <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.tax).toLocaleString('en-CA')}</td>
                                         </tr>
                                     }
 
@@ -1752,19 +1957,19 @@ thead{
                                     <tr>
 
                                       <td className='text-md-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>Total</td>
-                                      <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}><CurrencySign />{roundOff(invoiceData.total)}</td>
+                                      <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}><CurrencySign />{roundOff(invoiceData.total).toLocaleString('en-CA')}</td>
                                     </tr>
                                     {transactions.map((transaction) => (
                                       <tr key={transaction._id}>
                                         <td className='text-md-end' width="22%">{transaction.method == "deposit" ? "Deposit" : "Paid"} on {formatCustomDate(transaction.paiddate)}</td>
-                                        <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}><CurrencySign />{transaction.paidamount}</td>
+                                        <td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}><CurrencySign />{transaction.paidamount.toLocaleString('en-CA')}</td>
                                       </tr>
                                     ))}
                                   </tbody>
                                 </table>
                               </div>
                             </div>
-                            <div className="clr"></div>
+                            <div class="clr"></div>
                           </div>
 
                           <div className='invoice-price page-not-break'>
@@ -1774,7 +1979,7 @@ thead{
                             </div>
                             <div className='invoice-price-right'>
                               <small>Amount Due</small>
-                              <span className="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
+                              <span class="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0)).toLocaleString('en-CA')}</span>
                             </div>
                           </div>
 
@@ -1789,7 +1994,7 @@ thead{
                                       <div>
                                         <p className='text-center fw-bold fs-5'>{ownerData.companyname}</p>
                                         <img src={ownerData.data} alt="Saved Signature" style={{ width: "100%" }} /><hr />
-                                        <p className='text-center'>{formatCustomDate(ownerData.createdAt)}</p>
+                                        <p className='text-center'>{formatCustomDate(invoiceData.createdAt)}</p>
                                       </div>
                                     </div>
                                   </div>
@@ -1855,11 +2060,11 @@ thead{
                               <p>Paid</p>
                             </div>
                             <div className="col-6 text-end">
-                              <p><CurrencySign />{roundOff(invoiceData.total)}</p>
+                              <p><CurrencySign />{roundOff(invoiceData.total).toLocaleString('en-CA')}</p>
                               {console.log(transactions)}
 
 
-                              <p><CurrencySign />{roundOff(transactions.reduce((total, payment) => total + payment.paidamount, 0))}</p>
+                              <p><CurrencySign />{roundOff(transactions.reduce((total, payment) => total + payment.paidamount, 0)).toLocaleString('en-CA')}</p>
 
                             </div>
 
@@ -1883,6 +2088,9 @@ thead{
                             <a className='greenclr pointer mb-3' data-bs-toggle="modal" data-bs-target="#exampleModal1">
                               View Transactions
                             </a>
+                            <a className='greenclr pointer mb-3' data-bs-toggle="modal" data-bs-target="#exampleModal2">
+                              Job Transactions
+                            </a>
                             <a className='greenclr pointer' data-bs-toggle="modal" data-bs-target="#exampleModal">
                               Mark paid
                             </a>
@@ -1900,28 +2108,28 @@ thead{
 
       {/* payment modal  */}
       <form action="">
-        <div className="modal fade" id="exampleModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h1 className="modal-title fs-5" id="exampleModalLabel">Mark paid</h1>
-                <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal fade" id="exampleModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-5" id="exampleModalLabel">Mark Paid</h1>
+                <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div className="modal-body">
-                <div className="mb-3">
-                  <label for="amount" className="form-label">Amount<span className="text-danger">*</span></label>
-                  <input type="number" className="form-control" name='paidamount' onChange={onchange} id="exampleFormControlInput1" placeholder="Amount" required />
+              <div class="modal-body">
+                <div class="mb-3">
+                  <label for="amount" class="form-label">Amount<span class="text-danger">*</span></label>
+                  <input type="number" class="form-control" name='paidamount' onChange={onchange} id="exampleFormControlInput1" placeholder="Amount" required />
                   {paidamounterror && <p className="text-danger">{paidamounterror}</p>}
                   {exceedpaymenterror && <p className="text-danger">{exceedpaymenterror}</p>}
                 </div>
-                <div className="mb-3">
-                  <label for="date" className="form-label">Date<span className="text-danger">*</span></label>
-                  <input type="date" className="form-control" name='paiddate' onChange={onchange} id="exampleFormControlInput2" placeholder="Date" required />
+                <div class="mb-3">
+                  <label for="date" class="form-label">Date<span class="text-danger">*</span></label>
+                  <input type="date" class="form-control" name='paiddate' onChange={onchange} id="exampleFormControlInput2" placeholder="Date" required />
                   {paiddateerror && <p className="text-danger">{paiddateerror}</p>}
                 </div>
-                <div className="mb-3">
-                  <label for="date" className="form-label">Method<span className="text-danger">*</span></label>
-                  <select className="form-select" name='method' onChange={onchange} aria-label="Default select example" required>
+                <div class="mb-3">
+                  <label for="date" class="form-label">Method<span class="text-danger">*</span></label>
+                  <select class="form-select" name='method' onChange={onchange} aria-label="Default select example" required>
                     <option selected disabled hidden>Method</option>
                     <option value="Cash">Cash</option>
                     <option value="Credit">Credit</option>
@@ -1930,14 +2138,20 @@ thead{
                   </select>
                   {methoderror && <p className="text-danger">{methoderror}</p>}
                 </div>
-                <div className="mb-3">
-                  <label for="note" className="form-label">Note</label>
-                  <input type="text" className="form-control" name='note' onChange={onchange} id="exampleFormControlInput4" placeholder="Note" />
+                <div class="mb-3">
+                  <label for="note" class="form-label">Note</label>
+                  <input type="text" class="form-control" name='note' onChange={onchange} id="exampleFormControlInput4" placeholder="Note" />
                 </div>
               </div>
-              <div className="modal-footer">
+              <div class="modal-footer">
                 <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
-                <a className={`greenclr ms-2 btn btn-primary text-white text-decoration-none pointer ${isSubmitting ? 'disabled' : ''}`} onClick={handleAddPayment}>Add Payment</a>
+                <a
+    className={`greenclr ms-2 text-decoration-none pointer ${isSubmitting ? 'disabled' : ''}`}
+    onClick={!isSubmitting ? handleAddPayment : null}
+>
+    {isSubmitting ? 'Processing...' : 'Add Payment'}
+</a>
+                
               </div>
             </div>
           </div>
@@ -1947,14 +2161,14 @@ thead{
 
       {/* transaction modal  */}
 
-      <div className="modal fade" id="exampleModal1" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div className="modal-dialog modal-lg">
-          <div className="modal-content">
-            <div className="modal-header">
-              <h1 className="modal-title fs-5" id="exampleModalLabel">View Transactions</h1>
-              <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+      <div class="modal fade" id="exampleModal1" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-5" id="exampleModalLabel">View Transactions</h1>
+              <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
-            <div className="modal-body">
+            <div class="modal-body">
               <div className="row px-2 text-center">
                 <div className="col-3">
                   <p>DATE</p>
@@ -1990,7 +2204,7 @@ thead{
                 </>
               ))}
             </div>
-            <div className="modal-footer">
+            <div class="modal-footer">
               <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
             </div>
           </div>
@@ -1998,20 +2212,151 @@ thead{
 
       </div>
 
-      {/* email model  */}
-      <div className="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-        <div className="modal-dialog modal-lg">
+      <div className="modal fade" id="exampleModal2" tabIndex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div className="modal-dialog modal-xl modal-dialog-scrollable">
           <div className="modal-content">
             <div className="modal-header">
-              <h1 className="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+              <h1 className="modal-title fs-5" id="exampleModalLabel">View Entries</h1>
               <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
             </div>
             <div className="modal-body">
+              {/* Table */}
+              <table className="table table-striped table-bordered">
+                <thead className="table-dark text-center">
+                  <tr>
+                    <th scope="col">DATE</th>
+                    <th scope="col">CATEGORY</th>
+
+                    <th scope="col">VENDOR</th>
+                    <th scope="col">STATUS</th>
+                    <th scope="col">BILL LINK</th>
+                    <th scope="col">TYPE</th>
+                    <th scope="col">AMOUNT</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {expenseTransactions.map((transaction) => (
+                    <tr key={transaction._id} className="text-center align-middle">
+                      <td>{formatCustomDate(transaction.expenseDate)}</td>
+                      <td>{getExpenseTypeName(transaction.expenseType || "N/A")}</td>
+
+                      <td>{getVendorName(transaction.vendor || "N/A")}</td>
+                      <td>{transaction.paymentStatus}</td>
+                      <td>
+                        {transaction.receiptUrl ? (
+                          <a
+                            href={transaction.receiptUrl}
+                            target="_blank"
+                            rel="noopener noreferrer"
+                          >
+                            View Bill
+                          </a>
+                        ) : (
+                          "N/A"
+                        )}
+                      </td>
+                      <td>{transaction.transactionType}</td>
+                      <td>
+                        <CurrencySign />
+                        {transaction.amount}
+                      </td>
+
+                    </tr>
+                  ))}
+                </tbody>
+                <tfoot>
+                  {/* Footer row to show sums */}
+                  <tr>
+                    <td colSpan="7"></td>
+                  </tr>
+
+                  <tr className="text-center align-middle">
+                    <td colSpan="5">
+
+                    </td>
+                    <td colSpan="">
+                      <strong>Total Invoice Bill</strong>
+                    </td>
+                    <td>
+                      <strong>
+                        <CurrencySign />
+                        {roundOff(invoiceData.total)}
+                      </strong>
+                    </td>
+
+                  </tr>
+                  <tr className="text-center align-middle">
+                    <td colSpan="5">
+
+                    </td>
+                    <td colSpan="">
+                      <strong>Total Expense Transactions</strong>
+                    </td>
+                    <td>
+                      <strong>
+                        <CurrencySign />
+                        {
+          // Filter transactions with "Expense" type and sum their amounts
+          expenseTransactions.filter(transaction => transaction.transactionType === 'Expense')
+            .reduce((sum, transaction) => sum + transaction.amount, 0)
+        }
+                      </strong>
+                    </td>
+
+                  </tr>
+                  <tr className="text-center align-middle">
+                    <td colSpan="5">
+
+                    </td>
+                    <td colSpan="">
+                      <strong>Remaining Amount</strong>
+                    </td>
+                    <td colSpan="">
+                      <strong>
+                        <CurrencySign />
+                        {
+          // Subtract the sum of "Expense" transactions from the total invoice amount
+          roundOff(
+            invoiceData.total -
+            expenseTransactions.filter(transaction => transaction.transactionType === 'Expense')
+              .reduce((sum, transaction) => sum + transaction.amount, 0)
+          )
+        }
+                      </strong>
+                    </td>
+
+                  </tr>
+                </tfoot>
+              </table>
+            </div>
+            <div className="modal-footer">
+              <a
+                data-bs-dismiss="modal"
+                className="pointer text-decoration-none text-dark"
+              >
+                Close
+              </a>
+            </div>
+          </div>
+        </div>
+      </div>
+
+
+
+      {/* email model  */}
+      <div class="modal fade" id="sendEmailModal" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+        <div class="modal-dialog modal-lg">
+          <div class="modal-content">
+            <div class="modal-header">
+              <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+              <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+            </div>
+            <div class="modal-body">
               <form onSubmit={handleFormSubmit}>
-                <div className="row mb-3">
-                  <label for="to" className="col-sm-2 col-form-label">To</label>
-                  <div className="col-sm-10">
-                    {/* <input type="text" className="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                <div class="row mb-3">
+                  <label for="to" class="col-sm-2 col-form-label">To</label>
+                  <div class="col-sm-10">
+                    {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
                     <ReactMultiEmail
                       emails={emails}
                       onChange={handleEmailChange}
@@ -2042,9 +2387,9 @@ thead{
                     />
                   </div>
                 </div>
-                <div className="row mb-3">
-                  <label for="bcc" className="col-sm-2 col-form-label">Bcc</label>
-                  <div className="col-sm-10">
+                <div class="row mb-3">
+                  <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
+                  <div class="col-sm-10">
                     <ReactMultiEmail
                       emails={bccEmails}
                       onChange={handleBccEmailsChange}
@@ -2074,13 +2419,13 @@ thead{
                     />
                   </div>
                 </div>
-                <div className="mb-3">
-                  <label for="content" className="form-label">Content</label>
-                  <textarea className="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
+                <div class="mb-3">
+                  <label for="content" class="form-label">Content</label>
+                  <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
                 </div>
-                <div className="modal-footer">
-                  <button type="button" className="btn btn-secondary" data-bs-dismiss="modal">Close</button>
-                  <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Send</button>
+                <div class="modal-footer">
+                  <button type="button" class="btn btn-secondary" data-bs-dismiss="modal">Close</button>
+                  <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Send</button>
                 </div>
               </form>
             </div>
@@ -2090,17 +2435,17 @@ thead{
 
       {/* deposit modal  */}
       <form action="">
-        <div className="modal fade" id="exampleModaldeposit" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header p-4">
-                <h1 className="modal-title fs-3 fw-bold" id="exampleModalLabel">Request a deposit</h1>
-                <button type="button" className="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
+        <div class="modal fade" id="exampleModaldeposit" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true">
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header p-4">
+                <h1 class="modal-title fs-3 fw-bold" id="exampleModalLabel">Request a deposit</h1>
+                <button type="button" class="btn-close" id="closebutton" data-bs-dismiss="modal" aria-label="Close"></button>
               </div>
-              <div className="modal-body p-4">
+              <div class="modal-body p-4">
                 <input type="hidden" id="deposit_uniqueid" value="uniqueid_here" />
 
-                <div className="mb-3 row">
+                <div class="mb-3 row">
                   <div className="col-6 fw-bold fs-5">
                     <p>Total amount</p>
                   </div>
@@ -2115,31 +2460,31 @@ thead{
                     </p>
                   </div>
                 </div>
-                <div className="mb-3 row">
+                <div class="mb-3 row">
                   <div className="col-5">
-                    <label for="number" className="form-label">Percentage</label>
+                    <label for="number" class="form-label">Percentage</label>
                     <div className='input-group mb-4'>
                       <input type="number" className="form-control" id="depositpercentage" value={depositpercentage} onChange={handlePercentageChange} min="0" />
-                      <span className="input-group-text">%</span>
+                      <span class="input-group-text">%</span>
                     </div>
                   </div>
                   <div className="col-2 fw-bold fs-5">
                     <p className='pt-3 fs-2 ps-5'>=</p>
                   </div>
                   <div className="col-5">
-                    <label for="text" className="form-label">Amount</label>
+                    <label for="text" class="form-label">Amount</label>
                     <div className='input-group mb-4'>
                       <input type="text" className="form-control" id="amount" value={amount} readOnly />
-                      <span className="input-group-text"><CurrencySign /></span>
+                      <span class="input-group-text"><CurrencySign /></span>
                     </div>
                   </div>
                   <div className="col-5">
-                    <label for="date" className="form-label" id='duedepositdate'>Due Date</label>
-                    <input type="date" className="form-control" value={duedepositDate} onChange={handleDateChange} />
+                    <label for="date" class="form-label" id='duedepositdate'>Due Date</label>
+                    <input type="date" class="form-control" value={duedepositDate} onChange={handleDateChange} />
                   </div>
                 </div>
               </div>
-              <div className="modal-footer p-4">
+              <div class="modal-footer p-4">
                 <a data-bs-dismiss="modal" className='pointer text-decoration-none text-dark'>Close</a>
                 <a className='greenclr ms-2 text-decoration-none pointer' data-bs-dismiss="modal" onClick={handleSave}>Save</a>
                 {(depositpercentage === '' || parseInt(depositpercentage) < 1) ? (
@@ -2156,20 +2501,20 @@ thead{
 
       {/* Email modal-2 */}
       {showSendEmailModal ?
-        <div className="modal fade show" id="sendEmailModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog" style={{ display: "block" }}>
-          {/* <div className="modal fade" id="sendEmailModal2" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true"> */}
-          <div className="modal-dialog modal-lg">
-            <div className="modal-content">
-              <div className="modal-header">
-                <h1 className="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
-                <button type="button" className="btn-close" onClick={() => setShowSendEmailModal(false)}></button>
+        <div class="modal fade show" id="sendEmailModal2" tabindex="-1" aria-labelledby="exampleModalLabel" aria-modal="true" role="dialog" style={{ display: "block" }}>
+          {/* <div class="modal fade" id="sendEmailModal2" tabindex="-1" ref={modalRef} aria-labelledby="exampleModalLabel" aria-hidden="true"> */}
+          <div class="modal-dialog modal-lg">
+            <div class="modal-content">
+              <div class="modal-header">
+                <h1 class="modal-title fs-4 fw-bold" id="exampleModalLabel">Send document</h1>
+                <button type="button" class="btn-close" onClick={() => setShowSendEmailModal(false)}></button>
               </div>
-              <div className="modal-body">
+              <div class="modal-body">
                 <form onSubmit={handleDepositFormSubmit}>
-                  <div className="row mb-3">
-                    <label for="to" className="col-sm-2 col-form-label">To</label>
-                    <div className="col-sm-10">
-                      {/* <input type="text" className="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
+                  <div class="row mb-3">
+                    <label for="to" class="col-sm-2 col-form-label">To</label>
+                    <div class="col-sm-10">
+                      {/* <input type="text" class="form-control" id="to" name="to" value={invoiceData.customeremail}/> */}
                       <ReactMultiEmail
                         emails={emails}
                         onChange={handleEmailChange}
@@ -2199,9 +2544,9 @@ thead{
                       />
                     </div>
                   </div>
-                  <div className="row mb-3">
-                    <label for="bcc" className="col-sm-2 col-form-label">Bcc</label>
-                    <div className="col-sm-10">
+                  <div class="row mb-3">
+                    <label for="bcc" class="col-sm-2 col-form-label">Bcc</label>
+                    <div class="col-sm-10">
                       <ReactMultiEmail
                         emails={bccEmails}
                         onChange={handleBccEmailsChange}
@@ -2231,13 +2576,13 @@ thead{
                       />
                     </div>
                   </div>
-                  <div className="mb-3">
-                    <label for="content" className="form-label">Content</label>
-                    <textarea className="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
+                  <div class="mb-3">
+                    <label for="content" class="form-label">Content</label>
+                    <textarea class="form-control" id="content" name="content" rows="5" value={content} onChange={handleContentChange}></textarea>
                   </div>
-                  <div className="modal-footer">
-                    <button type="button" className="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setShowSendEmailModal(false)}>Close</button>
-                    <button type="submit" className="btn btn-primary" data-bs-dismiss="modal">Send</button>
+                  <div class="modal-footer">
+                    <button type="button" class="btn btn-secondary" data-bs-dismiss="modal" onClick={() => setShowSendEmailModal(false)}>Close</button>
+                    <button type="submit" class="btn btn-primary" data-bs-dismiss="modal">Send</button>
                   </div>
                 </form>
               </div>

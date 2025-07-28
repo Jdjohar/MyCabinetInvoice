@@ -34,13 +34,13 @@ export default function ForgotPassword() {
             <div className='signin-form loginbox p-5 pb-4 mt-3'>
                 <p className='h4 fw-bold'>Forgot Password</p>
 
-                <div className="form-group mb-4 pt-3">
-                    <label className="label mb-1" for="email">Enter Email</label>
-                    <input type="email" className="form-control" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter Email" />
+                <div class="form-group mb-4 pt-3">
+                    <label class="label mb-1" for="email">Enter Email</label>
+                    <input type="email" class="form-control" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Enter Email" />
                 </div>
 
-                <div className=" d-flex justify-content-center">
-                    <button className="form-control w-75 btn btnblur text-white mb-1" onClick={handleResetPassword}>Reset Password</button>
+                <div class=" d-flex justify-content-center">
+                    <button class="form-control w-75 btn btnblur text-white mb-1" onClick={handleResetPassword}>Reset Password</button>
                 </div>
                 {message && <p className='text-danger text-center fw-bold'>{message}</p>}
             </div>

@@ -5,8 +5,12 @@ const CustomerSchema = new Schema({
     name:{
         type: String,
     },
-    email:{
-        type: String,
+    // email:{
+    //     type: String,
+    // },
+    emails: {
+        type: [String],
+        required: true
     },
     number:{
         type: String,

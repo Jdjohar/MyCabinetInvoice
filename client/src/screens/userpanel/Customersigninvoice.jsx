@@ -431,7 +431,7 @@ thead{
         </style>
       </head>
       <body>
-        <div className="print-page">
+        <div class="print-page">
           ${content}
         </div>
       </body>
@@ -887,7 +887,7 @@ console.log(offset);
             <div className="row">
                 <div className='m-auto'>
                   <div className='text-center pt-5'>
-                    <button className='pdfbtn text-center' onClick={handlePrintContent}><i className="fa-solid fa-print mx-2"></i>Pdf</button>
+                    <button className='pdfbtn text-center' onClick={handlePrintContent}><i class="fa-solid fa-print mx-2"></i>Pdf</button>
                   </div>
 
                     <div className="row py-4 px-2">
@@ -906,11 +906,32 @@ console.log(offset);
                                 <h2>Invoice</h2>
                                 <div className='text-inverse mb-1'>
                                   <strong>{signupdata != null ? signupdata.companyname : ""}</strong>
+                                  <address className='m-t-5 m-b-5'>
+                                  <div className='mb-2'>
+                                    <div className=''>{signupdata.address} </div>
+                                      {signupdata.city ? JSON.parse(signupdata.city).name+',' : ' '}
+                                      {signupdata.state ? JSON.parse(signupdata.state).name : ' '}
+                                     {/* <div className=''>{JSON.parse(signupdata.city).name}, {JSON.parse(signupdata.state).name}</div>
+                                    <div className=''>{JSON.parse(signupdata.country).emoji}</div> */}
+                                  </div>
+                                  <div>{signupdata.email}</div>
+                                  <div>{signupdata.website} </div>
+                                  <div>
+                                    {signupdata.gstNumber == ''
+                                    ?
+                                  ""
+                                  :
+                                  `${signupdata.TaxName } ${signupdata.gstNumber}`
+                                  }
+
+                                    </div>
+
+                                </address>
                                 </div>
                               </div>
 
                             </div>
-                            <div className="clr"></div>
+                            <div class="clr"></div>
                           </div>
                           <div className='invoice-header'>
                             <div className='row'>
@@ -946,7 +967,7 @@ console.log(offset);
                                 </div>
                               </div>
                             </div>
-                            <div className="clr"></div>
+                            <div class="clr"></div>
                           </div>
 
                           <div className='invoice-table'>
@@ -988,6 +1009,18 @@ console.log(offset);
                                       <td className='text-md-end' width="22%">Subtotal</td>
                                       <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData?.subtotal || '')}</td>
                                     </tr>
+
+                                   {
+  invoiceData.tax > 0
+    ?
+    <tr>
+      <td className='text-md-end' width="22%">{signupdata.TaxName} ({signupdata.taxPercentage}%) </td>
+      <td className='text-end' width="22%"><CurrencySign />{roundOff(invoiceData.tax)}</td>
+    </tr>
+    :
+    null
+}
+                                
                                     {
                                       invoiceData.discountTotal > 0 
                                       ?
@@ -998,6 +1031,12 @@ console.log(offset);
                                       :
                                         null
                                     }
+                                    <tr>
+
+
+<td className='text-md-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}>Total</td>
+<td className='text-end' width="22%" style={{ borderBottom: '1px solid #ddd' }}><CurrencySign />{roundOff(invoiceData.total)}</td>
+</tr>
                                     <tr>
                                     </tr>
                                     {transactions.map((transaction) => (
@@ -1010,7 +1049,7 @@ console.log(offset);
                                 </table>
                               </div>
                             </div>
-                            <div className="clr"></div>
+                            <div class="clr"></div>
                           </div>
 
                           <div className='invoice-price page-not-break'>
@@ -1019,7 +1058,7 @@ console.log(offset);
                             </div>
                             <div className='invoice-price-right'>
                               <small>Amount Due</small>
-                              <span className="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
+                              <span class="f-w-600 mt-3"><CurrencySign />{roundOff(invoiceData.total - transactions.reduce((total, payment) => total + payment.paidamount, 0))}</span>
                             </div>
                           </div>
                           {invoiceData.isAddSignature || invoiceData.isCustomerSign  ? 
@@ -1032,7 +1071,7 @@ console.log(offset);
                                         <div>
                                           <p className='text-center fw-bold fs-5 margin-top-sign txt-center center'>{ownerData.companyname}</p>
                                           <img src={ownerData.data} alt="Saved Signature" style={{ width: "100%" }} /><hr/>
-                                          <p className='text-center txt-center center'>{formatCustomDate(ownerData.createdAt)}</p>
+                                          <p className='text-center txt-center center'>{formatCustomDate(invoiceData.createdAt)}</p>
                                         </div>
                                       </div>
                                     )}

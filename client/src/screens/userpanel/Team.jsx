@@ -171,9 +171,9 @@ export default function Team() {
                             <div className="col-lg-4 col-md-6 col-sm-6 col-7 me-auto">
                                 <p className='h5 fw-bold'>Team</p>
                                 <nav aria-label="breadcrumb">
-                                    <ol className="breadcrumb mb-0">
-                                        <li className="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
-                                        <li className="breadcrumb-item active" aria-current="page">Team</li>
+                                    <ol class="breadcrumb mb-0">
+                                        <li class="breadcrumb-item"><a href="/Userpanel/Userdashboard" className='txtclr text-decoration-none'>Dashboard</a></li>
+                                        <li class="breadcrumb-item active" aria-current="page">Team</li>
                                     </ol>
                                 </nav>
                             </div>
@@ -195,7 +195,7 @@ export default function Team() {
                         </div>
 
                         <div className="row px-2 table-responsive">
-                            <table className="table table-bordered">
+                            <table class="table table-bordered">
                                 <thead>
                                     <tr>
                                         <th scope="col">ID </th>
@@ -263,7 +263,7 @@ export default function Team() {
                                                 <td>{team.number}</td> 
                                                 <td className='text-center'>
                                                     <a role="button" className='text-black text-center' onClick={ () => handleTimeViewClick(team)}>
-                                                        <i className="fa-solid fa-eye"></i>
+                                                        <i class="fa-solid fa-eye"></i>
                                                     </a>
                                                 </td>
                                                 <td>

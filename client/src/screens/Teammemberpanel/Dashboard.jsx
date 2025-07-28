@@ -3,7 +3,7 @@ import { format } from 'date-fns';
 import {useNavigate} from 'react-router-dom'
 import { ColorRing } from  'react-loader-spinner';
 import Alertauthtoken from '../../components/Alertauthtoken';
-
+   
 export default function Dashboard() {
   const [ loading, setloading ] = useState(true);
   const [currentPage, setCurrentPage] = useState(0);
@@ -319,7 +319,7 @@ const GoToHistory = () => {
             </div>
 
             <div className="row px-0 table-responsive box1 rounded adminborder text-center">
-              <table className="table table-bordered">
+              <table class="table table-bordered">
                   <thead>
                       <tr>
                           {/* <th scope="col">ID </th> */}

@@ -28,13 +28,14 @@ import Teamhistory from './screens/Teammemberpanel/Teamhistory';
 import Imageupload from './screens/userpanel/Imageupload';
 import Editprofile from './screens/userpanel/Editprofile';
 import Overdue from './screens/userpanel/Overdue';
-import Reports from './screens/userpanel/Reports'
+import Reports from './screens/userpanel/Reports';
 import Customerwiseinvoice from './screens/userpanel/Customerwiseinvoice'
+import Esign from './screens/userpanel/Esign';
 import Customersign from './screens/userpanel/Customersign';
 import Customersigninvoice from './screens/userpanel/Customersigninvoice';
 import Signature from './screens/userpanel/Signature';
-import Esign from './screens/userpanel/Esign';
 import Completedocument from './screens/userpanel/Completedocument';
+import Category from './screens/userpanel/Expense/Category';
 // import { InvoiceProvider } from './components/InvoiceContext';
 import {
   BrowserRouter as Router,
@@ -42,6 +43,8 @@ import {
   Route,
   Link
 } from "react-router-dom";
+import Vendor from './screens/userpanel/Expense/Vendor';
+import ExpenseEntries from './screens/userpanel/Expense/ExpenseEntries';
 
 function App() {
   return (
@@ -75,13 +78,16 @@ function App() {
             <Route exact path='/userpanel/Imageupload' element={<Imageupload/>} />
             <Route exact path='/userpanel/Editprofile' element={<Editprofile/>} />
             <Route exact path='/userpanel/Overdue' element={<Overdue/>} />
-            <Route exact path='/userpanel/Report' element={<Reports/>} />
+            <Route exact path='/userpanel/Reports' element={<Reports/>} />
             <Route exact path='/userpanel/Customerwiseinvoice' element={<Customerwiseinvoice/>} />
             <Route exact path='/customersign' element={<Customersign/>} />
             <Route exact path='/customersigninvoice' element={<Customersigninvoice/>} />
             <Route exact path='/completedocument' element={<Completedocument/>} />
-            <Route exact path='/userpanel/Signature' element={<Signature/>} />
             <Route exact path='/userpanel/E-sign' element={<Esign/>} />
+            <Route exact path='/userpanel/Signature' element={<Signature/>} />
+            <Route exact path='/userpanel/Category' element={<Category/>} />
+            <Route exact path='/userpanel/Vendor' element={<Vendor/>} />
+            <Route exact path='/userpanel/Expense' element={<ExpenseEntries/>} />
             <Route exact path='/Timeschemahistory' element={<Timeschemahistory/>} />
             <Route exact path='/Teammemberpanel/Teammenberdashboard' element={<Teammenberdashboard/>} />
             <Route exact path='/Teammemberpanel/History' element={<Teamhistory/>} />

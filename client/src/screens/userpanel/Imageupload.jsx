@@ -209,17 +209,17 @@ export default function Imageupload() {
 
                                     <div className="row">
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                            <div className="form-group pt-3">
-                                                <label className="label py-2" for="company_image">Choose Company Image</label><br />
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="company_image">Choose Company Image</label><br />
                                                 <input type="file" name="companyImageUrl" onChange={handleInputChange} /> 
                                                 <img src={signupdata.companyImageUrl} className='w-25'  alt=""  />
                                            </div>
                                         </div>
 
                                         {/* <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                            <div className="form-group pt-3">
-                                                <label className="label py-2" for="company_name">Company name</label>
-                                                <input type="text" className="form-control" name="companyname" value={signupdata.companyname} onChange={handleInputChange} placeholder="Company name" />
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="company_name">Company name</label>
+                                                <input type="text" class="form-control" name="companyname" value={signupdata.companyname} onChange={handleInputChange} placeholder="Company name" />
                                             </div>
                                         </div>
 
@@ -263,21 +263,21 @@ export default function Imageupload() {
                                         </div>
                                         
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                            <div className="form-group pt-3">
-                                                <label className="label py-2" for="First_Name">First Name</label>
-                                                <input type="text" className="form-control" name="FirstName" value={signupdata.FirstName} onChange={handleInputChange} placeholder="First Name" />
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="First_Name">First Name</label>
+                                                <input type="text" class="form-control" name="FirstName" value={signupdata.FirstName} onChange={handleInputChange} placeholder="First Name" />
                                             </div>
                                         </div>
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                            <div className="form-group pt-3">
-                                                <label className="label py-2" for="Last_Name">Last Name</label>
-                                                <input type="text" className="form-control" name="LastName" value={signupdata.LastName} onChange={handleInputChange} placeholder="Last Name"  />
+                                            <div class="form-group pt-3">
+                                                <label class="label py-2" for="Last_Name">Last Name</label>
+                                                <input type="text" class="form-control" name="LastName" value={signupdata.LastName} onChange={handleInputChange} placeholder="Last Name"  />
                                             </div>
                                         </div>
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
-                                            <div className="form-group mb-3 pt-3">
-                                                <label className="label py-2" for="email">Email</label>
-                                                <input type="text" className="form-control" name="email" value={signupdata.email} onChange={handleInputChange} placeholder="Email"  />
+                                            <div class="form-group mb-3 pt-3">
+                                                <label class="label py-2" for="email">Email</label>
+                                                <input type="text" class="form-control" name="email" value={signupdata.email} onChange={handleInputChange} placeholder="Email"  />
                                             </div>
                                         </div>
                                         <div className="col-12 col-sm-12 col-md-6 col-lg-6">
