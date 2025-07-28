@@ -56,6 +56,7 @@ const handleEntriesChange = (e) => {
 
   const fetchdata = async () => {
     try {
+      
       const userid = localStorage.getItem("userid");
       const authToken = localStorage.getItem('authToken');
       const response = await fetch(`https://mycabinet.onrender.com/api/customers/${userid}`, {
