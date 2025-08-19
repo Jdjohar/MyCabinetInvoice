@@ -86,7 +86,27 @@ export default function Createinvoice() {
         amount: '', discountTotal: '', tax: '', taxpercentage: '', subtotal: '', total: '', amountdue: '', information: '',
     });
     // const [editorData, setEditorData] = useState("<p></p>");
-    const [editorData, setEditorData] = useState(``);
+    const [editorData, setEditorData] = useState(`<p>
+            If you have any queries contact us. please deposit <strong>40%</strong> to secure your place 
+            <strong>50%</strong> before delivery and the remaining <strong>10%</strong> on Completion,<br />
+            Please share the payment receipt<br />
+            <strong>Maan Trans PTY Ltd</strong><br />
+            <strong>BSB</strong>:-033501<br />
+            <strong>ACC NO</strong>:-399823<br />
+            We Accept Credit Cards (Surcharged 3%) Standard Hardware unless Requested
+            <ul>
+            <li>Quotation Is based on drawings provided and quote is valid for 2 weeks from the date of issue. </li>
+            <li>Overhead Cabinets and Fridge Panels are of maximum 2380mm in Height. </li>
+            <li>All Cabinets are made with A-Grade Australian made material in our factory in Ravenhall. </li>
+            <li>Plumbing and Electrical Connection disconnect or replace is customer responsibility. </li>
+            <li>There will be 3-5mm Gap between wall and panels is expectable. </li>
+            <li>Travel Charges over 50km of radius form Ravenhall will be charged. 
+</li>
+            <li>Delivery to upstairs additional $100 to each floor will be added to final invoice. 
+</li>
+            <li>Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost. Thank you for Business With Us</li>
+            </ul>
+            </p>`);
     const [noteimageUrl, setnoteImageUrl] = useState('');
     const [alertMessage, setAlertMessage] = useState('');
     const [isSignatureModalOpen, setIsSignatureModalOpen] = useState(false);

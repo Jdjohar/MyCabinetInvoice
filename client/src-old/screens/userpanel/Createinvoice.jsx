@@ -101,11 +101,23 @@ export default function Createinvoice() {
             If you have any queries contact us. please deposit <strong>40%</strong> to secure your place 
             <strong>50%</strong> before delivery and the remaining <strong>10%</strong> on Completion,<br />
             Please share the payment receipt<br />
-            <strong>Commonwealth</strong><br />
-            <strong>BSB</strong>:-063 253<br />
-            <strong>ACC NO</strong>:-1105 4298<br />
+            <strong>Maan Trans PTY Ltd</strong><br />
+            <strong>BSB</strong>:-033501<br />
+            <strong>ACC NO</strong>:-399823<br />
             We Accept Credit Cards (Surcharged 3%) Standard Hardware unless Requested
-        </p>
+            <ul>
+            <li>Quotation Is based on drawings provided and quote is valid for 2 weeks from the date of issue. </li>
+            <li>Overhead Cabinets and Fridge Panels are of maximum 2380mm in Height. </li>
+            <li>All Cabinets are made with A-Grade Australian made material in our factory in Ravenhall. </li>
+            <li>Plumbing and Electrical Connection disconnect or replace is customer responsibility. </li>
+            <li>There will be 3-5mm Gap between wall and panels is expectable. </li>
+            <li>Travel Charges over 50km of radius form Ravenhall will be charged. 
+</li>
+            <li>Delivery to upstairs additional $100 to each floor will be added to final invoice. 
+</li>
+            <li>Overdue or unpaid accounts will refer to debit collection agency or law firm. you will be liable for all cost in full include all legal demand cost. Thank you for Business With Us</li>
+            </ul>
+            </p>
     `);
     const [noteimageUrl, setnoteImageUrl] = useState(''); 
     const [alertMessage, setAlertMessage] = useState('');
@@ -366,7 +378,8 @@ export default function Createinvoice() {
 
     const handleEditorChange = (event, editor) => {
         const data = editor.getData();
-        setEditorData(data);
+    setEditorData(data);
+    // setInvoiceData(prev => ({ ...prev, information: data }));
     };
 
    const onChangeQuantity = (event, itemId) => {
@@ -624,7 +637,8 @@ export default function Createinvoice() {
             const taxAmount = calculateTaxAmount(); // Calculate tax amount based on subtotal and tax percentage
 
             const taxPercentageValue = taxPercentage; // Retrieve tax percentage from invoiceData state
-
+            console.log(editorData,"editorData");
+            
             const data = {
                 userid: userid,
                 customername: selectedCustomer.name,
@@ -672,7 +686,7 @@ export default function Createinvoice() {
                     if (responseData.success) {
                         const invoiceid = responseData.invoice._id;
                         console.log("After Invoice responseData:", responseData);
-                        navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
+                        // navigate('/userpanel/Invoicedetail', { state: { invoiceid } });
                         console.log(responseData, 'Invoice saved successfully!');
                     } else {
                         console.error('Failed to save the invoice.');
@@ -900,7 +914,7 @@ export default function Createinvoice() {
                                                                 </div>
                                                             ) : (
                                                                 <div className="search-container forms">
-                                                                    <p className='fs-20 mb-0'>Select Customers</p>
+                                                                    <p className='fs-20 mb-0'>Select Customers sd</p>
                                                                     <div className="row">
                                                                         <div className="col-6">
                                                                             {/* <VirtualizedSelect
@@ -1238,15 +1252,16 @@ export default function Createinvoice() {
 
 
 
-                                                    <label htmlFor="" className='fs-4 ms-2 mt-5'>Note</label>
+                                                    <label htmlFor="" className='fs-4 ms-2 mt-5'>Note {editorData}</label>
                                                     <div className='box1 rounded adminborder m-2'>
+                                                       {console.log("editorData before render:", editorData)}
                                                         <CKEditor
                                                             editor={ClassicEditor}
-                                                            data={editorData}
+                                                            data={editorData || 'Empty Data'}
                                                             // onReady={ editor => {
                                                             //     console.log( 'Editor is ready to use!', editor );
                                                             // } }
-
+                                                            key={editorData}
                                                             onChange={handleEditorChange}
                                                             config={{
                                                                 extraPlugins: [MyCustomUploadAdapterPlugin],
